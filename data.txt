@@ -1,0 +1,6 @@
+role: 
+- Super Admin
+- Admin Perusahaan
+- Kepala Instansi (Kabid-Kadis)
+- Supervisor (orang yang di lapangan)
+
