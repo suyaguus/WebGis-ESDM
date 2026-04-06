@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# env
+.env
+
+# prisma
+prisma/migrations
+
+# logs
+logs
+*.log
+
+# OS
+.DS_Store
+
+# build
+.next
+dist

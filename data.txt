@@ -4,3 +4,71 @@ role:
 - Kepala Instansi (Kabid-Kadis)
 - Supervisor (orang yang di lapangan)
 
+admin Perusahaan
+- data Perusahaan
+- data jenis usaha Perusahaan
+- data sumur bor
+- data pelaporan
+- data non-perusahaan/instansi/rumah tangga
+
+data perusahaan
+- jenis usaha - data sumur bor
+- id
+- nama
+- alamat
+- email
+- no hp
+
+data usaha
+- id 
+- nama usaha
+- alamat usaha
+- no hp
+- 
+
+- kepala instansi
+- cetak laporan: 
+
+data pelaporan
+- kedalaman air tanah (meter)
+- pemakaian / debit air yang digunakan
+- kualitas air
+- foto + inputan angka
+
+data pelaporan 
+- perizinan sumur yang di verifikasi super admin
+- supervisor/admin perusahaan wajib upload foto/ document untuk yang sudah memiliki izin
+- deskripsi dari supervisor/admin perusahaan
+
+fe
+- menampilkan peta
+- inputan teknis sumur bor :
+      - lokasi
+      - koordinat
+      - kedalaman air tanah
+- responsif react
+
+login 4 user: register: admin perusahaan yang di verifikasi super admin
+
+data sumur galian
+- id
+- nama sumur 
+- koordinat (latitude,)
+- tgl terbit
+- diameter sumur (inch)
+- kedalaman sumur (meter)
+- diameter pipa jamban(inch)
+- diameter pipa casing(inch)
+- kapasitas pompa
+- kedalaman pompa (meter)
+- diameter pipa hisy
+
+data izin sumur bor
+- id
+- tgl terbit 
+- tgl expired 
+- upload dulu izin nya
+
+data perusahaan 
+- perusahaan 
+- non perusahaan
