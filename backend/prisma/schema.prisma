@@ -166,3 +166,16 @@ model Permit {
 
   // relasi
 }
+
+// model report rejection
+model ReportRejection {
+  id String @id @default(uuid())
+  
+  reportId String @unique
+  reason String
+
+  rejectedBy String
+  rejectedAt DateTime @default(now())
+
+  // relasi
+}
