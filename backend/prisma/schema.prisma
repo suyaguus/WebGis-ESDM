@@ -32,3 +32,9 @@ enum PermitStatus {
   approved
   rejected
 }
+
+enum WellType {
+  perusahaan
+  non_perusahaan
+  rumah_tangga
+}
