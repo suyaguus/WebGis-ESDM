@@ -144,3 +144,25 @@ model Report {
 
   // relasi
 }
+
+// model permit (perizinan)
+model Permit {
+  id String @id @default(uuid())
+  
+  wellId String
+
+  permitNumber String
+  issueDate DateTime
+  expiryDate DateTime
+
+  documentUrl String?
+
+  status PermitStatus @default(pending)
+  
+  verfiedBy String?
+  verifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  // relasi
+}
