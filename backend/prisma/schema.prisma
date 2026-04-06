@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,9 +6,8 @@ datasource db {
   provider = "postgresql"
 }
 
-// enum section
+// enum
 
-// enum role
 enum Role {
   super_admin
   admin_perusahaan
@@ -21,21 +15,18 @@ enum Role {
   supervisor
 }
 
-// enum report status
 enum ReportStatus {
   diproses
   diterima
   ditolak
 }
 
-// enum permit status
 enum PermitStatus {
   pending
   approved
   rejected
 }
 
-// enum well type
 enum WellType {
   perusahaan
   non_perusahaan
@@ -60,122 +51,159 @@ model User {
 
   createdAt DateTime @default(now())
 
-  // relasi
+  // RELASI
+  company Company? @relation(fields: [companyId], references: [id])
 
+  creator      User?  @relation("UserCreator", fields: [createdBy], references: [id])
+  createdUsers User[] @relation("UserCreator")
+
+  reports         Report[]
+  verifiedReports Report[]          @relation("ReportVerifier")
+  verifiedPermits Permit[]          @relation("PermitVerifier")
+  rejections      ReportRejection[]
+
+  @@index([companyId])
 }
 
-// model company
-model Company {
-  id String @id @default(uuid())
-  name String
-  address String?
-  email String?
-  phone String?
 
-  type String?
+// company
+model Company {
+  id      String  @id @default(uuid())
+  name    String
+  address String?
+  email   String?
+  phone   String?
+
+  type       String?
   isVerified Boolean @default(false)
 
   createdAt DateTime @default(now())
 
-  // relasi
-  
+  // RELASI
+  users      User[]
+  wells      Well[]
+  businesses Business[]
 }
 
-// model business 
+// model business
 model Business {
-  id String @id @default(uuid())
-  name String
+  id      String  @id @default(uuid())
+  name    String
   address String?
-  phone String?
+  phone   String?
 
   companyId String
-  
+
   createdAt DateTime @default(now())
 
-  // relasi
+  // RELASI
+  company Company @relation(fields: [companyId], references: [id])
 }
 
 // model well (sumur)
 model Well {
-  id String @id @default(uuid())
+  id   String @id @default(uuid())
   name String
 
   companyId String
 
-  latitude Float?
-  longitude Float?
+  latitude            Float?
+  longitude           Float?
   locationDescription String?
 
   wellType WellType
 
-  depthMeter Float?
-  diameterInch Float?
+  depthMeter     Float?
+  diameterInch   Float?
   casingDiameter Float?
-  pumpCapacity Float?
-  pumpDepth Float?
-  pipeDiameter Float?
+  pumpCapacity   Float?
+  pumpDepth      Float?
+  pipeDiameter   Float?
 
   createdAt DateTime @default(now())
 
-  // relasi
+  // RELASI
+  company Company  @relation(fields: [companyId], references: [id])
+  reports Report[]
+  permits Permit[]
+
+  @@index([companyId])
 }
 
-// model report (pelaporan)
+// model report (laporan)
 model Report {
   id String @id @default(uuid())
-  
+
   wellId String
   userId String
 
-  waterDepth Float?
-  waterUsage Float?
+  waterDepth   Float // WAJIB
+  waterUsage   Float?
   waterQuality String?
 
-  hasPermint Boolean @default(false)
+  hasPermit Boolean @default(false)
 
   description String?
-  photoUrl String?
+  photoUrl    String // WAJIB
 
   status ReportStatus @default(diproses)
+
   verifiedBy String?
   verifiedAt DateTime?
 
   createdAt DateTime @default(now())
 
-  // relasi
+  // RELASI
+  well Well @relation(fields: [wellId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  verifier User? @relation("ReportVerifier", fields: [verifiedBy], references: [id])
+
+  rejection ReportRejection?
+
+  @@index([wellId])
+  @@index([userId])
+  @@index([status])
 }
 
-// model permit (perizinan)
+// model permit (izin)
 model Permit {
   id String @id @default(uuid())
-  
+
   wellId String
 
-  permitNumber String
-  issueDate DateTime
-  expiryDate DateTime
+  permitNumber String?
+  issueDate    DateTime?
+  expiryDate   DateTime?
 
   documentUrl String?
 
   status PermitStatus @default(pending)
-  
-  verfiedBy String?
+
+  verifiedBy String?
   verifiedAt DateTime?
 
   createdAt DateTime @default(now())
 
-  // relasi
+  // RELASI
+  well     Well  @relation(fields: [wellId], references: [id])
+  verifier User? @relation("PermitVerifier", fields: [verifiedBy], references: [id])
+
+  @@index([wellId])
+  @@index([status])
 }
 
-// model report rejection
+// model report rejection (penolakan laporan)
 model ReportRejection {
   id String @id @default(uuid())
-  
-  reportId String @unique
-  reason String
 
-  rejectedBy String
+  reportId String @unique
+  reason   String
+
+  rejectedBy String?
   rejectedAt DateTime @default(now())
 
-  // relasi
+  // RELASI
+  report Report @relation(fields: [reportId], references: [id])
+  user   User?  @relation(fields: [rejectedBy], references: [id])
 }
