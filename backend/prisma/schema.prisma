@@ -94,3 +94,28 @@ model Business {
 
   // relasi
 }
+
+// model well (sumur)
+model Well {
+  id String @id @default(uuid())
+  name String
+
+  companyId String
+
+  latitude Float?
+  longitude Float?
+  locationDescription String?
+
+  wellType WellType
+
+  depthMeter Float?
+  diameterInch Float?
+  casingDiameter Float?
+  pumpCapacity Float?
+  pumpDepth Float?
+  pipeDiameter Float?
+
+  createdAt DateTime @default(now())
+
+  // relasi
+}
