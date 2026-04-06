@@ -20,3 +20,9 @@ enum Role {
   kepala_instansi
   supervisor
 }
+
+enum ReportStatus {
+  diproses
+  diterima
+  ditolak
+}
