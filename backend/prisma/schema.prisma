@@ -26,3 +26,9 @@ enum ReportStatus {
   diterima
   ditolak
 }
+
+enum PermitStatus {
+  pending
+  approved
+  rejected
+}
