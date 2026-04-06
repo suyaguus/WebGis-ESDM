@@ -21,18 +21,21 @@ enum Role {
   supervisor
 }
 
+// enum report status
 enum ReportStatus {
   diproses
   diterima
   ditolak
 }
 
+// enum permit status
 enum PermitStatus {
   pending
   approved
   rejected
 }
 
+// enum well type
 enum WellType {
   perusahaan
   non_perusahaan
