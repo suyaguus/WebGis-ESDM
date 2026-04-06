@@ -80,3 +80,17 @@ model Company {
   // relasi
   
 }
+
+// model business 
+model Business {
+  id String @id @default(uuid())
+  name String
+  address String?
+  phone String?
+
+  companyId String
+  
+  createdAt DateTime @default(now())
+
+  // relasi
+}
