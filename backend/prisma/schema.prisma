@@ -61,5 +61,22 @@ model User {
   createdAt DateTime @default(now())
 
   // relasi
+
+}
+
+// model company
+model Company {
+  id String @id @default(uuid())
+  name String
+  address String?
+  email String?
+  phone String?
+
+  type String?
+  isVerified Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  // relasi
   
 }
