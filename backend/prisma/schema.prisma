@@ -119,3 +119,28 @@ model Well {
 
   // relasi
 }
+
+// model report (pelaporan)
+model Report {
+  id String @id @default(uuid())
+  
+  wellId String
+  userId String
+
+  waterDepth Float?
+  waterUsage Float?
+  waterQuality String?
+
+  hasPermint Boolean @default(false)
+
+  description String?
+  photoUrl String?
+
+  status ReportStatus @default(diproses)
+  verifiedBy String?
+  verifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  // relasi
+}
