@@ -145,8 +145,8 @@ export default function SensorMap() {
       {/* Map */}
       <div className="flex-1 relative min-h-0">
         <MapContainer
-          center={[-6.2, 106.82]}
-          zoom={11}
+          center={[-5.12, 105.10]}
+          zoom={8}
           style={{ height: '100%', width: '100%' }}
           zoomControl
         >
