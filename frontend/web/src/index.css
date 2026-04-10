@@ -1,0 +1,91 @@
+@import "leaflet/dist/leaflet.css";
+@import "./leaflet-light.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+
+  body {
+    @apply bg-bg-app text-text-primary font-sans;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar       { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-border-strong/60 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-border-strong; }
+}
+
+@layer components {
+
+  /* ── Sidebar nav item ─────────────────────────────────────────────── */
+  .nav-item {
+    @apply flex items-center gap-2.5 px-4 py-[7px] text-[11px] text-text-secondary
+           cursor-pointer relative transition-all duration-150
+           hover:bg-bg-card3 hover:text-text-primary;
+  }
+  .nav-item.active {
+    @apply text-accent-cyan bg-fill-cyan font-semibold;
+  }
+  .nav-item.active::before {
+    content: '';
+    @apply absolute left-0 top-0 bottom-0 w-[3px] bg-accent-cyan rounded-r-full;
+  }
+
+  /* ── Card / Panel ─────────────────────────────────────────────────── */
+  .panel {
+    @apply bg-bg-card border border-border-base rounded-xl overflow-hidden shadow-card;
+  }
+  .panel-header {
+    @apply flex items-center gap-2 px-4 py-[10px] border-b border-border-base flex-shrink-0;
+  }
+  .panel-title  { @apply text-[11px] font-semibold text-text-primary; }
+  .panel-sub    { @apply text-[9px] text-text-muted font-mono ml-auto tracking-wide; }
+
+  /* ── Stat card ────────────────────────────────────────────────────── */
+  .stat-card     { @apply relative overflow-hidden rounded-xl border border-border-base bg-bg-card p-3 shadow-card; }
+  .stat-card-bar { @apply absolute top-0 left-0 right-0 h-[3px]; }
+
+  /* ── Badges ───────────────────────────────────────────────────────── */
+  .badge          { @apply inline-block px-[6px] py-[2px] rounded-md text-[8px] font-mono font-semibold; }
+  .badge-critical { @apply bg-fill-red    text-accent-red    ring-1 ring-accent-red/20;    }
+  .badge-warning  { @apply bg-fill-amber  text-accent-amber  ring-1 ring-accent-amber/20;  }
+  .badge-info     { @apply bg-fill-blue   text-accent-blue   ring-1 ring-accent-blue/20;   }
+  .badge-success  { @apply bg-fill-green  text-accent-green  ring-1 ring-accent-green/20;  }
+
+  /* ── Status pills ─────────────────────────────────────────────────── */
+  .status-pill    { @apply inline-flex items-center gap-1 px-2 py-[2px] rounded-full text-[9px] font-mono font-medium; }
+  .pill-online    { @apply bg-fill-green  text-accent-green;  }
+  .pill-offline   { @apply bg-fill-red    text-accent-red;    }
+  .pill-warning   { @apply bg-fill-amber  text-accent-amber;  }
+  .pill-evaluation{ @apply bg-fill-amber  text-accent-amber;  }
+
+  /* ── Alert items ──────────────────────────────────────────────────── */
+  .alert-item    {
+    @apply p-[9px_11px] rounded-lg mb-[5px] border-l-[3px] bg-bg-card2
+           border border-border-base border-l-transparent cursor-pointer
+           hover:shadow-card transition-shadow;
+  }
+  .alert-critical { @apply border-l-accent-red;   }
+  .alert-warning  { @apply border-l-accent-amber; }
+  .alert-info     { @apply border-l-accent-blue;  }
+
+  /* ── Data table ───────────────────────────────────────────────────── */
+  .data-table { @apply w-full border-collapse; }
+  .data-table th {
+    @apply text-[9px] text-text-muted uppercase tracking-[0.9px] px-3 py-[8px]
+           text-left border-b border-border-base font-mono bg-bg-card3;
+  }
+  .data-table td {
+    @apply text-[11px] text-text-secondary px-3 py-[8px]
+           border-b border-border-light transition-colors;
+  }
+  .data-table tr:last-child td { @apply border-b-0; }
+  .data-table tr:hover td      { @apply bg-bg-card3; }
+  .td-primary { @apply text-text-primary font-semibold; }
+  .td-mono    { @apply font-mono text-[10px]; }
+}
