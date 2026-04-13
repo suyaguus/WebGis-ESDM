@@ -4,9 +4,129 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// enum
+model User {
+  id              String            @id @default(uuid())
+  name            String
+  email           String            @unique
+  password        String
+  phone           String?
+  role            Role
+  companyId       String?
+  createdBy       String?
+  isVerified      Boolean           @default(false)
+  isActive        Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  verifiedPermits Permit[]          @relation("PermitVerifier")
+  reports         Report[]
+  verifiedReports Report[]          @relation("ReportVerifier")
+  rejections      ReportRejection[]
+  company         Company?          @relation(fields: [companyId], references: [id])
+  creator         User?             @relation("UserCreator", fields: [createdBy], references: [id])
+  createdUsers    User[]            @relation("UserCreator")
+
+  @@index([companyId])
+}
+
+model Company {
+  id         String     @id @default(uuid())
+  name       String
+  address    String?
+  email      String?
+  phone      String?
+  type       String?
+  isVerified Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  businesses Business[]
+  users      User[]
+  wells      Well[]
+}
+
+model Business {
+  id        String   @id @default(uuid())
+  name      String
+  address   String?
+  phone     String?
+  companyId String
+  createdAt DateTime @default(now())
+  company   Company  @relation(fields: [companyId], references: [id])
+}
+
+model Well {
+  id                  String   @id @default(uuid())
+  name                String
+  companyId           String
+  latitude            Float?
+  longitude           Float?
+  locationDescription String?
+  wellType            WellType
+  depthMeter          Float?
+  diameterInch        Float?
+  casingDiameter      Float?
+  pumpCapacity        Float?
+  pumpDepth           Float?
+  pipeDiameter        Float?
+  createdAt           DateTime @default(now())
+  permits             Permit[]
+  reports             Report[]
+  company             Company  @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+}
+
+model Report {
+  id           String           @id @default(uuid())
+  wellId       String
+  userId       String
+  waterDepth   Float
+  waterUsage   Float?
+  waterQuality String?
+  hasPermit    Boolean          @default(false)
+  description  String?
+  photoUrl     String
+  status       ReportStatus     @default(diproses)
+  verifiedBy   String?
+  verifiedAt   DateTime?
+  createdAt    DateTime         @default(now())
+  user         User             @relation(fields: [userId], references: [id])
+  verifier     User?            @relation("ReportVerifier", fields: [verifiedBy], references: [id])
+  well         Well             @relation(fields: [wellId], references: [id])
+  rejection    ReportRejection?
+
+  @@index([wellId])
+  @@index([userId])
+  @@index([status])
+}
+
+model Permit {
+  id           String       @id @default(uuid())
+  wellId       String
+  permitNumber String?
+  issueDate    DateTime?
+  expiryDate   DateTime?
+  documentUrl  String?
+  status       PermitStatus @default(pending)
+  verifiedBy   String?
+  verifiedAt   DateTime?
+  createdAt    DateTime     @default(now())
+  verifier     User?        @relation("PermitVerifier", fields: [verifiedBy], references: [id])
+  well         Well         @relation(fields: [wellId], references: [id])
+
+  @@index([wellId])
+  @@index([status])
+}
+
+model ReportRejection {
+  id         String   @id @default(uuid())
+  reportId   String   @unique
+  reason     String
+  rejectedBy String?
+  rejectedAt DateTime @default(now())
+  user       User?    @relation(fields: [rejectedBy], references: [id])
+  report     Report   @relation(fields: [reportId], references: [id])
+}
 
 enum Role {
   super_admin
@@ -31,179 +151,4 @@ enum WellType {
   perusahaan
   non_perusahaan
   rumah_tangga
-}
-
-// model user
-model User {
-  id       String  @id @default(uuid())
-  name     String
-  email    String  @unique
-  password String
-  phone    String?
-
-  role Role
-
-  companyId String?
-  createdBy String?
-
-  isVerified Boolean @default(false)
-  isActive   Boolean @default(true)
-
-  createdAt DateTime @default(now())
-
-  // RELASI
-  company Company? @relation(fields: [companyId], references: [id])
-
-  creator      User?  @relation("UserCreator", fields: [createdBy], references: [id])
-  createdUsers User[] @relation("UserCreator")
-
-  reports         Report[]
-  verifiedReports Report[]          @relation("ReportVerifier")
-  verifiedPermits Permit[]          @relation("PermitVerifier")
-  rejections      ReportRejection[]
-
-  @@index([companyId])
-}
-
-
-// company
-model Company {
-  id      String  @id @default(uuid())
-  name    String
-  address String?
-  email   String?
-  phone   String?
-
-  type       String?
-  isVerified Boolean @default(false)
-
-  createdAt DateTime @default(now())
-
-  // RELASI
-  users      User[]
-  wells      Well[]
-  businesses Business[]
-}
-
-// model business
-model Business {
-  id      String  @id @default(uuid())
-  name    String
-  address String?
-  phone   String?
-
-  companyId String
-
-  createdAt DateTime @default(now())
-
-  // RELASI
-  company Company @relation(fields: [companyId], references: [id])
-}
-
-// model well (sumur)
-model Well {
-  id   String @id @default(uuid())
-  name String
-
-  companyId String
-
-  latitude            Float?
-  longitude           Float?
-  locationDescription String?
-
-  wellType WellType
-
-  depthMeter     Float?
-  diameterInch   Float?
-  casingDiameter Float?
-  pumpCapacity   Float?
-  pumpDepth      Float?
-  pipeDiameter   Float?
-
-  createdAt DateTime @default(now())
-
-  // RELASI
-  company Company  @relation(fields: [companyId], references: [id])
-  reports Report[]
-  permits Permit[]
-
-  @@index([companyId])
-}
-
-// model report (laporan)
-model Report {
-  id String @id @default(uuid())
-
-  wellId String
-  userId String
-
-  waterDepth   Float // WAJIB
-  waterUsage   Float?
-  waterQuality String?
-
-  hasPermit Boolean @default(false)
-
-  description String?
-  photoUrl    String // WAJIB
-
-  status ReportStatus @default(diproses)
-
-  verifiedBy String?
-  verifiedAt DateTime?
-
-  createdAt DateTime @default(now())
-
-  // RELASI
-  well Well @relation(fields: [wellId], references: [id])
-  user User @relation(fields: [userId], references: [id])
-
-  verifier User? @relation("ReportVerifier", fields: [verifiedBy], references: [id])
-
-  rejection ReportRejection?
-
-  @@index([wellId])
-  @@index([userId])
-  @@index([status])
-}
-
-// model permit (izin)
-model Permit {
-  id String @id @default(uuid())
-
-  wellId String
-
-  permitNumber String?
-  issueDate    DateTime?
-  expiryDate   DateTime?
-
-  documentUrl String?
-
-  status PermitStatus @default(pending)
-
-  verifiedBy String?
-  verifiedAt DateTime?
-
-  createdAt DateTime @default(now())
-
-  // RELASI
-  well     Well  @relation(fields: [wellId], references: [id])
-  verifier User? @relation("PermitVerifier", fields: [verifiedBy], references: [id])
-
-  @@index([wellId])
-  @@index([status])
-}
-
-// model report rejection (penolakan laporan)
-model ReportRejection {
-  id String @id @default(uuid())
-
-  reportId String @unique
-  reason   String
-
-  rejectedBy String?
-  rejectedAt DateTime @default(now())
-
-  // RELASI
-  report Report @relation(fields: [reportId], references: [id])
-  user   User?  @relation(fields: [rejectedBy], references: [id])
 }
