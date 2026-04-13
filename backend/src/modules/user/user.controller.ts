@@ -8,6 +8,7 @@ type Params = {
   id: string;
 };
 
+// controller create user baru
 export const create = async (
   req: Request<{}, {}, CreateUserInput>,
   res: Response,
@@ -24,18 +25,21 @@ export const create = async (
   }
 };
 
+// controller get all data user
 export const findAll = async (_req: Request, res: Response) => {
   const users = await userService.getUsers();
 
   return successResponse(res, users, MESSAGES.SUCCESS.GET);
 };
 
+// controller get data user by id
 export const findOne = async (req: Request<Params>, res: Response) => {
   const user = await userService.getUserById(req.params.id);
 
   return successResponse(res, user, MESSAGES.SUCCESS.GET);
 };
 
+// controller update data user by id
 export const update = async (
   req: Request<Params, {}, UpdateUserInput>,
   res: Response,
@@ -45,6 +49,7 @@ export const update = async (
   return successResponse(res, user, MESSAGES.SUCCESS.UPDATE);
 };
 
+// controller untuk menghapus data user berdasarkan id
 export const remove = async (req: Request<Params>, res: Response) => {
   const currentUser = req.user!;
 
@@ -61,6 +66,7 @@ export const remove = async (req: Request<Params>, res: Response) => {
   return successResponse(res, null, MESSAGES.SUCCESS.DELETE);
 };
 
+// controller untuk menonaktifkan account user berdasarkan id
 export const deactivate = async (req: Request<Params>, res: Response) => {
   const user = await userService.deactivateUser(req.params.id);
 
