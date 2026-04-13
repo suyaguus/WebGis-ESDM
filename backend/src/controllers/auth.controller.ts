@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
 import * as authService from "../services/auth.service";
+import { Role } from "@prisma/client";
 
 type RegisterBody = {
   name: string;
   email: string;
   password: string;
-  role: string;
+  role: Role;
 };
 
 type LoginBody = {
