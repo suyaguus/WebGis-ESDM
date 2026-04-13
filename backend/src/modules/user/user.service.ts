@@ -17,6 +17,7 @@ export const createUser = async (data: CreateUserInput, creatorId: string) => {
 export const getUsers = async () => {
   return prisma.user.findMany({
     select: {
+      isActive: true,
       id: true,
       name: true,
       email: true,
@@ -25,7 +26,6 @@ export const getUsers = async () => {
       companyId: true,
       createdBy: true,
       isVerified: true,
-      isActive: true,
       createdAt: true,
       company: true,
     },
@@ -36,6 +36,7 @@ export const getUserById = async (id: string) => {
   return prisma.user.findUnique({
     where: { id },
     select: {
+      isActive: true,
       id: true,
       name: true,
       email: true,
@@ -43,7 +44,6 @@ export const getUserById = async (id: string) => {
       role: true,
       companyId: true,
       isVerified: true,
-      isActive: true,
       createdAt: true,
       company: true,
     },
@@ -62,6 +62,13 @@ export const deactivateUser = async (id: string) => {
     where: { id },
     data: {
       isActive: false,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      isActive: true,
+      role: true,
     },
   });
 };
