@@ -77,22 +77,34 @@ model Well {
 }
 
 model Report {
-  id           String           @id @default(uuid())
+  id           String        @id @default(uuid())
+
   wellId       String
   userId       String
+
   waterDepth   Float
   waterUsage   Float?
-  waterQuality String?
-  hasPermit    Boolean          @default(false)
+
+  waterQuality WaterQuality?
+
+  hasPermit    Boolean       @default(false)
+
   description  String?
-  photoUrl     String
-  status       ReportStatus     @default(diproses)
-  verifiedBy   String?
-  verifiedAt   DateTime?
-  createdAt    DateTime         @default(now())
-  user         User             @relation(fields: [userId], references: [id])
-  verifier     User?            @relation("ReportVerifier", fields: [verifiedBy], references: [id])
-  well         Well             @relation(fields: [wellId], references: [id])
+
+  photos       String[]      
+
+  status       ReportStatus  @default(PENDING)
+
+  approvedBy   String?
+  approvedAt   DateTime?
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id])
+  approver     User?         @relation("ReportVerifier", fields: [approvedBy], references: [id])
+  well         Well          @relation(fields: [wellId], references: [id])
+
   rejection    ReportRejection?
 
   @@index([wellId])
@@ -136,9 +148,15 @@ enum Role {
 }
 
 enum ReportStatus {
-  diproses
-  diterima
-  ditolak
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum WaterQuality {
+  GOOD
+  MEDIUM
+  BAD
 }
 
 enum PermitStatus {
