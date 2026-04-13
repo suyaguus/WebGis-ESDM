@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import prisma from "../../config/prisma";
 import { CreateUserInput, UpdateUserInput } from "./user.type";
+import { USER_ACTIVATE_SELECT, USER_SELECT } from "../../constants/user.select";
 
 // service untuk create user baru
 export const createUser = async (data: CreateUserInput, creatorId: string) => {
@@ -18,19 +19,7 @@ export const createUser = async (data: CreateUserInput, creatorId: string) => {
 // service untuk get semua data user
 export const getUsers = async () => {
   return prisma.user.findMany({
-    select: {
-      isActive: true,
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      role: true,
-      companyId: true,
-      createdBy: true,
-      isVerified: true,
-      createdAt: true,
-      company: true,
-    },
+    select: USER_SELECT,
   });
 };
 
@@ -38,18 +27,7 @@ export const getUsers = async () => {
 export const getUserById = async (id: string) => {
   return prisma.user.findUnique({
     where: { id },
-    select: {
-      isActive: true,
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      role: true,
-      companyId: true,
-      isVerified: true,
-      createdAt: true,
-      company: true,
-    },
+    select: USER_SELECT,
   });
 };
 
@@ -75,13 +53,7 @@ export const deactivateUser = async (id: string) => {
     data: {
       isActive: false,
     },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      isActive: true,
-      role: true,
-    },
+    select: USER_ACTIVATE_SELECT,
   });
 };
 
@@ -92,11 +64,6 @@ export const activateUser = async (id: string) => {
     data: {
       isActive: true,
     },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      isActive: true,
-    },
+    select: USER_ACTIVATE_SELECT,
   });
 };
