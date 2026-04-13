@@ -5,6 +5,7 @@ export const MESSAGES = {
     UPDATE: "Data berhasil diperbarui",
     DELETE: "Data berhasil dihapus",
     GET: "Data berhasil diambil",
+    DEACTIVATE: "Akun berhasil dinonaktifkan",
   },
   ERROR: {
     DEFAULT: "Terjadi kesalahan",
