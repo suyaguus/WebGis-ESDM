@@ -46,7 +46,23 @@ export const update = async (
 };
 
 export const remove = async (req: Request<Params>, res: Response) => {
-  await userService.deactivateUser(req.params.id);
+  const currentUser = req.user!;
+
+  if (currentUser.role !== "super_admin") {
+    return errorResponse(res, "Forbidden", 403);
+  }
+
+  if (currentUser.id === req.params.id) {
+    return errorResponse(res, "Tidak bisa menghapus akun sendiri", 400);
+  }
+
+  await userService.deleteUser(req.params.id);
 
   return successResponse(res, null, MESSAGES.SUCCESS.DELETE);
+};
+
+export const deactivate = async (req: Request<Params>, res: Response) => {
+  await userService.deactivateUser(req.params.id);
+
+  return successResponse(res, null, MESSAGES.SUCCESS.UPDATE);
 };
