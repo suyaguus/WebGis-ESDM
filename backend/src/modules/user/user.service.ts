@@ -57,6 +57,12 @@ export const updateUser = async (id: string, data: UpdateUserInput) => {
   });
 };
 
+export const deleteUser = async (id: string) => {
+  return prisma.user.delete({
+    where: { id },
+  });
+};
+
 export const deactivateUser = async (id: string) => {
   return prisma.user.update({
     where: { id },
@@ -73,8 +79,18 @@ export const deactivateUser = async (id: string) => {
   });
 };
 
-export const deleteUser = async (id: string) => {
-  return prisma.user.delete({
+// function untuk restore account yang sudah dinonaktifkan
+export const activateUser = async (id: string) => {
+  return prisma.user.update({
     where: { id },
+    data: {
+      isActive: true,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      isActive: true,
+    },
   });
 };
