@@ -26,22 +26,35 @@ model User {
   company         Company?          @relation(fields: [companyId], references: [id])
   creator         User?             @relation("UserCreator", fields: [createdBy], references: [id])
   createdUsers    User[]            @relation("UserCreator")
+  createdCompanies Company[] @relation("CompanyCreator")
 
   @@index([companyId])
 }
 
 model Company {
   id         String     @id @default(uuid())
+
   name       String
   address    String?
   email      String?
   phone      String?
   type       String?
+
   isVerified Boolean    @default(false)
+  isActive   Boolean    @default(true)
+
   createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  createdBy  String?
+
+  creator    User?      @relation("CompanyCreator", fields: [createdBy], references: [id])
+
   businesses Business[]
   users      User[]
   wells      Well[]
+
+  @@index([createdBy])
 }
 
 model Business {
@@ -77,35 +90,35 @@ model Well {
 }
 
 model Report {
-  id           String        @id @default(uuid())
+  id String @id @default(uuid())
 
-  wellId       String
-  userId       String
+  wellId String
+  userId String
 
-  waterDepth   Float
-  waterUsage   Float?
+  waterDepth Float
+  waterUsage Float?
 
   waterQuality WaterQuality?
 
-  hasPermit    Boolean       @default(false)
+  hasPermit Boolean @default(false)
 
-  description  String?
+  description String?
 
-  photos       String[]      
+  photos String[]
 
-  status       ReportStatus  @default(PENDING)
+  status ReportStatus @default(PENDING)
 
-  approvedBy   String?
-  approvedAt   DateTime?
+  approvedBy String?
+  approvedAt DateTime?
 
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user         User          @relation(fields: [userId], references: [id])
-  approver     User?         @relation("ReportVerifier", fields: [approvedBy], references: [id])
-  well         Well          @relation(fields: [wellId], references: [id])
+  user     User  @relation(fields: [userId], references: [id])
+  approver User? @relation("ReportVerifier", fields: [approvedBy], references: [id])
+  well     Well  @relation(fields: [wellId], references: [id])
 
-  rejection    ReportRejection?
+  rejection ReportRejection?
 
   @@index([wellId])
   @@index([userId])
