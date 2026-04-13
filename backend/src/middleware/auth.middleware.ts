@@ -9,11 +9,15 @@ export const authMiddleware = (
 ) => {
   const authHeader = req.headers.authorization;
 
+  // console.log("AUTH HEADER:", authHeader); 
+
   if (!authHeader) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
   const token = authHeader.split(" ")[1];
+
+  // console.log("EXTRACTED TOKEN:", token); 
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
@@ -21,7 +25,8 @@ export const authMiddleware = (
     req.user = decoded;
 
     next();
-  } catch {
+  } catch (err) {
+    // console.error("JWT ERROR:", err); 
     return res.status(401).json({ message: "Token invalid" });
   }
 };
