@@ -1,0 +1,49 @@
+/* Popup — tetap pakai dark card supaya kontras di atas peta terang */
+.leaflet-popup-content-wrapper {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15) !important;
+  padding: 0 !important;
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px !important;
+  color: #f1f5f9 !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+
+.leaflet-popup-tip {
+  background: #1e293b !important;
+}
+
+.leaflet-popup-close-button {
+  display: none !important;
+}
+
+/* Attribution */
+.leaflet-control-attribution {
+  background: rgba(255,255,255,0.8) !important;
+  color: #94a3b8 !important;
+  font-size: 8px !important;
+  padding: 2px 6px !important;
+}
+
+.leaflet-control-attribution a {
+  color: #0891b2 !important;
+}
+
+/* Zoom controls */
+.leaflet-control-zoom a {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
