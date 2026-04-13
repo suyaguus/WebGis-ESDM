@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
 import * as userService from "./user.service";
 import { CreateUserInput, UpdateUserInput } from "./user.type";
-import { successResponse, errorResponse } from "../../utils/response";
+import {
+  successResponse,
+  errorResponse,
+  buildDeleteResponse,
+} from "../../utils/response";
 import { MESSAGES } from "../../constants/message";
 
 type Params = {
@@ -63,7 +67,11 @@ export const remove = async (req: Request<Params>, res: Response) => {
 
   await userService.deleteUser(req.params.id);
 
-  return successResponse(res, null, MESSAGES.SUCCESS.DELETE);
+  return successResponse(
+    res,
+    buildDeleteResponse(req.params.id, currentUser.id),
+    MESSAGES.SUCCESS.DELETE,
+  );
 };
 
 // controller untuk menonaktifkan account user berdasarkan id
@@ -73,7 +81,7 @@ export const deactivate = async (req: Request<Params>, res: Response) => {
   return successResponse(res, user, MESSAGES.SUCCESS.DEACTIVATE);
 };
 
-// controller untuk mengaktifkan kembali account user 
+// controller untuk mengaktifkan kembali account user
 export const activate = async (req: Request<Params>, res: Response) => {
   const user = await userService.activateUser(req.params.id);
 

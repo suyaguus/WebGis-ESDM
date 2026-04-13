@@ -26,22 +26,35 @@ model User {
   company         Company?          @relation(fields: [companyId], references: [id])
   creator         User?             @relation("UserCreator", fields: [createdBy], references: [id])
   createdUsers    User[]            @relation("UserCreator")
+  createdCompanies Company[] @relation("CompanyCreator")
 
   @@index([companyId])
 }
 
 model Company {
   id         String     @id @default(uuid())
+
   name       String
   address    String?
   email      String?
   phone      String?
   type       String?
+
   isVerified Boolean    @default(false)
+  isActive   Boolean    @default(true)
+
   createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  createdBy  String?
+
+  creator    User?      @relation("CompanyCreator", fields: [createdBy], references: [id])
+
   businesses Business[]
   users      User[]
   wells      Well[]
+
+  @@index([createdBy])
 }
 
 model Business {
@@ -77,23 +90,35 @@ model Well {
 }
 
 model Report {
-  id           String           @id @default(uuid())
-  wellId       String
-  userId       String
-  waterDepth   Float
-  waterUsage   Float?
-  waterQuality String?
-  hasPermit    Boolean          @default(false)
-  description  String?
-  photoUrl     String
-  status       ReportStatus     @default(diproses)
-  verifiedBy   String?
-  verifiedAt   DateTime?
-  createdAt    DateTime         @default(now())
-  user         User             @relation(fields: [userId], references: [id])
-  verifier     User?            @relation("ReportVerifier", fields: [verifiedBy], references: [id])
-  well         Well             @relation(fields: [wellId], references: [id])
-  rejection    ReportRejection?
+  id String @id @default(uuid())
+
+  wellId String
+  userId String
+
+  waterDepth Float
+  waterUsage Float?
+
+  waterQuality WaterQuality?
+
+  hasPermit Boolean @default(false)
+
+  description String?
+
+  photos String[]
+
+  status ReportStatus @default(PENDING)
+
+  approvedBy String?
+  approvedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User  @relation(fields: [userId], references: [id])
+  approver User? @relation("ReportVerifier", fields: [approvedBy], references: [id])
+  well     Well  @relation(fields: [wellId], references: [id])
+
+  rejection ReportRejection?
 
   @@index([wellId])
   @@index([userId])
@@ -136,9 +161,15 @@ enum Role {
 }
 
 enum ReportStatus {
-  diproses
-  diterima
-  ditolak
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum WaterQuality {
+  GOOD
+  MEDIUM
+  BAD
 }
 
 enum PermitStatus {
