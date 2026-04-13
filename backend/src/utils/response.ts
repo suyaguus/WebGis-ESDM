@@ -25,3 +25,10 @@ export const errorResponse = (res: Response, message = "Error", code = 400) => {
     },
   });
 };
+
+export const buildDeleteResponse = (id: string, userId: string) => {
+  return {
+    id,
+    deletedBy: userId,
+  };
+};

@@ -1,3 +1,4 @@
+// refactoring select fields for user
 export const USER_SELECT = {
   id: true,
   name: true,
