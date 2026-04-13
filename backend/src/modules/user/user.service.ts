@@ -65,3 +65,9 @@ export const deactivateUser = async (id: string) => {
     },
   });
 };
+
+export const deleteUser = async (id: string) => {
+  return prisma.user.delete({
+    where: { id },
+  });
+};
