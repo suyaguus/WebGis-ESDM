@@ -1,5 +1,6 @@
 import prisma from "../../config/prisma";
-import { COMPANY_SELECT } from "../../constants/company.select";
+import { COMPANY_SELECT } from "../../constants/company/company.select";
+import { COMPANY_MESSAGES } from "../../constants/company/company.message";
 import { CreateCompanyInput, UpdateCompanyInput } from "./company.type";
 
 // CREATE
@@ -33,12 +34,11 @@ export const getCompanyById = async (id: string, user: any) => {
     select: COMPANY_SELECT,
   });
 
-  if (!company) throw new Error("Company tidak ditemukan");
+  if (!company) throw new Error(COMPANY_MESSAGES.NOT_FOUND);
 
   if (user.role !== "super_admin" && company.creator?.id !== user.id) {
-    throw new Error("Forbidden");
+    throw new Error(COMPANY_MESSAGES.FORBIDDEN.VIEW);
   }
-
   return company;
 };
 
@@ -52,10 +52,10 @@ export const updateCompany = async (
     where: { id },
   });
 
-  if (!company) throw new Error("Not found");
+  if (!company) throw new Error(COMPANY_MESSAGES.NOT_FOUND);
 
   if (user.role !== "super_admin" && company.createdBy !== user.id) {
-    throw new Error("Forbidden");
+    throw new Error(COMPANY_MESSAGES.FORBIDDEN.UPDATE);
   }
 
   return prisma.company.update({
@@ -77,10 +77,10 @@ export const deleteCompany = async (id: string, user: any) => {
     },
   });
 
-  if (!company) throw new Error("Not found");
+  if (!company) throw new Error(COMPANY_MESSAGES.NOT_FOUND);
 
   if (user.role !== "super_admin" && company.createdBy !== user.id) {
-    throw new Error("Forbidden");
+    throw new Error(COMPANY_MESSAGES.FORBIDDEN.DELETE);
   }
 
   await prisma.company.delete({
