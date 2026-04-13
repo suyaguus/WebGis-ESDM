@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import * as userService from "./user.service";
 import { CreateUserInput, UpdateUserInput } from "./user.type";
+import { successResponse, errorResponse } from "../../utils/response";
+import { MESSAGES } from "../../constants/message";
 
 type Params = {
   id: string;
@@ -13,33 +15,25 @@ export const create = async (
   try {
     const user = await userService.createUser(req.body, req.user!.id);
 
-    return res.json({
-      message: "User created",
-      data: user,
-    });
+    return successResponse(res, user, MESSAGES.SUCCESS.CREATE);
   } catch (err) {
-    return res.status(400).json({
-      message: err instanceof Error ? err.message : "Error",
-    });
+    return errorResponse(
+      res,
+      err instanceof Error ? err.message : MESSAGES.ERROR.DEFAULT,
+    );
   }
 };
 
 export const findAll = async (_req: Request, res: Response) => {
   const users = await userService.getUsers();
 
-  return res.json({
-    message: "Success",
-    data: users,
-  });
+  return successResponse(res, users, MESSAGES.SUCCESS.GET);
 };
 
 export const findOne = async (req: Request<Params>, res: Response) => {
   const user = await userService.getUserById(req.params.id);
 
-  return res.json({
-    message: "Success",
-    data: user,
-  });
+  return successResponse(res, user, MESSAGES.SUCCESS.GET);
 };
 
 export const update = async (
@@ -48,16 +42,11 @@ export const update = async (
 ) => {
   const user = await userService.updateUser(req.params.id, req.body);
 
-  return res.json({
-    message: "Updated",
-    data: user,
-  });
+  return successResponse(res, user, MESSAGES.SUCCESS.UPDATE);
 };
 
 export const remove = async (req: Request<Params>, res: Response) => {
   await userService.deactivateUser(req.params.id);
 
-  return res.json({
-    message: "User deactivated",
-  });
+  return successResponse(res, null, MESSAGES.SUCCESS.DELETE);
 };
