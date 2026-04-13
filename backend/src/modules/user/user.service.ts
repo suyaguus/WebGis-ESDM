@@ -1,5 +1,5 @@
-import prisma from "../../config/prisma";
 import bcrypt from "bcrypt";
+import prisma from "../../config/prisma";
 import { CreateUserInput, UpdateUserInput } from "./user.type";
 
 export const createUser = async (data: CreateUserInput, creatorId: string) => {
@@ -16,7 +16,17 @@ export const createUser = async (data: CreateUserInput, creatorId: string) => {
 
 export const getUsers = async () => {
   return prisma.user.findMany({
-    include: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      role: true,
+      companyId: true,
+      createdBy: true,
+      isVerified: true,
+      isActive: true,
+      createdAt: true,
       company: true,
     },
   });
@@ -25,7 +35,16 @@ export const getUsers = async () => {
 export const getUserById = async (id: string) => {
   return prisma.user.findUnique({
     where: { id },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      role: true,
+      companyId: true,
+      isVerified: true,
+      isActive: true,
+      createdAt: true,
       company: true,
     },
   });
