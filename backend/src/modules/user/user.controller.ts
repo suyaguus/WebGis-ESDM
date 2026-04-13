@@ -66,3 +66,10 @@ export const deactivate = async (req: Request<Params>, res: Response) => {
 
   return successResponse(res, user, MESSAGES.SUCCESS.DEACTIVATE);
 };
+
+// controller untuk mengaktifkan kembali account user 
+export const activate = async (req: Request<Params>, res: Response) => {
+  const user = await userService.activateUser(req.params.id);
+
+  return successResponse(res, user, MESSAGES.SUCCESS.ACTIVATE);
+};
