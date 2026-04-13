@@ -1,16 +1,24 @@
 import { Response } from "express";
+import { JwtPayload } from "../types/auth";
 
-export const successResponse = <T>(
+export const successResponse = (
   res: Response,
-  data: T,
+  data: unknown,
   message = "Success",
-  statusCode = 200,
+  user?: JwtPayload
 ) => {
-  return res.status(statusCode).json({
+  return res.json({
     success: true,
     message,
     metadata: {
-      status: statusCode,
+      status: 200,
+      actor: user
+        ? {
+            id: user.id,
+            name: user.id, 
+            role: user.role,
+          }
+        : null,
     },
     data,
   });
