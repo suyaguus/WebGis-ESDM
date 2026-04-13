@@ -16,7 +16,12 @@ router.post(
   userController.create,
 );
 
-router.patch("/:id", authMiddleware, userController.update);
+router.patch(
+  "/:id/deactivate",
+  authMiddleware,
+  roleMiddleware("admin_perusahaan", "super_admin"),
+  userController.deactivate,
+);
 
 router.delete(
   "/:id",
