@@ -62,7 +62,7 @@ export const remove = async (req: Request<Params>, res: Response) => {
 };
 
 export const deactivate = async (req: Request<Params>, res: Response) => {
-  await userService.deactivateUser(req.params.id);
+  const user = await userService.deactivateUser(req.params.id);
 
-  return successResponse(res, null, MESSAGES.SUCCESS.UPDATE);
+  return successResponse(res, user, MESSAGES.SUCCESS.DEACTIVATE);
 };
