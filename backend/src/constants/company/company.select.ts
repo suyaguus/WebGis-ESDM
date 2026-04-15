@@ -19,14 +19,22 @@ export const COMPANY_SELECT: Prisma.CompanySelect = {
       role: true,
     },
   },
+
+  businesses: {
+    select: {
+      id: true,
+      name: true,
+      address: true,
+      phone: true,
+      createdAt: true,
+    }
+  }
 };
 
-export const COMPANY_MESSAGES = {
-  NOT_FOUND: "Company tidak ditemukan",
-
-  FORBIDDEN: {
-    VIEW: "Forbidden: Anda tidak memiliki akses ke company ini",
-    UPDATE: "Forbidden: Anda tidak memiliki akses untuk mengupdate company ini",
-    DELETE: "Forbidden: Anda tidak memiliki akses untuk menghapus company ini",
-  },
+export const COMPANY_SELECT_DELETE: Prisma.CompanySelect = {
+  id: true,
+  name: true,
+  email: true,
+  type: true,
+  createdBy: true,
 };

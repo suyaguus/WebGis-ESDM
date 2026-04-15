@@ -1,5 +1,8 @@
 import prisma from "../../config/prisma";
-import { COMPANY_SELECT } from "../../constants/company/company.select";
+import {
+  COMPANY_SELECT,
+  COMPANY_SELECT_DELETE,
+} from "../../constants/company/company.select";
 import { COMPANY_MESSAGES } from "../../constants/company/company.message";
 import { CreateCompanyInput, UpdateCompanyInput } from "./company.type";
 
@@ -68,13 +71,7 @@ export const updateCompany = async (
 export const deleteCompany = async (id: string, user: any) => {
   const company = await prisma.company.findUnique({
     where: { id },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      type: true,
-      createdBy: true,
-    },
+    select: COMPANY_SELECT_DELETE,
   });
 
   if (!company) throw new Error(COMPANY_MESSAGES.NOT_FOUND);
@@ -104,4 +101,4 @@ export const activateCompany = async (id: string) => {
     where: { id },
     data: { isActive: true },
   });
-};
+};  
