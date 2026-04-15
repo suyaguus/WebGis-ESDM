@@ -2,6 +2,10 @@ import { Request, Response } from "express";
 import * as businessService from "./business.service";
 import { successResponse, errorResponse } from "../../utils/response";
 
+type Params = {
+  id: string;
+};
+
 export const create = async (req: Request, res: Response) => {
   try {
     const business = await businessService.createBusiness(req.body, req.user);
@@ -18,7 +22,7 @@ export const findAll = async (req: Request, res: Response) => {
   return successResponse(res, data, "Success", req.user);
 };
 
-export const findOne = async (req: Request, res: Response) => {
+export const findOne = async (req: Request<Params>, res: Response) => {
   try {
     const data = await businessService.getBusinessById(req.params.id, req.user);
 
@@ -28,7 +32,7 @@ export const findOne = async (req: Request, res: Response) => {
   }
 };
 
-export const update = async (req: Request, res: Response) => {
+export const update = async (req: Request<Params>, res: Response) => {
   try {
     const data = await businessService.updateBusiness(
       req.params.id,
@@ -42,7 +46,7 @@ export const update = async (req: Request, res: Response) => {
   }
 };
 
-export const remove = async (req: Request, res: Response) => {
+export const remove = async (req: Request<Params>, res: Response) => {
   try {
     const data = await businessService.deleteBusiness(req.params.id, req.user);
 
