@@ -16,7 +16,7 @@ export const createBusiness = async (data: CreateBusinessInput, user: any) => {
   if (!company) throw new Error(BUSINESS_MESSAGES.COMPANY_NOT_FOUND);
 
   if (user.role !== "super_admin" && company.createdBy !== user.id) {
-    throw new Error(BUSINESS_MESSAGES.FORBIDDEN.ACCESS);
+    throw new Error(BUSINESS_MESSAGES.FORBIDDEN);
   }
 
   return prisma.business.create({
@@ -53,7 +53,7 @@ export const getBusinessById = async (id: string, user: any) => {
   if (!business) throw new Error(BUSINESS_MESSAGES.NOT_FOUND);
 
   if (user.role !== "super_admin" && business.company.createdBy !== user.id) {
-    throw new Error(BUSINESS_MESSAGES.FORBIDDEN.ACCESS);
+    throw new Error(BUSINESS_MESSAGES.FORBIDDEN);
   }
 
   return business;
@@ -73,7 +73,7 @@ export const updateBusiness = async (
   if (!business) throw new Error(BUSINESS_MESSAGES.NOT_FOUND);
 
   if (user.role !== "super_admin" && business.company.createdBy !== user.id) {
-    throw new Error(BUSINESS_MESSAGES.FORBIDDEN.UPDATE);
+    throw new Error(BUSINESS_MESSAGES.FORBIDDEN);
   }
 
   return prisma.business.update({
@@ -93,12 +93,19 @@ export const deleteBusiness = async (id: string, user: any) => {
   if (!business) throw new Error(BUSINESS_MESSAGES.NOT_FOUND);
 
   if (user.role !== "super_admin" && business.company.createdBy !== user.id) {
-    throw new Error(BUSINESS_MESSAGES.FORBIDDEN.DELETE);
+    throw new Error(BUSINESS_MESSAGES.FORBIDDEN);
   }
 
   await prisma.business.delete({
     where: { id },
   });
 
-  return business;
+  return {
+    id: business.id,
+    name: business.name,
+    company: {
+      id: business.company.id,
+      name: business.company.name,
+    },
+  };
 };

@@ -19,3 +19,15 @@ export const BUSINESS_SELECT: Prisma.BusinessSelect = {
     },
   },
 };
+
+export const BUSINESS_SELECT_DELETE = {
+  id: true,
+  name: true,
+
+  company: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+};

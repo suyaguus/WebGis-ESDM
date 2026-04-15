@@ -52,6 +52,16 @@ export const remove = async (req: Request<Params>, res: Response) => {
 
     return successResponse(res, data, "Deleted", req.user);
   } catch (err) {
-    return errorResponse(res, err instanceof Error ? err.message : "Error");
+    const message = err instanceof Error ? err.message : "Error";
+
+    if (message === "Forbidden") {
+      return errorResponse(res, message, 403);
+    }
+
+    if (message === "Business tidak ditemukan") {
+      return errorResponse(res, message, 404);
+    }
+
+    return errorResponse(res, message, 400);
   }
 };
