@@ -10,19 +10,29 @@ router.post(
   "/",
   authMiddleware,
   roleMiddleware("admin_perusahaan"),
-  reportController.create
+  reportController.create,
 );
 
 // GET
-router.get("/", authMiddleware, reportController.findAll);
-router.get("/:id", authMiddleware, reportController.findOne);
+router.get(
+  "/",
+  authMiddleware,
+  roleMiddleware("super_admin", "supervisor", "kepala_instansi"),
+  reportController.findAll,
+);
+router.get(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("super_admin", "supervisor", "kepala_instansi"),
+  reportController.findOne,
+);
 
 // APPROVE
 router.patch(
   "/:id/approve",
   authMiddleware,
   roleMiddleware("super_admin", "supervisor", "kepala_instansi"),
-  reportController.approve
+  reportController.approve,
 );
 
 // REJECT
@@ -30,7 +40,7 @@ router.patch(
   "/:id/reject",
   authMiddleware,
   roleMiddleware("super_admin", "supervisor", "kepala_instansi"),
-  reportController.reject
+  reportController.reject,
 );
 
 export default router;
