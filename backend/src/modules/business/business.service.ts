@@ -3,6 +3,10 @@ import { CreateBusinessInput, UpdateBusinessInput } from "./business.type";
 
 // create
 export const createBusiness = async (data: CreateBusinessInput, user: any) => {
+  if (!data.companyId) {
+    throw new Error("companyId wajib diisi");
+  }
+
   const company = await prisma.company.findUnique({
     where: { id: data.companyId },
   });
@@ -15,35 +19,35 @@ export const createBusiness = async (data: CreateBusinessInput, user: any) => {
 
   return prisma.business.create({
     data,
+    select: {
+      id: true,
+      name: true,
+      address: true,
+      phone: true,
+      createdAt: true,
+
+      company: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          type: true,
+        },
+      },
+    },
   });
 };
 
 // get all
 export const getBusinesses = async (user: any) => {
-  if (user.role === "super_admin") {
-    return prisma.business.findMany({
-      include: {
-        company: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
-  }
-
   return prisma.business.findMany({
-    where: {
-      company: {
-        createdBy: user.id,
-      },
-    },
     include: {
       company: {
         select: {
           id: true,
           name: true,
+          email: true,
+          type: true,
         },
       },
     },
