@@ -19,6 +19,16 @@ export const COMPANY_SELECT: Prisma.CompanySelect = {
       role: true,
     },
   },
+
+  businesses: {
+    select: {
+      id: true,
+      name: true,
+      address: true,
+      phone: true,
+      createdAt: true,
+    }
+  }
 };
 
 export const COMPANY_SELECT_DELETE: Prisma.CompanySelect = {
