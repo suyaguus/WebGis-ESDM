@@ -8,47 +8,47 @@ datasource db {
 }
 
 model User {
-  id              String            @id @default(uuid())
-  name            String
-  email           String            @unique
-  password        String
-  phone           String?
-  role            Role
-  companyId       String?
-  createdBy       String?
-  isVerified      Boolean           @default(false)
-  isActive        Boolean           @default(true)
-  createdAt       DateTime          @default(now())
-  verifiedPermits Permit[]          @relation("PermitVerifier")
-  reports         Report[]
-  verifiedReports Report[]          @relation("ReportVerifier")
-  rejections      ReportRejection[]
-  company         Company?          @relation(fields: [companyId], references: [id])
-  creator         User?             @relation("UserCreator", fields: [createdBy], references: [id])
-  createdUsers    User[]            @relation("UserCreator")
-  createdCompanies Company[] @relation("CompanyCreator")
+  id               String            @id @default(uuid())
+  name             String
+  email            String            @unique
+  password         String
+  phone            String?
+  role             Role
+  companyId        String?
+  createdBy        String?
+  isVerified       Boolean           @default(false)
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  verifiedPermits  Permit[]          @relation("PermitVerifier")
+  reports          Report[]
+  verifiedReports  Report[]          @relation("ReportVerifier")
+  rejections       ReportRejection[]
+  company          Company?          @relation(fields: [companyId], references: [id])
+  creator          User?             @relation("UserCreator", fields: [createdBy], references: [id])
+  createdUsers     User[]            @relation("UserCreator")
+  createdCompanies Company[]         @relation("CompanyCreator")
 
   @@index([companyId])
 }
 
 model Company {
-  id         String     @id @default(uuid())
+  id String @id @default(uuid())
 
-  name       String
-  address    String?
-  email      String?
-  phone      String?
-  type       String?
+  name    String
+  address String?
+  email   String?
+  phone   String?
+  type    String?
 
-  isVerified Boolean    @default(false)
-  isActive   Boolean    @default(true)
+  isVerified Boolean @default(false)
+  isActive   Boolean @default(true)
 
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  createdBy  String?
+  createdBy String?
 
-  creator    User?      @relation("CompanyCreator", fields: [createdBy], references: [id])
+  creator User? @relation("CompanyCreator", fields: [createdBy], references: [id])
 
   businesses Business[]
   users      User[]
@@ -58,12 +58,14 @@ model Company {
 }
 
 model Business {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   name      String
   address   String?
   phone     String?
   companyId String
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
   company   Company  @relation(fields: [companyId], references: [id])
 }
 

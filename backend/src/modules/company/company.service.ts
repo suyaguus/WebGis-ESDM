@@ -101,4 +101,4 @@ export const activateCompany = async (id: string) => {
     where: { id },
     data: { isActive: true },
   });
-};
+};  
