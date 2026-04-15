@@ -27,6 +27,7 @@ model User {
   creator          User?             @relation("UserCreator", fields: [createdBy], references: [id])
   createdUsers     User[]            @relation("UserCreator")
   createdCompanies Company[]         @relation("CompanyCreator")
+  createdWells     Well[]            @relation("WellCreator")
 
   @@index([companyId])
 }
@@ -70,25 +71,35 @@ model Business {
 }
 
 model Well {
-  id                  String   @id @default(uuid())
-  name                String
-  companyId           String
+  id        String @id @default(uuid())
+  name      String
+  companyId String
+
   latitude            Float?
   longitude           Float?
   locationDescription String?
   wellType            WellType
-  depthMeter          Float?
-  diameterInch        Float?
-  casingDiameter      Float?
-  pumpCapacity        Float?
-  pumpDepth           Float?
-  pipeDiameter        Float?
-  createdAt           DateTime @default(now())
-  permits             Permit[]
-  reports             Report[]
-  company             Company  @relation(fields: [companyId], references: [id])
+
+  depthMeter     Float?
+  diameterInch   Float?
+  casingDiameter Float?
+  pumpCapacity   Float?
+  pumpDepth      Float?
+  pipeDiameter   Float?
+
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  isActive  Boolean  @default(true)
+
+  company Company @relation(fields: [companyId], references: [id])
+  creator User?   @relation("WellCreator", fields: [createdBy], references: [id])
+
+  permits Permit[]
+  reports Report[]
 
   @@index([companyId])
+  @@index([createdBy])
 }
 
 model Report {
