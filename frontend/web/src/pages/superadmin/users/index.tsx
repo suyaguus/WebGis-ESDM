@@ -22,33 +22,33 @@ interface User {
 }
 
 const MOCK_USERS: User[] = [
-  { id:'1', name:'Ahmad Fauzi',    email:'a.fauzi@webgis.id',      role:'super_admin',      company:'—',               status:'active',   lastLogin:'10 Apr 2026', createdAt:'01 Jan 2024' },
-  { id:'2', name:'Budi Raharjo',   email:'admin@majujaya.co.id',   role:'admin_company',    company:'PT Maju Jaya',    status:'active',   lastLogin:'10 Apr 2026', createdAt:'15 Mar 2024' },
-  { id:'3', name:'Siti Aminah',    email:'s.aminah@desdm.go.id',   role:'kepala_instansi',  company:'Dinas ESDM DKI',  status:'active',   lastLogin:'09 Apr 2026', createdAt:'01 Feb 2024' },
-  { id:'4', name:'Rudi Santoso',   email:'rudi.s@majujaya.co.id',  role:'supervisor',       company:'PT Maju Jaya',    status:'active',   lastLogin:'10 Apr 2026', createdAt:'20 Mar 2024' },
-  { id:'5', name:'Dewi Kartika',   email:'dewi.k@bumiraya.co.id',  role:'supervisor',       company:'PT Bumi Raya',    status:'pending',  lastLogin:'—',           createdAt:'08 Apr 2026' },
-  { id:'6', name:'Agus Wijaya',    email:'a.wijaya@desdm.go.id',   role:'kepala_instansi',  company:'Dinas ESDM DKI',  status:'active',   lastLogin:'07 Apr 2026', createdAt:'01 Feb 2024' },
-  { id:'7', name:'Sari Wulandari', email:'admin@tirta.co.id',      role:'admin_company',    company:'PT Tirta Mandiri',status:'active',   lastLogin:'08 Apr 2026', createdAt:'10 Mar 2024' },
-  { id:'8', name:'Dedi Haryanto',  email:'admin@karya.co.id',      role:'admin_company',    company:'PT Karya Makmur', status:'active',   lastLogin:'05 Apr 2026', createdAt:'20 Feb 2024' },
-  { id:'9', name:'Fitri Handayani',email:'fitri@sumberair.co.id',  role:'supervisor',       company:'PT Sumber Air',   status:'inactive', lastLogin:'01 Mar 2026', createdAt:'15 Jan 2024' },
-  { id:'10',name:'Hendra Saputra', email:'hendra@indo.co.id',      role:'supervisor',       company:'PT Indo Nusantara',status:'pending', lastLogin:'—',           createdAt:'09 Apr 2026' },
-  { id:'11',name:'Rina Kusuma',    email:'rina@bumiraya.co.id',    role:'admin_company',    company:'PT Bumi Raya',    status:'active',   lastLogin:'06 Apr 2026', createdAt:'05 Mar 2024' },
-  { id:'12',name:'Tono Sudarsono', email:'tono@webgis.id',         role:'super_admin',      company:'—',               status:'active',   lastLogin:'08 Apr 2026', createdAt:'01 Jan 2024' },
+  { id: '1', name: 'Ahmad Fauzi', email: 'a.fauzi@webgis.id', role: 'super_admin', company: 'PT Makmur Abadi', status: 'active', lastLogin: '10 Apr 2026', createdAt: '01 Jan 2024' },
+  { id: '2', name: 'Budi Raharjo', email: 'admin@majujaya.co.id', role: 'admin_company', company: 'PT Maju Jaya', status: 'active', lastLogin: '10 Apr 2026', createdAt: '15 Mar 2024' },
+  { id: '3', name: 'Siti Aminah', email: 's.aminah@desdm.go.id', role: 'kepala_instansi', company: 'Dinas ESDM DKI', status: 'active', lastLogin: '09 Apr 2026', createdAt: '01 Feb 2024' },
+  { id: '4', name: 'Rudi Santoso', email: 'rudi.s@majujaya.co.id', role: 'supervisor', company: 'PT Maju Jaya', status: 'active', lastLogin: '10 Apr 2026', createdAt: '20 Mar 2024' },
+  { id: '5', name: 'Dewi Kartika', email: 'dewi.k@bumiraya.co.id', role: 'supervisor', company: 'PT Bumi Raya', status: 'pending', lastLogin: '—', createdAt: '08 Apr 2026' },
+  { id: '6', name: 'Agus Wijaya', email: 'a.wijaya@desdm.go.id', role: 'kepala_instansi', company: 'Dinas ESDM DKI', status: 'active', lastLogin: '07 Apr 2026', createdAt: '01 Feb 2024' },
+  { id: '7', name: 'Sari Wulandari', email: 'admin@tirta.co.id', role: 'admin_company', company: 'PT Tirta Mandiri', status: 'active', lastLogin: '08 Apr 2026', createdAt: '10 Mar 2024' },
+  { id: '8', name: 'Dedi Haryanto', email: 'admin@karya.co.id', role: 'admin_company', company: 'PT Karya Makmur', status: 'active', lastLogin: '05 Apr 2026', createdAt: '20 Feb 2024' },
+  { id: '9', name: 'Fitri Handayani', email: 'fitri@sumberair.co.id', role: 'supervisor', company: 'PT Sumber Air', status: 'inactive', lastLogin: '01 Mar 2026', createdAt: '15 Jan 2024' },
+  { id: '10', name: 'Hendra Saputra', email: 'hendra@indo.co.id', role: 'supervisor', company: 'PT Indo Nusantara', status: 'pending', lastLogin: '—', createdAt: '09 Apr 2026' },
+  { id: '11', name: 'Rina Kusuma', email: 'rina@bumiraya.co.id', role: 'admin_company', company: 'PT Bumi Raya', status: 'active', lastLogin: '06 Apr 2026', createdAt: '05 Mar 2024' },
+  { id: '12', name: 'Tono Sudarsono', email: 'tono@webgis.id', role: 'super_admin', company: 'PT Nusantara Jaya', status: 'active', lastLogin: '08 Apr 2026', createdAt: '01 Jan 2024' },
 ]
 
 const ROLE_CONFIG: Record<UserRole, { label: string; color: string; bg: string; Icon: React.ElementType }> = {
-  super_admin:     { label: 'Super Admin',      color: 'text-accent-purple', bg: 'bg-fill-purple', Icon: Shield       },
-  admin_company:   { label: 'Admin Perusahaan', color: 'text-accent-blue',   bg: 'bg-fill-blue',   Icon: Building2    },
-  kepala_instansi: { label: 'Kepala Instansi',  color: 'text-accent-cyan',   bg: 'bg-fill-cyan',   Icon: ShieldCheck  },
-  supervisor:      { label: 'Supervisor',        color: 'text-accent-amber',  bg: 'bg-fill-amber',  Icon: Cpu          },
+  super_admin: { label: 'Super Admin', color: 'text-accent-purple', bg: 'bg-fill-purple', Icon: Shield },
+  admin_company: { label: 'Admin Perusahaan', color: 'text-accent-blue', bg: 'bg-fill-blue', Icon: Building2 },
+  kepala_instansi: { label: 'Kepala Instansi', color: 'text-accent-cyan', bg: 'bg-fill-cyan', Icon: ShieldCheck },
+  supervisor: { label: 'Supervisor', color: 'text-accent-amber', bg: 'bg-fill-amber', Icon: Cpu },
 }
 
 const ROLE_COUNTS = {
-  all:             MOCK_USERS.length,
-  super_admin:     MOCK_USERS.filter(u => u.role === 'super_admin').length,
-  admin_company:   MOCK_USERS.filter(u => u.role === 'admin_company').length,
+  all: MOCK_USERS.length,
+  super_admin: MOCK_USERS.filter(u => u.role === 'super_admin').length,
+  admin_company: MOCK_USERS.filter(u => u.role === 'admin_company').length,
   kepala_instansi: MOCK_USERS.filter(u => u.role === 'kepala_instansi').length,
-  supervisor:      MOCK_USERS.filter(u => u.role === 'supervisor').length,
+  supervisor: MOCK_USERS.filter(u => u.role === 'supervisor').length,
 }
 
 /* ── Invite Modal ──────────────────────────────────────────────────── */
@@ -70,8 +70,8 @@ function InviteModal({ onClose }: { onClose: () => void }) {
         </div>
         <div className="p-6 space-y-4">
           {[
-            { label: 'Nama Lengkap', key: 'name',  type: 'text',  ph: 'John Doe' },
-            { label: 'Email',        key: 'email', type: 'email', ph: 'john@company.co.id' },
+            { label: 'Nama Lengkap', key: 'name', type: 'text', ph: 'John Doe' },
+            { label: 'Email', key: 'email', type: 'email', ph: 'john@company.co.id' },
           ].map(({ label, key, type, ph }) => (
             <div key={key}>
               <label className="block text-[10px] font-semibold text-text-secondary mb-1.5">{label}</label>
@@ -112,10 +112,10 @@ function InviteModal({ onClose }: { onClose: () => void }) {
 }
 
 export default function UsersPage() {
-  const [search,     setSearch]     = useState('')
+  const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all')
   const [showInvite, setShowInvite] = useState(false)
-  const [menuOpen,   setMenuOpen]   = useState<string | null>(null)
+  const [menuOpen, setMenuOpen] = useState<string | null>(null)
 
   const filtered = useMemo(() => MOCK_USERS.filter((u) => {
     if (roleFilter !== 'all' && u.role !== roleFilter) return false
@@ -238,9 +238,9 @@ export default function UsersPage() {
                     </td>
                     <td className="text-text-secondary text-[11px]">{user.company}</td>
                     <td>
-                      {user.status === 'active'   && <StatusPill variant="online" />}
+                      {user.status === 'active' && <StatusPill variant="online" />}
                       {user.status === 'inactive' && <StatusPill variant="offline" />}
-                      {user.status === 'pending'  && <Badge label="PENDING" variant="warning" />}
+                      {user.status === 'pending' && <Badge label="PENDING" variant="warning" />}
                     </td>
                     <td className="td-mono text-text-muted">{user.lastLogin}</td>
                     <td className="td-mono text-text-muted">{user.createdAt}</td>
