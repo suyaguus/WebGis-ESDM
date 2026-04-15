@@ -15,3 +15,5 @@ export type CreateWellInput = {
   pumpDepth?: number;
   pipeDiameter?: number;
 };
+
+export type UpdateWellInput = Partial<CreateWellInput>;

@@ -1,34 +1,55 @@
 import { Request, Response } from "express";
 import * as wellService from "./well.service";
 import { successResponse, errorResponse } from "../../utils/response";
-import { CreateWellInput } from "./well.type";
-import { MESSAGES } from "../../constants/message";
 
-type Params = {
-  id: string;
-};
+type Params = { id: string };
 
-export const create = async (
-  req: Request<{}, {}, CreateWellInput>,
-  res: Response,
-) => {
+export const create = async (req: Request, res: Response) => {
   try {
-    const well = await wellService.createWell(req.body, req.user!.id);
+    const data = await wellService.createWell(req.body, req.user);
 
-    return successResponse(res, well, MESSAGES.SUCCESS.CREATE);
+    return successResponse(res, data, "Well berhasil dibuat", req.user);
   } catch (err) {
     return errorResponse(res, err instanceof Error ? err.message : "Error");
   }
 };
 
-export const findAll = async (_req: Request, res: Response) => {
-  const wells = await wellService.getWells();
+export const findAll = async (req: Request, res: Response) => {
+  const data = await wellService.getWells(req.user);
 
-  return successResponse(res, wells, MESSAGES.SUCCESS.GET);
+  return successResponse(res, data, "Success", req.user);
 };
 
 export const findOne = async (req: Request<Params>, res: Response) => {
-  const well = await wellService.getWellById(req.params.id);
+  try {
+    const data = await wellService.getWellById(req.params.id, req.user);
 
-  return successResponse(res, well, MESSAGES.SUCCESS.GET);
+    return successResponse(res, data, "Success", req.user);
+  } catch (err) {
+    return errorResponse(res, err instanceof Error ? err.message : "Error");
+  }
+};
+
+export const update = async (req: Request<Params>, res: Response) => {
+  try {
+    const data = await wellService.updateWell(
+      req.params.id,
+      req.body,
+      req.user,
+    );
+
+    return successResponse(res, data, "Updated", req.user);
+  } catch (err) {
+    return errorResponse(res, err instanceof Error ? err.message : "Error");
+  }
+};
+
+export const remove = async (req: Request<Params>, res: Response) => {
+  try {
+    const data = await wellService.deleteWell(req.params.id, req.user);
+
+    return successResponse(res, data, "Deleted", req.user);
+  } catch (err) {
+    return errorResponse(res, err instanceof Error ? err.message : "Error");
+  }
 };
