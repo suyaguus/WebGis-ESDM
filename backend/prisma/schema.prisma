@@ -21,13 +21,13 @@ model User {
   createdAt        DateTime          @default(now())
   verifiedPermits  Permit[]          @relation("PermitVerifier")
   reports          Report[]
-  verifiedReports  Report[]          @relation("ReportVerifier")
   rejections       ReportRejection[]
   company          Company?          @relation(fields: [companyId], references: [id])
   creator          User?             @relation("UserCreator", fields: [createdBy], references: [id])
   createdUsers     User[]            @relation("UserCreator")
   createdCompanies Company[]         @relation("CompanyCreator")
   createdWells     Well[]            @relation("WellCreator")
+  approvedReports  Report[]          @relation("ReportApprover")
 
   @@index([companyId])
 }
@@ -108,16 +108,13 @@ model Report {
   wellId String
   userId String
 
-  waterDepth Float
-  waterUsage Float?
-
+  waterDepth   Float
+  waterUsage   Float?
   waterQuality WaterQuality?
 
-  hasPermit Boolean @default(false)
-
+  hasPermit   Boolean  @default(false)
   description String?
-
-  photos String[]
+  photos      String[]
 
   status ReportStatus @default(PENDING)
 
@@ -128,7 +125,7 @@ model Report {
   updatedAt DateTime @updatedAt
 
   user     User  @relation(fields: [userId], references: [id])
-  approver User? @relation("ReportVerifier", fields: [approvedBy], references: [id])
+  approver User? @relation("ReportApprover", fields: [approvedBy], references: [id])
   well     Well  @relation(fields: [wellId], references: [id])
 
   rejection ReportRejection?
@@ -136,6 +133,7 @@ model Report {
   @@index([wellId])
   @@index([userId])
   @@index([status])
+  @@index([approvedBy])
 }
 
 model Permit {
