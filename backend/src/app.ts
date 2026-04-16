@@ -2,7 +2,7 @@ import express from "express";
 import authRoutes from "./routes/auth.route";
 import userRoutes from "./modules/user/user.routes";
 import reportRoutes from "./modules/report/report.routes";
-import wellRourtes from "./modules//well/weel.routes";
+import wellRourtes from "./modules/well/well.routes";
 import companyRoutes from "./modules/company/company.routes";
 import businessRoutes from "./modules/business/business.routes";
 
