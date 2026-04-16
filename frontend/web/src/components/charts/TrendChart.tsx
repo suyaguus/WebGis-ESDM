@@ -1,56 +1,116 @@
+import { useRef, useEffect } from 'react';
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, ReferenceLine,
-} from 'recharts'
-import { MOCK_TREND } from '@/constants/mockData'
+  Chart as ChartJS,
+  LineController,
+  LineElement, PointElement, LinearScale, CategoryScale,
+  Filler, Tooltip, Legend,
+} from 'chart.js';
+import type { TrendDataPoint } from '../../../../web/src/types';
 
-function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="bg-white border border-border-base rounded-lg px-3 py-2 shadow-card-hover">
-      <p className="text-[9px] text-text-muted font-mono mb-0.5">{label}</p>
-      <p className="text-[13px] font-bold font-mono text-accent-cyan">{payload[0].value.toFixed(2)} cm/thn</p>
-    </div>
-  )
+ChartJS.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip, Legend);
+
+interface TrendChartProps {
+  data: TrendDataPoint[];
+  height?: number;
 }
 
-export function TrendChart() {
+export default function TrendChart({ data, height = 160 }: TrendChartProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const chartRef  = useRef<ChartJS | null>(null);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    
+    // Destroy existing chart properly
+    if (chartRef.current) {
+      chartRef.current.destroy();
+      chartRef.current = null;
+    }
+
+    chartRef.current = new ChartJS(canvasRef.current, {
+      type: 'line',
+      data: {
+        labels: data.map((d) => d.label),
+        datasets: [
+          {
+            label: 'Rata-rata Subsidence (cm/thn)',
+            data: data.map((d) => d.subsidence),
+            borderColor: '#0891B2',
+            borderWidth: 2,
+            backgroundColor: 'rgba(8,145,178,0.08)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 3,
+            pointBackgroundColor: '#0891B2',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 1.5,
+          },
+          {
+            label: 'Threshold Kritis (-4.0)',
+            data: data.map((d) => d.threshold),
+            borderColor: 'rgba(239,68,68,0.4)',
+            borderWidth: 1.5,
+            borderDash: [5, 4],
+            pointRadius: 0,
+            fill: false,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#fff',
+            borderColor: '#E2E8F0',
+            borderWidth: 1,
+            titleColor: '#475569',
+            bodyColor: '#0F172A',
+            titleFont: { size: 10, family: "'IBM Plex Mono'" },
+            bodyFont:  { size: 11, family: "'IBM Plex Mono'", weight: 500 },
+            padding: 10,
+            callbacks: {
+              label: (ctx) => {
+                const y = ctx.parsed.y ?? 0;
+                return `${ctx.dataset.label}: ${y.toFixed(2)} cm/thn`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: { color: '#94A3B8', font: { size: 9, family: "'IBM Plex Mono'" } },
+            grid:  { color: '#F1F5F9' },
+            border: { display: false },
+          },
+          y: {
+            ticks: {
+              color: '#94A3B8',
+              font: { size: 9, family: "'IBM Plex Mono'" },
+              callback: (v) => `${Number(v).toFixed(1)}`,
+            },
+            grid:  { color: '#F1F5F9' },
+            border: { display: false },
+            min: -5,
+            max: -1,
+          },
+        },
+      },
+    });
+
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+        chartRef.current = null;
+      }
+    };
+  }, [data]);
+
   return (
-    <div className="w-full h-[160px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={MOCK_TREND} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-          <defs>
-            <linearGradient id="cyanGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%"  stopColor="#0891b2" stopOpacity={0.15} />
-              <stop offset="95%" stopColor="#0891b2" stopOpacity={0}    />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-          <XAxis
-            dataKey="month"
-            tick={{ fill: '#94a3b8', fontSize: 9 }}
-            axisLine={false} tickLine={false}
-          />
-          <YAxis
-            domain={[-3, -1.5]}
-            tick={{ fill: '#94a3b8', fontSize: 9 }}
-            axisLine={false} tickLine={false}
-            tickFormatter={(v: number) => v.toFixed(1)}
-          />
-          <Tooltip content={<ChartTooltip />} />
-          <ReferenceLine
-            y={-4} stroke="#dc2626" strokeDasharray="4 4" strokeOpacity={0.4}
-            label={{ value: 'threshold', position: 'right', fontSize: 8, fill: '#dc2626' }}
-          />
-          <Area
-            type="monotone" dataKey="value"
-            stroke="#0891b2" strokeWidth={2}
-            fill="url(#cyanGrad)"
-            dot={{ fill: '#0891b2', r: 3, strokeWidth: 0 }}
-            activeDot={{ fill: '#0891b2', stroke: '#fff', strokeWidth: 2, r: 5 }}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+    <div style={{ position: 'relative', width: '100%', height }}>
+      <canvas ref={canvasRef} role="img" aria-label="Grafik tren subsidence tanah" />
     </div>
-  )
+  );
 }

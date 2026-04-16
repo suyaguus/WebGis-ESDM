@@ -1,290 +1,250 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react';
+import { BarChart3, TrendingDown, Download } from 'lucide-react';
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis,
-  CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, Legend,
-} from 'recharts'
-import { TrendingDown, TrendingUp, BarChart2, MapPin, Calendar, Download } from 'lucide-react'
-import Topbar from '@/components/layout/Topbar'
-import { Panel, StatCard } from '@/components/ui'
-import { cn } from '@/lib/utils'
+  Chart as ChartJS, LineElement, LineController, BarElement, BarController, PointElement,
+  LinearScale, CategoryScale, Filler, Tooltip, Legend,
+} from 'chart.js';
+import { Card, SectionHeader } from '../../../components/ui';
+import { MOCK_COMPANIES, ANALYTICS_MONTHLY } from '../../../constants/mockData';
+import { cn, getSubsidenceColor } from '../../../lib/utils';
 
-/* ── Mock data ─────────────────────────────────────────────────────── */
-const TREND_12M = [
-  { month: 'Apr', avg: -1.82, max: -3.10, min: -0.41 },
-  { month: 'Mei', avg: -1.95, max: -3.22, min: -0.45 },
-  { month: 'Jun', avg: -2.10, max: -3.50, min: -0.48 },
-  { month: 'Jul', avg: -2.18, max: -3.60, min: -0.52 },
-  { month: 'Agu', avg: -2.25, max: -3.90, min: -0.50 },
-  { month: 'Sep', avg: -2.31, max: -4.00, min: -0.55 },
-  { month: 'Okt', avg: -2.28, max: -4.10, min: -0.53 },
-  { month: 'Nov', avg: -2.40, max: -4.30, min: -0.58 },
-  { month: 'Des', avg: -2.35, max: -4.50, min: -0.56 },
-  { month: 'Jan', avg: -2.50, max: -4.62, min: -0.60 },
-  { month: 'Feb', avg: -2.44, max: -4.70, min: -0.59 },
-  { month: 'Mar', avg: -2.55, max: -4.82, min: -0.63 },
-]
+ChartJS.register(LineController, LineElement, BarController, BarElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip, Legend);
 
-const COMPANY_COMPARE = [
-  { name: 'PT Maju Jaya',   subsidence: -2.41, sensors: 34, status: 'warning' },
-  { name: 'PT Bumi Raya',   subsidence: -4.82, sensors: 18, status: 'critical' },
-  { name: 'PT Tirta',       subsidence: -1.10, sensors: 27, status: 'ok' },
-  { name: 'PT Sumber Air',  subsidence: -3.30, sensors: 21, status: 'warning' },
-  { name: 'PT Karya',       subsidence: -0.82, sensors: 15, status: 'ok' },
-  { name: 'PT Indo Nusa',   subsidence: -2.90, sensors: 11, status: 'warning' },
-]
+const PERIODS = ['6 Bulan', '12 Bulan', '2 Tahun'] as const;
 
-const QUARTERLY = [
-  { q: 'Q2 2024', jakarta: -1.65, bekasi: -2.10, tangerang: -0.90, depok: -1.20 },
-  { q: 'Q3 2024', jakarta: -1.80, bekasi: -2.40, tangerang: -0.95, depok: -1.35 },
-  { q: 'Q4 2024', jakarta: -1.95, bekasi: -2.80, tangerang: -1.00, depok: -1.50 },
-  { q: 'Q1 2025', jakarta: -2.10, bekasi: -3.20, tangerang: -1.05, depok: -1.65 },
-  { q: 'Q2 2025', jakarta: -2.20, bekasi: -3.60, tangerang: -1.08, depok: -1.75 },
-  { q: 'Q3 2025', jakarta: -2.35, bekasi: -4.00, tangerang: -1.10, depok: -1.90 },
-  { q: 'Q4 2025', jakarta: -2.45, bekasi: -4.40, tangerang: -1.09, depok: -2.00 },
-  { q: 'Q1 2026', jakarta: -2.55, bekasi: -4.82, tangerang: -1.10, depok: -2.10 },
-]
+function TrendLineChart() {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const chart = useRef<ChartJS | null>(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    if (chart.current) {
+      chart.current.destroy();
+      chart.current = null;
+    }
+    chart.current = new ChartJS(ref.current, {
+      type: 'line',
+      data: {
+        labels: ANALYTICS_MONTHLY.map(d => d.month),
+        datasets: [
+          { label: 'Air Tanah', data: ANALYTICS_MONTHLY.map(d => d.sw), borderColor: '#3B82F6', backgroundColor: 'rgba(59,130,246,0.07)', fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2 },
+          { label: 'GNSS', data: ANALYTICS_MONTHLY.map(d => d.gnss), borderColor: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.07)', fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2 },
+          { label: 'Threshold', data: ANALYTICS_MONTHLY.map(d => d.threshold), borderColor: 'rgba(239,68,68,0.4)', borderDash: [5,4], pointRadius: 0, borderWidth: 1.5, fill: false },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'top', labels: { boxWidth: 10, font: { size: 10, family: "'IBM Plex Mono'" }, color: '#64748B' } }, tooltip: { backgroundColor: '#fff', borderColor: '#E2E8F0', borderWidth: 1, bodyColor: '#0F172A', titleColor: '#475569', bodyFont: { size: 10, family: "'IBM Plex Mono'" }, titleFont: { size: 10, family: "'IBM Plex Mono'" } } },
+        scales: {
+          x: { ticks: { color: '#94A3B8', font: { size: 9, family: "'IBM Plex Mono'" } }, grid: { color: '#F1F5F9' }, border: { display: false } },
+          y: { min: -5, max: -1, ticks: { color: '#94A3B8', font: { size: 9, family: "'IBM Plex Mono'" }, callback: (v) => `${Number(v).toFixed(1)}` }, grid: { color: '#F1F5F9' }, border: { display: false } },
+        },
+      },
+    });
+    return () => {
+      if (chart.current) {
+        chart.current.destroy();
+        chart.current = null;
+      }
+    };
+  }, []);
+  return <div style={{ position: 'relative', height: 220 }}><canvas ref={ref} /></div>;
+}
 
-const PERIODS = ['6 Bulan', '12 Bulan', '2 Tahun', '5 Tahun']
+function BarCompanyChart() {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const chart = useRef<ChartJS | null>(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    if (chart.current) {
+      chart.current.destroy();
+      chart.current = null;
+    }
+    chart.current = new ChartJS(ref.current, {
+      type: 'bar',
+      data: {
+        labels: MOCK_COMPANIES.map(c => c.name.replace('PT ', '').substring(0, 12)),
+        datasets: [
+          { label: 'Avg Subsidence', data: MOCK_COMPANIES.map(c => Math.abs(c.avgSubsidence)), backgroundColor: MOCK_COMPANIES.map(c => c.avgSubsidence <= -3 ? 'rgba(239,68,68,0.7)' : c.avgSubsidence <= -2 ? 'rgba(245,158,11,0.7)' : 'rgba(34,197,94,0.7)'), borderRadius: 6, borderSkipped: false },
+          { label: 'Threshold (4.0)', data: MOCK_COMPANIES.map(() => 4.0), type: 'line', borderColor: 'rgba(239,68,68,0.4)', borderDash: [5,4], pointRadius: 0, borderWidth: 1.5, backgroundColor: 'transparent' },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#fff', borderColor: '#E2E8F0', borderWidth: 1, bodyColor: '#0F172A', titleColor: '#475569', bodyFont: { size: 10, family: "'IBM Plex Mono'" }, titleFont: { size: 10, family: "'IBM Plex Mono'" } } },
+        scales: {
+          x: { ticks: { color: '#94A3B8', font: { size: 9, family: "'IBM Plex Mono'" } }, grid: { display: false }, border: { display: false } },
+          y: { min: 0, max: 5, ticks: { color: '#94A3B8', font: { size: 9, family: "'IBM Plex Mono'" }, callback: (v) => `-${Number(v).toFixed(1)}` }, grid: { color: '#F1F5F9' }, border: { display: false } },
+        },
+      },
+    });
+    return () => {
+      if (chart.current) {
+        chart.current.destroy();
+        chart.current = null;
+      }
+    };
+  }, []);
+  return <div style={{ position: 'relative', height: 200 }}><canvas ref={ref} /></div>;
+}
 
-function TT({ active, payload, label }: { active?: boolean; payload?: { name: string; value: number; color: string }[]; label?: string }) {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="bg-white border border-border-base rounded-lg px-3 py-2 shadow-card-hover text-[11px]">
-      <p className="text-text-muted font-mono text-[9px] mb-1">{label}</p>
-      {payload.map((p) => (
-        <div key={p.name} className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-          <span className="text-text-secondary">{p.name}:</span>
-          <span className="font-bold font-mono" style={{ color: p.color }}>{p.value.toFixed(2)}</span>
-        </div>
-      ))}
-    </div>
-  )
+function QuotaBarChart() {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const chart = useRef<ChartJS | null>(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    if (chart.current) {
+      chart.current.destroy();
+      chart.current = null;
+    }
+    chart.current = new ChartJS(ref.current, {
+      type: 'bar',
+      data: {
+        labels: MOCK_COMPANIES.map(c => c.name.replace('PT ', '').substring(0, 12)),
+        datasets: [
+          { label: 'Terpakai (m³)', data: MOCK_COMPANIES.map(c => c.quotaUsed / 1000), backgroundColor: MOCK_COMPANIES.map(c => c.quotaUsed / c.quota >= 1 ? 'rgba(239,68,68,0.7)' : c.quotaUsed / c.quota >= 0.85 ? 'rgba(245,158,11,0.7)' : 'rgba(34,197,94,0.7)'), borderRadius: 6 },
+          { label: 'Kuota Total (m³)', data: MOCK_COMPANIES.map(c => c.quota / 1000), backgroundColor: 'rgba(148,163,184,0.15)', borderRadius: 6 },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y' as const,
+        plugins: { legend: { position: 'top', labels: { boxWidth: 10, font: { size: 10, family: "'IBM Plex Mono'" }, color: '#64748B' } }, tooltip: { backgroundColor: '#fff', borderColor: '#E2E8F0', borderWidth: 1, bodyColor: '#0F172A', titleColor: '#475569', bodyFont: { size: 10, family: "'IBM Plex Mono'" }, titleFont: { size: 10, family: "'IBM Plex Mono'" }, callbacks: { label: (ctx) => `${ctx.dataset.label}: ${(ctx.parsed.x).toFixed(0)}k m³` } } },
+        scales: {
+          x: { ticks: { color: '#94A3B8', font: { size: 9, family: "'IBM Plex Mono'" }, callback: (v) => `${v}k` }, grid: { color: '#F1F5F9' }, border: { display: false } },
+          y: { ticks: { color: '#94A3B8', font: { size: 9, family: "'IBM Plex Mono'" } }, grid: { display: false }, border: { display: false } },
+        },
+      },
+    });
+    return () => {
+      if (chart.current) {
+        chart.current.destroy();
+        chart.current = null;
+      }
+    };
+  }, []);
+  return <div style={{ position: 'relative', height: 200 }}><canvas ref={ref} /></div>;
 }
 
 export default function AnalyticsPage() {
-  const [period, setPeriod] = useState('12 Bulan')
+  const [period, setPeriod] = useState<typeof PERIODS[number]>('12 Bulan');
+  const alertCount = MOCK_COMPANIES.filter(c => c.quotaUsed / c.quota > 1).length;
+  const warnCount  = MOCK_COMPANIES.filter(c => { const p = c.quotaUsed / c.quota; return p >= 0.85 && p <= 1; }).length;
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <Topbar
-        breadcrumbs={[{ label: 'Super Admin' }, { label: 'Analytics' }]}
-        actions={
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 bg-bg-card3 border border-border-base rounded-lg p-1">
-              {PERIODS.map((p) => (
-                <button key={p} onClick={() => setPeriod(p)}
-                  className={cn('px-2.5 py-1 rounded-md text-[10px] font-medium transition-all',
-                    period === p ? 'bg-bg-card text-text-primary shadow-sm border border-border-base' : 'text-text-muted hover:text-text-secondary')}>
-                  {p}
-                </button>
-              ))}
-            </div>
-            <button className="flex items-center gap-1.5 text-[10px] text-text-secondary border border-border-base rounded-lg px-2.5 h-8 hover:bg-bg-card3 transition-colors">
-              <Download size={12} /> Ekspor
-            </button>
+    <div className="p-5 space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-[18px] font-semibold text-slate-800">Analytics</h1>
+          <p className="text-[11px] text-slate-400 font-mono mt-0.5">Analisis tren subsidence dan penggunaan air tanah</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
+            {PERIODS.map(p => (
+              <button key={p} onClick={() => setPeriod(p)}
+                className={cn('text-[10px] font-mono px-2.5 py-1 rounded-md transition-all',
+                  period === p ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700')}>
+                {p}
+              </button>
+            ))}
           </div>
-        }
-      />
-
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
-
-        {/* KPI row */}
-        <div className="grid grid-cols-4 gap-3">
-          <StatCard accent="cyan"   label="Avg Subsidence Regional" value="-2.34" sub="cm/tahun" icon={<TrendingDown size={14} className="text-accent-cyan" />} />
-          <StatCard accent="red"    label="Zona Kritis Aktif"       value="4"     sub="↑ 1 dari bulan lalu" subColor="text-accent-red" icon={<MapPin size={14} className="text-accent-red" />} />
-          <StatCard accent="amber"  label="Perusahaan Perlu Tindak" value="3"     sub="dari 18 total" icon={<BarChart2 size={14} className="text-accent-amber" />} />
-          <StatCard accent="green"  label="Sensor Compliance Rate"  value="89%"   sub="Target 85% — tercapai" subColor="text-accent-green" icon={<TrendingUp size={14} className="text-accent-green" />} />
+          <button className="px-3 py-2 bg-white border border-slate-200 text-slate-600 text-[11px] rounded-xl hover:bg-slate-50 flex items-center gap-1.5">
+            <Download size={12} /> Ekspor PDF
+          </button>
         </div>
+      </div>
 
-        {/* Row 1: trend + quarterly */}
-        <div className="grid grid-cols-[1.4fr_1fr] gap-4">
-          {/* 12 month trend */}
-          <Panel title="Trend Subsidence Regional — 12 Bulan" icon={<TrendingDown size={12} className="text-accent-cyan" />} sub="Apr 2025 – Mar 2026">
-            <div className="flex gap-4 px-4 pt-3 pb-1">
-              {[
-                { color: '#0891b2', label: 'Rata-rata' },
-                { color: '#dc2626', label: 'Nilai Maks' },
-                { color: '#16a34a', label: 'Nilai Min'  },
-              ].map((l) => (
-                <div key={l.label} className="flex items-center gap-1.5">
-                  <span className="w-[10px] h-[3px] rounded-full" style={{ background: l.color }} />
-                  <span className="text-[9px] text-text-muted">{l.label}</span>
-                </div>
-              ))}
-            </div>
-            <div className="px-3 pb-4 pt-1">
-              <ResponsiveContainer width="100%" height={200}>
-                <AreaChart data={TREND_12M} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#0891b2" stopOpacity={0.12} />
-                      <stop offset="95%" stopColor="#0891b2" stopOpacity={0}    />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                  <XAxis dataKey="month" tick={{ fill: '#94a3b8', fontSize: 9 }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[-5.5, 0]} tick={{ fill: '#94a3b8', fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => v.toFixed(1)} />
-                  <Tooltip content={<TT />} />
-                  <Area type="monotone" dataKey="max" name="Maks" stroke="#dc2626" strokeWidth={1.5} fill="none"
-                    strokeDasharray="4 3" dot={false} />
-                  <Area type="monotone" dataKey="avg" name="Avg"  stroke="#0891b2" strokeWidth={2}   fill="url(#g1)"
-                    dot={{ fill: '#0891b2', r: 3, strokeWidth: 0 }} activeDot={{ r: 5, fill: '#0891b2', stroke: '#fff', strokeWidth: 2 }} />
-                  <Area type="monotone" dataKey="min" name="Min"  stroke="#16a34a" strokeWidth={1.5} fill="none"
-                    strokeDasharray="4 3" dot={false} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </Panel>
+      {/* KPI Row */}
+      <div className="grid grid-cols-4 gap-3">
+        {[
+          { label: 'Avg Subsidence', value: '-2.34 cm/thn', sub: 'Seluruh sensor', color: '#0891B2' },
+          { label: 'Sensor Kritis', value: '3', sub: '> -4.0 threshold', color: '#EF4444' },
+          { label: 'Kuota Melebihi', value: String(alertCount), sub: 'Perusahaan', color: '#EF4444' },
+          { label: 'Kuota Waspada', value: String(warnCount), sub: '≥ 85% terpakai', color: '#F59E0B' },
+        ].map(({ label, value, sub, color }) => (
+          <div key={label} className="bg-white rounded-xl border border-slate-100 shadow-sm px-4 py-3 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl" style={{ background: color }} />
+            <p className="text-[9px] font-mono text-slate-400 tracking-wider uppercase mb-1">{label}</p>
+            <p className="text-[20px] font-bold font-mono text-slate-800">{value}</p>
+            <p className="text-[9px] font-mono mt-0.5" style={{ color }}>{sub}</p>
+          </div>
+        ))}
+      </div>
 
-          {/* Company comparison bar */}
-          <Panel title="Perbandingan Antar Perusahaan" icon={<BarChart2 size={12} className="text-accent-purple" />} sub="Avg cm/thn">
-            <div className="px-3 py-4 space-y-2">
-              {COMPANY_COMPARE.map((c) => {
-                const pct = Math.abs(c.subsidence) / 5 * 100
-                const color = c.status === 'critical' ? '#dc2626' : c.status === 'warning' ? '#d97706' : '#16a34a'
-                return (
-                  <div key={c.name}>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-[10px] text-text-secondary truncate max-w-[130px]">{c.name}</span>
-                      <span className="text-[10px] font-bold font-mono" style={{ color }}>{c.subsidence.toFixed(2)}</span>
-                    </div>
-                    <div className="h-2 bg-bg-card3 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
-                    </div>
-                  </div>
-                )
-              })}
-              <div className="flex items-center gap-3 pt-2 text-[9px] text-text-muted font-mono border-t border-border-light">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-accent-red inline-block" />Kritis (&lt;-3.5)</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-accent-amber inline-block" />Waspada</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-accent-green inline-block" />Normal</span>
-              </div>
-            </div>
-          </Panel>
-        </div>
+      {/* Trend Chart */}
+      <Card padding={false}>
+        <SectionHeader title="Tren Subsidence per Tipe Sensor" icon={<TrendingDown size={13} />} subtitle="RATA-RATA cm/TAHUN" />
+        <div className="p-4"><TrendLineChart /></div>
+      </Card>
 
-        {/* Row 2: quarterly by region */}
-        <Panel title="Tren Per Wilayah — Kuartalan" icon={<Calendar size={12} className="text-accent-blue" />} sub="Q2 2024 – Q1 2026">
-          <div className="flex gap-4 px-4 pt-3 pb-1">
-            {[
-              { color: '#2563eb', label: 'Jakarta' },
-              { color: '#dc2626', label: 'Bekasi'  },
-              { color: '#d97706', label: 'Tangerang'},
-              { color: '#0891b2', label: 'Depok'   },
-            ].map((l) => (
-              <div key={l.label} className="flex items-center gap-1.5">
-                <span className="w-[10px] h-[3px] rounded-full" style={{ background: l.color }} />
-                <span className="text-[9px] text-text-muted">{l.label}</span>
+      {/* Bar Charts row */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card padding={false}>
+          <SectionHeader title="Subsidence per Perusahaan" icon={<BarChart3 size={13} />} subtitle="|SUBSIDENCE| cm/thn" />
+          <div className="p-4"><BarCompanyChart /></div>
+          <div className="px-4 pb-3 flex gap-3">
+            {[['#EF4444','Kritis (>3.0)'],['#F59E0B','Waspada (2-3)'],['#22C55E','Normal (<2)']].map(([c,l]) => (
+              <div key={l} className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: c }} />
+                <span className="text-[9px] font-mono text-slate-400">{l}</span>
               </div>
             ))}
           </div>
-          <div className="px-3 pb-4 pt-1">
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={QUARTERLY} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                <XAxis dataKey="q" tick={{ fill: '#94a3b8', fontSize: 9 }} axisLine={false} tickLine={false} />
-                <YAxis domain={[-5.5, 0]} tick={{ fill: '#94a3b8', fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => v.toFixed(1)} />
-                <Tooltip content={<TT />} />
-                <Line type="monotone" dataKey="jakarta"   name="Jakarta"    stroke="#2563eb" strokeWidth={2} dot={{ r: 3, fill: '#2563eb', strokeWidth: 0 }} />
-                <Line type="monotone" dataKey="bekasi"    name="Bekasi"     stroke="#dc2626" strokeWidth={2} dot={{ r: 3, fill: '#dc2626', strokeWidth: 0 }} />
-                <Line type="monotone" dataKey="tangerang" name="Tangerang"  stroke="#d97706" strokeWidth={2} dot={{ r: 3, fill: '#d97706', strokeWidth: 0 }} />
-                <Line type="monotone" dataKey="depok"     name="Depok"      stroke="#0891b2" strokeWidth={2} dot={{ r: 3, fill: '#0891b2', strokeWidth: 0 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </Panel>
+        </Card>
 
-        {/* Row 3: sensor health + summary table */}
-        <div className="grid grid-cols-[1fr_1.4fr] gap-4">
-          {/* Sensor health donut-like */}
-          <Panel title="Status Sensor Keseluruhan" icon={<BarChart2 size={12} className="text-accent-cyan" />}>
-            <div className="px-4 pb-4 pt-2">
-              <ResponsiveContainer width="100%" height={160}>
-                <BarChart data={[
-                  { name: 'Online',   value: 232, fill: '#16a34a' },
-                  { name: 'Waspada',  value: 8,   fill: '#d97706' },
-                  { name: 'Kritis',   value: 3,   fill: '#dc2626' },
-                  { name: 'Offline',  value: 4,   fill: '#94a3b8' },
-                ]} layout="vertical" margin={{ top: 0, right: 40, left: 10, bottom: 0 }}>
-                  <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="name" tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} width={55} />
-                  <Tooltip formatter={(v: number) => [v, 'Sensor']} contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #e2e8f0' }} />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                    {[
-                      { fill: '#16a34a' },
-                      { fill: '#d97706' },
-                      { fill: '#dc2626' },
-                      { fill: '#94a3b8' },
-                    ].map((entry, i) => (
-                      <rect key={i} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                {[
-                  { label: 'Online',  value: '232', pct: '94%', color: 'text-accent-green' },
-                  { label: 'Waspada', value: '8',   pct: '3%',  color: 'text-accent-amber' },
-                  { label: 'Kritis',  value: '3',   pct: '1%',  color: 'text-accent-red'   },
-                  { label: 'Offline', value: '4',   pct: '2%',  color: 'text-text-muted'   },
-                ].map((s) => (
-                  <div key={s.label} className="bg-bg-card3 rounded-lg p-2.5">
-                    <p className="text-[8px] text-text-muted mb-0.5">{s.label}</p>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className={cn('text-[15px] font-bold font-mono', s.color)}>{s.value}</span>
-                      <span className="text-[9px] text-text-muted">({s.pct})</span>
-                    </div>
-                  </div>
+        <Card padding={false}>
+          <SectionHeader title="Penggunaan Kuota Air Tanah" icon={<BarChart3 size={13} />} subtitle="RIBU m³" />
+          <div className="p-4"><QuotaBarChart /></div>
+        </Card>
+      </div>
+
+      {/* Company table */}
+      <Card padding={false}>
+        <SectionHeader title="Ringkasan per Perusahaan" />
+        <div className="overflow-x-auto">
+          <table className="w-full" style={{ minWidth: '500px' }}>
+            <thead className="bg-slate-50/60 border-b border-slate-100">
+              <tr>
+                {['Perusahaan','Wilayah','Avg Subsidence','Kuota Terpakai','Sensor','Status'].map(h => (
+                  <th key={h} className="text-[9px] font-mono text-slate-400 uppercase tracking-wider px-4 py-2.5 text-left whitespace-nowrap">{h}</th>
                 ))}
-              </div>
-            </div>
-          </Panel>
-
-          {/* Summary stats table */}
-          <Panel title="Ringkasan Statistik Regional" icon={<TrendingDown size={12} className="text-accent-amber" />}>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Wilayah</th>
-                  <th>Sensor</th>
-                  <th>Avg cm/thn</th>
-                  <th>Maks cm/thn</th>
-                  <th>Trend</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { region: 'Jakarta Utara', sensors: 52, avg: -2.41, max: -4.82, trend: 'up' },
-                  { region: 'Jakarta Barat', sensors: 38, avg: -1.95, max: -2.90, trend: 'up' },
-                  { region: 'Bekasi',        sensors: 18, avg: -4.20, max: -4.82, trend: 'up' },
-                  { region: 'Tangerang',     sensors: 27, avg: -1.10, max: -1.80, trend: 'stable' },
-                  { region: 'Depok',         sensors: 21, avg: -3.30, max: -3.90, trend: 'up' },
-                  { region: 'Bogor',         sensors: 15, avg: -0.82, max: -1.20, trend: 'stable' },
-                ].map((r) => (
-                  <tr key={r.region}>
-                    <td className="td-primary">{r.region}</td>
-                    <td className="td-mono text-text-primary">{r.sensors}</td>
-                    <td className={cn('td-mono font-semibold',
-                      r.avg < -3.5 ? 'text-accent-red' : r.avg < -2.5 ? 'text-accent-amber' : 'text-accent-green')}>
-                      {r.avg.toFixed(2)}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {MOCK_COMPANIES.map(c => {
+                const pct = Math.round((c.quotaUsed / c.quota) * 100);
+                const pctColor = pct >= 100 ? '#EF4444' : pct >= 85 ? '#F59E0B' : '#22C55E';
+                return (
+                  <tr key={c.id} className="hover:bg-slate-50/40 transition-colors">
+                    <td className="px-4 py-2.5 text-[12px] font-semibold text-slate-800">{c.name}</td>
+                    <td className="px-4 py-2.5 text-[11px] text-slate-500">{c.region}</td>
+                    <td className="px-4 py-2.5">
+                      <span className={cn('text-[12px] font-semibold font-mono', getSubsidenceColor(c.avgSubsidence))}>{c.avgSubsidence.toFixed(2)} cm/thn</span>
                     </td>
-                    <td className="td-mono text-accent-red font-semibold">{r.max.toFixed(2)}</td>
-                    <td>
-                      {r.trend === 'up'
-                        ? <span className="flex items-center gap-1 text-[10px] text-accent-red"><TrendingDown size={11} /> Memburuk</span>
-                        : <span className="flex items-center gap-1 text-[10px] text-accent-green"><TrendingUp size={11} /> Stabil</span>}
+                    <td className="px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${Math.min(pct,100)}%`, background: pctColor }} />
+                        </div>
+                        <span className="text-[10px] font-mono font-semibold" style={{ color: pctColor }}>{pct}%</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-2.5 text-[11px] font-mono text-slate-700">{c.sensorCount}</td>
+                    <td className="px-4 py-2.5">
+                      <span className={cn('text-[10px] font-mono px-2 py-0.5 rounded-full border',
+                        c.status === 'online' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : c.status === 'offline' ? 'bg-red-50 text-red-700 border-red-200'
+                        : 'bg-amber-50 text-amber-700 border-amber-200')}>
+                        {c.status}
+                      </span>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </Panel>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
-
-        <div className="h-2" />
-      </div>
+      </Card>
     </div>
-  )
+  );
 }

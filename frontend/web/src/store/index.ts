@@ -1,30 +1,24 @@
-import { create } from 'zustand'
+import { create } from 'zustand';
+import type { Role, Sensor } from '../types';
 
-/* ── UI Store ──────────────────────────────────────────────────────── */
-interface UIState {
-  sidebarCollapsed: boolean
-  mapLayer: 'street' | 'satellite' | 'terrain'
-  toggleSidebar: () => void
-  setMapLayer: (l: UIState['mapLayer']) => void
+interface AppState {
+  role: Role;
+  activePage: string;
+  sidebarCollapsed: boolean;
+  selectedSensor: Sensor | null;
+  setRole: (role: Role) => void;
+  setActivePage: (page: string) => void;
+  toggleSidebar: () => void;
+  setSelectedSensor: (sensor: Sensor | null) => void;
 }
 
-export const useUIStore = create<UIState>((set) => ({
+export const useAppStore = create<AppState>((set) => ({
+  role: 'superadmin',
+  activePage: 'dashboard',
   sidebarCollapsed: false,
-  mapLayer: 'street',
-  toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
-  setMapLayer: (mapLayer) => set({ mapLayer }),
-}))
-
-/* ── Auth Store ────────────────────────────────────────────────────── */
-interface AuthState {
-  user: { name: string; initials: string; role: string; email: string }
-}
-
-export const useAuthStore = create<AuthState>(() => ({
-  user: {
-    name:     'Ahmad Fauzi',
-    initials: 'SA',
-    role:     'Super Admin',
-    email:    'ahmad.fauzi@webgis.id',
-  },
-}))
+  selectedSensor: null,
+  setRole: (role) => set({ role }),
+  setActivePage: (page) => set({ activePage: page }),
+  toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+  setSelectedSensor: (sensor) => set({ selectedSensor: sensor }),
+}));

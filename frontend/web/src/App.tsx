@@ -1,39 +1,37 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import AppShell    from '@/components/layout/AppShell'
-import Dashboard   from '@/pages/superadmin/Dashboard'
-import PetaPage    from '@/pages/superadmin/peta'
-import SensorPage  from '@/pages/superadmin/sensor'
-import Analytics   from '@/pages/superadmin/analytics'
-import Users       from '@/pages/superadmin/users'
-import Companies   from '@/pages/superadmin/companies'
-import Roles       from '@/pages/superadmin/roles'
-import Reports     from '@/pages/superadmin/reports'
-import Config      from '@/pages/superadmin/config'
-import ServerPage  from '@/pages/superadmin/server'
-import Audit       from '@/pages/superadmin/audit'
+import AppShell from './components/layout/superAdmin/AppShell';
+import SuperAdminDashboard from '../src/pages/superadmin/Dashboard';
+import PetaPage            from './pages/superadmin/peta/index';
+import SensorPage          from './pages/superadmin/sensor/index';
+import AnalyticsPage       from './pages/superadmin/analytics/index';
+import UsersPage           from './pages/superadmin/users/index';
+import CompaniesPage       from './pages/superadmin/companies/index';
+import RolesPage           from '../src/pages/superadmin/roles/index';
+import ReportsPage         from './pages/superadmin/reports/index';
+import ConfigPage          from '../src/pages/superadmin/config/index';
+import ServerPage          from './pages/superadmin/server/index';
+import AuditPage           from './pages/superadmin/audit/index';
+import { useAppStore } from './store';
 
 export default function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navigate to="/superadmin" replace />} />
+  const { activePage } = useAppStore();
 
-        <Route path="/superadmin" element={<AppShell />}>
-          <Route index            element={<Dashboard />}  />
-          <Route path="peta"      element={<PetaPage />}   />
-          <Route path="sensor"    element={<SensorPage />} />
-          <Route path="analytics" element={<Analytics />}  />
-          <Route path="users"     element={<Users />}      />
-          <Route path="companies" element={<Companies />}  />
-          <Route path="roles"     element={<Roles />}      />
-          <Route path="reports"   element={<Reports />}    />
-          <Route path="config"    element={<Config />}     />
-          <Route path="server"    element={<ServerPage />} />
-          <Route path="audit"     element={<Audit />}      />
-        </Route>
+  const page = (() => {
+    switch (activePage) {
+      case 'dashboard':  return <SuperAdminDashboard />;
+      case 'peta':       return <PetaPage />;
+      case 'sensor':     return <SensorPage />;
+      case 'analytics':  return <AnalyticsPage />;
+      case 'users':      return <UsersPage />;
+      case 'companies':  return <CompaniesPage />;
+      case 'roles':      return <RolesPage />;
+      case 'reports':    return <ReportsPage />;
+      case 'config':     return <ConfigPage />;
+      case 'server':     return <ServerPage />;
+      case 'audit':      return <AuditPage />;
+      default:           return <SuperAdminDashboard />;
+    }
+  })();
 
-        <Route path="*" element={<Navigate to="/superadmin" replace />} />
-      </Routes>
-    </BrowserRouter>
-  )
+  const isFullHeight = activePage === 'peta';
+  return <AppShell fullHeight={isFullHeight}>{page}</AppShell>;
 }

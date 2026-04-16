@@ -1,219 +1,163 @@
-import { useState } from 'react'
-import { Shield, ShieldCheck, Building2, Cpu, Check, X, Info } from 'lucide-react'
-import Topbar from '@/components/layout/Topbar'
-import { Panel } from '@/components/ui'
-import { cn } from '@/lib/utils'
+import { useState } from 'react';
+import { Shield, Check, X, Info } from 'lucide-react';
+import { Card, SectionHeader } from '../../../../../web/src/components/ui';
+import { cn } from '../../../../../web/src/lib/utils';
 
-type Role = 'super_admin' | 'admin_company' | 'kepala_instansi' | 'supervisor'
+const ROLES = [
+  { key: 'super_admin',      label: 'Super Admin',        color: 'bg-purple-50 text-purple-700 border-purple-200', count: 1, desc: 'Akses penuh ke seluruh sistem, konfigurasi, dan audit' },
+  { key: 'admin_perusahaan', label: 'Admin Perusahaan',   color: 'bg-amber-50 text-amber-700 border-amber-200',    count: 4, desc: 'Kelola sensor dan laporan dalam lingkup perusahaan sendiri' },
+  { key: 'kepala_instansi',  label: 'Kepala Instansi',    color: 'bg-teal-50 text-teal-700 border-teal-200',       count: 2, desc: 'Pantau kepatuhan lintas perusahaan, setujui izin' },
+  { key: 'supervisor',       label: 'Supervisor Lapangan', color: 'bg-blue-50 text-blue-700 border-blue-200',      count: 6, desc: 'Input data pengukuran lapangan, upload foto' },
+];
 
-const ROLES: { key: Role; label: string; Icon: React.ElementType; color: string; bg: string; desc: string; userCount: number }[] = [
-  { key: 'super_admin',     label: 'Super Admin',      Icon: Shield,      color: 'text-accent-purple', bg: 'bg-fill-purple', desc: 'Akses penuh ke seluruh sistem, semua perusahaan, konfigurasi, dan manajemen pengguna.',      userCount: 2  },
-  { key: 'admin_company',   label: 'Admin Perusahaan', Icon: Building2,   color: 'text-accent-blue',   bg: 'bg-fill-blue',   desc: 'Mengelola data sensor, pengguna, dan laporan dalam lingkup perusahaannya sendiri.',          userCount: 5  },
-  { key: 'kepala_instansi', label: 'Kepala Instansi',  Icon: ShieldCheck, color: 'text-accent-cyan',   bg: 'bg-fill-cyan',   desc: 'Memantau dan menyetujui laporan dari beberapa perusahaan di bawah instansinya. Read-only untuk data sensor.', userCount: 2 },
-  { key: 'supervisor',      label: 'Supervisor',        Icon: Cpu,         color: 'text-accent-amber',  bg: 'bg-fill-amber',  desc: 'Melakukan input data lapangan, melihat peta dan sensor yang menjadi tanggung jawabnya.',   userCount: 4  },
-]
-
-type PermKey = string
-interface Permission {
-  id: PermKey
-  module: string
-  label: string
-  super_admin: boolean
-  admin_company: boolean
-  kepala_instansi: boolean
-  supervisor: boolean
-}
-
-const PERMISSIONS: Permission[] = [
-  // Dashboard
-  { id:'d1',  module:'Dashboard',      label:'Lihat Dashboard',            super_admin:true,  admin_company:true,  kepala_instansi:true,  supervisor:true  },
-  { id:'d2',  module:'Dashboard',      label:'Export Laporan Dashboard',   super_admin:true,  admin_company:true,  kepala_instansi:true,  supervisor:false },
-  // Peta
-  { id:'p1',  module:'Peta',           label:'Lihat Peta Interaktif',      super_admin:true,  admin_company:true,  kepala_instansi:true,  supervisor:true  },
-  { id:'p2',  module:'Peta',           label:'Filter Semua Perusahaan',    super_admin:true,  admin_company:false, kepala_instansi:true,  supervisor:false },
-  { id:'p3',  module:'Peta',           label:'Tambah Marker Kustom',       super_admin:true,  admin_company:true,  kepala_instansi:false, supervisor:false },
-  // Sensor
-  { id:'s1',  module:'Sensor',         label:'Lihat Data Sensor',          super_admin:true,  admin_company:true,  kepala_instansi:true,  supervisor:true  },
-  { id:'s2',  module:'Sensor',         label:'Input Data Sensor',          super_admin:true,  admin_company:false, kepala_instansi:false, supervisor:true  },
-  { id:'s3',  module:'Sensor',         label:'Tambah/Hapus Sensor',        super_admin:true,  admin_company:true,  kepala_instansi:false, supervisor:false },
-  { id:'s4',  module:'Sensor',         label:'Lihat Sensor Semua Perusahaan', super_admin:true, admin_company:false, kepala_instansi:true, supervisor:false },
-  // Laporan
-  { id:'l1',  module:'Laporan',        label:'Lihat Laporan',              super_admin:true,  admin_company:true,  kepala_instansi:true,  supervisor:true  },
-  { id:'l2',  module:'Laporan',        label:'Buat Laporan',               super_admin:true,  admin_company:true,  kepala_instansi:false, supervisor:false },
-  { id:'l3',  module:'Laporan',        label:'Setujui / Tolak Laporan',    super_admin:true,  admin_company:false, kepala_instansi:true,  supervisor:false },
-  { id:'l4',  module:'Laporan',        label:'Ekspor Laporan PDF/Excel',   super_admin:true,  admin_company:true,  kepala_instansi:true,  supervisor:false },
-  // Pengguna
-  { id:'u1',  module:'Pengguna',       label:'Lihat Daftar Pengguna',      super_admin:true,  admin_company:true,  kepala_instansi:false, supervisor:false },
-  { id:'u2',  module:'Pengguna',       label:'Undang / Tambah Pengguna',   super_admin:true,  admin_company:true,  kepala_instansi:false, supervisor:false },
-  { id:'u3',  module:'Pengguna',       label:'Edit / Nonaktifkan User',    super_admin:true,  admin_company:false, kepala_instansi:false, supervisor:false },
-  // Perusahaan
-  { id:'c1',  module:'Perusahaan',     label:'Lihat Data Perusahaan',      super_admin:true,  admin_company:true,  kepala_instansi:true,  supervisor:false },
-  { id:'c2',  module:'Perusahaan',     label:'Tambah / Edit Perusahaan',   super_admin:true,  admin_company:false, kepala_instansi:false, supervisor:false },
-  // Sistem
-  { id:'sy1', module:'Sistem',         label:'Akses Konfigurasi Sistem',   super_admin:true,  admin_company:false, kepala_instansi:false, supervisor:false },
-  { id:'sy2', module:'Sistem',         label:'Lihat Audit Log',            super_admin:true,  admin_company:false, kepala_instansi:false, supervisor:false },
-  { id:'sy3', module:'Sistem',         label:'Kelola Server & API',        super_admin:true,  admin_company:false, kepala_instansi:false, supervisor:false },
-]
-
-const MODULES = [...new Set(PERMISSIONS.map(p => p.module))]
-
-function PermCell({ allowed, editable, onChange }: { allowed: boolean; editable: boolean; onChange?: () => void }) {
-  if (!editable) {
-    return (
-      <td className="text-center px-3 py-[8px] border-b border-border-light">
-        {allowed
-          ? <div className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-fill-green"><Check size={11} className="text-accent-green" strokeWidth={2.5} /></div>
-          : <div className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-bg-card3"><X size={10} className="text-text-muted" strokeWidth={2} /></div>}
-      </td>
-    )
-  }
-  return (
-    <td className="text-center px-3 py-[8px] border-b border-border-light">
-      <button onClick={onChange}
-        className={cn('w-5 h-5 rounded-full inline-flex items-center justify-center transition-all hover:scale-110',
-          allowed ? 'bg-fill-green' : 'bg-bg-card3 hover:bg-fill-red/50')}>
-        {allowed
-          ? <Check size={11} className="text-accent-green" strokeWidth={2.5} />
-          : <X size={10} className="text-text-muted" strokeWidth={2} />}
-      </button>
-    </td>
-  )
-}
+const PERMISSION_GROUPS = [
+  {
+    group: 'Dashboard',
+    items: [
+      { label: 'Lihat Dashboard',           perms: [true,  true,  true,  true]  },
+      { label: 'Lihat Peta Semua Sensor',   perms: [true,  false, true,  false] },
+      { label: 'Lihat Peta Sensor Sendiri', perms: [true,  true,  true,  true]  },
+    ],
+  },
+  {
+    group: 'Sensor',
+    items: [
+      { label: 'Lihat Sensor',    perms: [true,  true,  true,  true]  },
+      { label: 'Tambah Sensor',   perms: [true,  true,  false, false] },
+      { label: 'Edit Sensor',     perms: [true,  true,  false, false] },
+      { label: 'Hapus Sensor',    perms: [true,  false, false, false] },
+      { label: 'Input Pengukuran',perms: [true,  true,  false, true]  },
+      { label: 'Upload Foto',     perms: [true,  true,  false, true]  },
+    ],
+  },
+  {
+    group: 'Perusahaan',
+    items: [
+      { label: 'Lihat Perusahaan',  perms: [true,  true,  true,  false] },
+      { label: 'Tambah Perusahaan', perms: [true,  false, false, false] },
+      { label: 'Edit Perusahaan',   perms: [true,  true,  false, false] },
+      { label: 'Hapus Perusahaan',  perms: [true,  false, false, false] },
+    ],
+  },
+  {
+    group: 'Pengguna',
+    items: [
+      { label: 'Lihat Pengguna',  perms: [true,  false, true,  false] },
+      { label: 'Tambah Pengguna', perms: [true,  false, false, false] },
+      { label: 'Edit Pengguna',   perms: [true,  false, false, false] },
+      { label: 'Hapus Pengguna',  perms: [true,  false, false, false] },
+      { label: 'Kelola Role',     perms: [true,  false, false, false] },
+    ],
+  },
+  {
+    group: 'Laporan',
+    items: [
+      { label: 'Lihat Laporan',  perms: [true,  true,  true,  true]  },
+      { label: 'Buat Laporan',   perms: [true,  true,  false, false] },
+      { label: 'Ekspor Data',    perms: [true,  true,  true,  false] },
+      { label: 'Setujui Izin',   perms: [true,  false, true,  false] },
+    ],
+  },
+  {
+    group: 'Sistem',
+    items: [
+      { label: 'Konfigurasi Sistem', perms: [true, false, false, false] },
+      { label: 'Lihat Audit Log',    perms: [true, false, false, false] },
+      { label: 'Kelola Server',      perms: [true, false, false, false] },
+      { label: 'Backup Data',        perms: [true, false, false, false] },
+    ],
+  },
+];
 
 export default function RolesPage() {
-  const [perms, setPerms] = useState<Permission[]>(PERMISSIONS)
-  const [activeModule, setActiveModule] = useState<string>('Semua')
-  const [editMode, setEditMode] = useState(false)
-  const [saved, setSaved] = useState(false)
-
-  const toggle = (id: PermKey, role: Role) => {
-    if (!editMode || role === 'super_admin') return
-    setPerms(ps => ps.map(p => p.id === id ? { ...p, [role]: !p[role] } : p))
-  }
-
-  const handleSave = () => { setSaved(true); setEditMode(false); setTimeout(() => setSaved(false), 3000) }
-
-  const displayed = perms.filter(p => activeModule === 'Semua' || p.module === activeModule)
+  const [selected, setSelected] = useState('super_admin');
+  const selectedIdx = ROLES.findIndex(r => r.key === selected);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <Topbar
-        breadcrumbs={[{ label: 'Super Admin' }, { label: 'Role & Akses' }]}
-        actions={
-          <div className="flex items-center gap-2">
-            {saved && <span className="text-[10px] text-accent-green flex items-center gap-1"><Check size={11} />Tersimpan</span>}
-            {editMode
-              ? <>
-                  <button onClick={() => setEditMode(false)}
-                    className="text-[10px] font-semibold border border-border-base rounded-lg px-3 h-8 text-text-secondary hover:bg-bg-card3 transition-colors">Batal</button>
-                  <button onClick={handleSave}
-                    className="text-[10px] font-semibold bg-accent-green text-white rounded-lg px-3 h-8 hover:bg-green-700 transition-colors flex items-center gap-1.5">
-                    <Check size={12} /> Simpan Perubahan
-                  </button>
-                </>
-              : <button onClick={() => setEditMode(true)}
-                  className="text-[10px] font-semibold bg-accent-blue text-white rounded-lg px-3 h-8 hover:bg-blue-700 transition-colors flex items-center gap-1.5">
-                  <Shield size={12} /> Edit Hak Akses
-                </button>}
-          </div>
-        }
-      />
+    <div className="p-5 space-y-4">
+      <div>
+        <h1 className="text-[18px] font-semibold text-slate-800">Role & Akses</h1>
+        <p className="text-[11px] text-slate-400 font-mono mt-0.5">Konfigurasi hak akses per role pengguna</p>
+      </div>
 
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
-        {/* Role cards */}
-        <div className="grid grid-cols-4 gap-3">
-          {ROLES.map(({ key, label, Icon, color, bg, desc, userCount }) => (
-            <div key={key} className="bg-bg-card border border-border-base rounded-xl p-4 shadow-card">
-              <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center mb-3', bg)}>
-                <Icon size={16} className={color} />
-              </div>
-              <p className="text-[12px] font-bold text-text-primary">{label}</p>
-              <p className="text-[9px] text-text-muted mt-1 mb-3 leading-relaxed">{desc}</p>
-              <div className="flex items-center justify-between pt-2 border-t border-border-light">
-                <span className="text-[9px] text-text-muted">{userCount} pengguna aktif</span>
-                {key === 'super_admin' && (
-                  <span className="text-[8px] font-mono bg-fill-purple text-accent-purple px-1.5 py-0.5 rounded">Tidak bisa diubah</span>
-                )}
-              </div>
+      {/* Role cards */}
+      <div className="grid grid-cols-4 gap-3">
+        {ROLES.map(r => (
+          <button key={r.key} onClick={() => setSelected(r.key)}
+            className={cn(
+              'text-left p-4 rounded-xl border transition-all bg-white shadow-sm',
+              selected === r.key ? 'border-cyan-300 ring-1 ring-cyan-200 shadow-md' : 'border-slate-100 hover:border-slate-200 hover:shadow',
+            )}>
+            <div className="flex items-center justify-between mb-2">
+              <span className={cn('text-[9px] font-mono font-medium px-2 py-0.5 rounded-full border', r.color)}>{r.label}</span>
+              <span className="text-[10px] font-mono text-slate-400">{r.count} user</span>
             </div>
-          ))}
-        </div>
+            <p className="text-[10px] text-slate-500 leading-relaxed">{r.desc}</p>
+          </button>
+        ))}
+      </div>
 
-        {/* Edit mode notice */}
-        {editMode && (
-          <div className="flex items-center gap-2 px-4 py-3 bg-fill-blue border border-accent-blue/20 rounded-xl text-[11px] text-accent-blue">
-            <Info size={14} />
-            Mode edit aktif. Klik centang/silang pada baris yang ingin diubah. Super Admin tidak dapat diubah.
-          </div>
-        )}
-
-        {/* Permission matrix */}
-        <Panel title="Matriks Hak Akses" icon={<Shield size={12} className="text-accent-purple" />}
-          headerRight={<span className="text-[10px] text-text-muted font-mono">{perms.length} permission</span>}>
-
-          {/* Module filter */}
-          <div className="flex items-center gap-1.5 px-4 py-3 border-b border-border-base bg-bg-card3 overflow-x-auto">
-            {['Semua', ...MODULES].map((m) => (
-              <button key={m} onClick={() => setActiveModule(m)}
-                className={cn('px-2.5 py-1 rounded-lg text-[9px] font-mono font-medium whitespace-nowrap border transition-all',
-                  activeModule === m
-                    ? 'bg-accent-purple/10 text-accent-purple border-accent-purple/30'
-                    : 'text-text-muted border-transparent hover:text-text-secondary hover:bg-bg-card3')}>
-                {m}
-              </button>
-            ))}
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-bg-card3">
-                  <th className="text-[9px] text-text-muted uppercase tracking-wide px-4 py-3 text-left font-mono border-b border-border-base w-[200px]">Modul / Fitur</th>
-                  {ROLES.map((r) => {
-                    const Icon = r.Icon
-                    return (
-                      <th key={r.key} className="text-center px-3 py-3 border-b border-border-base">
-                        <div className="flex flex-col items-center gap-1">
-                          <div className={cn('w-6 h-6 rounded-lg flex items-center justify-center', r.bg)}>
-                            <Icon size={12} className={r.color} />
-                          </div>
-                          <span className="text-[9px] text-text-muted font-mono whitespace-nowrap">{r.label.split(' ')[0]}</span>
-                        </div>
-                      </th>
-                    )
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {MODULES.filter(m => activeModule === 'Semua' || m === activeModule).map((mod) => (
-                  <>
-                    <tr key={`header-${mod}`} className="bg-bg-card3/50">
-                      <td colSpan={5} className="px-4 py-2 text-[9px] font-bold text-text-muted uppercase tracking-wider border-b border-border-base font-mono">
-                        {mod}
-                      </td>
-                    </tr>
-                    {displayed.filter(p => p.module === mod).map((perm) => (
-                      <tr key={perm.id} className="hover:bg-bg-card3/30 transition-colors">
-                        <td className="px-4 py-[8px] text-[11px] text-text-secondary border-b border-border-light">{perm.label}</td>
-                        {ROLES.map((role) => (
-                          <PermCell
-                            key={role.key}
-                            allowed={perm[role.key]}
-                            editable={editMode && role.key !== 'super_admin'}
-                            onChange={() => toggle(perm.id, role.key)}
-                          />
-                        ))}
-                      </tr>
-                    ))}
-                  </>
+      {/* Permission matrix */}
+      <Card padding={false}>
+        <SectionHeader title="Matriks Hak Akses" icon={<Shield size={13} />}
+          subtitle={`SOROT: ${ROLES.find(r => r.key === selected)?.label.toUpperCase()}`} />
+        <div className="overflow-x-auto">
+          <table className="w-full" style={{ minWidth: '560px' }}>
+            <thead className="bg-slate-50/60 border-b border-slate-100">
+              <tr>
+                <th className="text-[9px] font-mono text-slate-400 uppercase tracking-wider px-4 py-3 text-left" style={{ width: '42%' }}>
+                  Hak Akses
+                </th>
+                {ROLES.map((r, i) => (
+                  <th key={r.key}
+                    className={cn(
+                      'text-[9px] font-mono uppercase tracking-wider px-4 py-3 text-center transition-all',
+                      selected === r.key ? 'text-cyan-700 bg-cyan-50/60' : 'text-slate-400',
+                    )}>
+                    {r.label.split(' ')[0]}
+                  </th>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </Panel>
+              </tr>
+            </thead>
+            <tbody>
+              {PERMISSION_GROUPS.map(group => (
+                <tbody key={group.group}>
+                  <tr className="bg-slate-50/40">
+                    <td colSpan={5} className="px-4 py-1.5 text-[9px] font-mono font-semibold text-slate-500 uppercase tracking-widest">
+                      {group.group}
+                    </td>
+                  </tr>
+                  {group.items.map(item => (
+                    <tr key={item.label} className="border-b border-slate-50 hover:bg-slate-50/40 transition-colors">
+                      <td className="px-4 py-2 text-[11px] text-slate-600">{item.label}</td>
+                      {item.perms.map((allowed, i) => (
+                        <td key={i}
+                          className={cn('px-4 py-2 text-center transition-all', selected === ROLES[i].key ? 'bg-cyan-50/40' : '')}>
+                          {allowed
+                            ? <Check size={14} className="text-emerald-500 mx-auto" />
+                            : <X     size={14} className="text-slate-200 mx-auto" />}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
-        <div className="h-2" />
+      {/* Info */}
+      <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+        <Info size={14} className="text-blue-500 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-[11px] font-semibold text-blue-800 mb-0.5">Hak akses terlindungi</p>
+          <p className="text-[10px] text-blue-600 leading-relaxed">
+            Perubahan hak akses hanya dapat dilakukan oleh Super Admin dan berlaku langsung setelah disimpan.
+            Setiap modifikasi role akan tercatat di Audit Log untuk keperluan kepatuhan regulasi.
+          </p>
+        </div>
       </div>
     </div>
-  )
+  );
 }
