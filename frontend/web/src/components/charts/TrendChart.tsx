@@ -1,13 +1,12 @@
 import { useRef, useEffect } from 'react';
 import {
   Chart as ChartJS,
-  LineController,
   LineElement, PointElement, LinearScale, CategoryScale,
   Filler, Tooltip, Legend,
 } from 'chart.js';
-import type { TrendDataPoint } from '../../../../web/src/types';
+import type { TrendDataPoint } from '../../types';
 
-ChartJS.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip, Legend);
+ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip, Legend);
 
 interface TrendChartProps {
   data: TrendDataPoint[];
@@ -20,12 +19,7 @@ export default function TrendChart({ data, height = 160 }: TrendChartProps) {
 
   useEffect(() => {
     if (!canvasRef.current) return;
-    
-    // Destroy existing chart properly
-    if (chartRef.current) {
-      chartRef.current.destroy();
-      chartRef.current = null;
-    }
+    if (chartRef.current) chartRef.current.destroy();
 
     chartRef.current = new ChartJS(canvasRef.current, {
       type: 'line',
@@ -100,12 +94,7 @@ export default function TrendChart({ data, height = 160 }: TrendChartProps) {
       },
     });
 
-    return () => {
-      if (chartRef.current) {
-        chartRef.current.destroy();
-        chartRef.current = null;
-      }
-    };
+    return () => chartRef.current?.destroy();
   }, [data]);
 
   return (

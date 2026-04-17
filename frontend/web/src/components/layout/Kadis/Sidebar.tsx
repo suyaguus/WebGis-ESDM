@@ -1,8 +1,7 @@
-import RoleSwitcher from '../../ui/RoleSwitcher';
 import React from 'react';
+import RoleSwitcher from '../../ui/RoleSwitcher';
 import {
-  LayoutDashboard, Map, Radio, BarChart3, Users, Building2,
-  Shield, FileText, Settings, Server, ScrollText, ChevronRight,
+  LayoutDashboard, Map, BarChart3, FileText, ChevronRight, Building2,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { useAppStore } from '../../../store';
@@ -17,23 +16,17 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: 'dashboard',  label: 'Dashboard',      icon: LayoutDashboard, section: 'overview' },
-  { key: 'peta',       label: 'Peta Interaktif', icon: Map,             section: 'overview' },
-  { key: 'sensor',     label: 'Semua Sensor',    icon: Radio,           badge: 3, badgeColor: 'red', section: 'overview' },
-  { key: 'analytics',  label: 'Analytics',       icon: BarChart3,       section: 'overview' },
-  { key: 'users',      label: 'Pengguna',        icon: Users,           badge: 12, badgeColor: 'amber', section: 'management' },
-  { key: 'companies',  label: 'Perusahaan',      icon: Building2,       section: 'management' },
-  { key: 'roles',      label: 'Role & Akses',    icon: Shield,          section: 'management' },
-  { key: 'reports',    label: 'Laporan',         icon: FileText,        section: 'management' },
-  { key: 'config',     label: 'Konfigurasi',     icon: Settings,        section: 'system' },
-  { key: 'server',     label: 'Server & API',    icon: Server,          section: 'system' },
-  { key: 'audit',      label: 'Audit Log',       icon: ScrollText,      section: 'system' },
+  { key: 'kadis-dashboard', label: 'Dashboard',       icon: LayoutDashboard, section: 'overview' },
+  { key: 'kadis-peta',      label: 'Peta Wilayah',    icon: Map,             section: 'overview' },
+  { key: 'kadis-perusahaan',label: 'Perusahaan',      icon: Building2,       badge: 1, badgeColor: 'red', section: 'analysis' },
+  { key: 'kadis-analitik',  label: 'Analitik Tren',   icon: BarChart3,       section: 'analysis' },
+  { key: 'kadis-laporan',   label: 'Laporan & Ekspor', icon: FileText,       section: 'reports' },
 ];
 
 const SECTIONS = [
-  { key: 'overview',    label: 'Overview' },
-  { key: 'management', label: 'Manajemen' },
-  { key: 'system',     label: 'Sistem' },
+  { key: 'overview',  label: 'Ikhtisar'  },
+  { key: 'analysis',  label: 'Analisis'  },
+  { key: 'reports',   label: 'Laporan'   },
 ];
 
 export default function Sidebar() {
@@ -43,24 +36,24 @@ export default function Sidebar() {
     <aside className="w-56 flex-shrink-0 bg-white border-r border-slate-100 flex flex-col h-full shadow-sm overflow-hidden">
       {/* Logo */}
       <div className="h-[60px] flex items-center gap-2.5 px-4 border-b border-slate-100 flex-shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center shadow-sm flex-shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm flex-shrink-0">
           <Map size={16} className="text-white" />
         </div>
         <div className="min-w-0">
           <p className="text-[13px] font-semibold text-slate-800 leading-none">WebGIS</p>
-          <p className="text-[9px] font-mono text-cyan-600 tracking-widest mt-0.5">SIPASTI v2.0</p>
+          <p className="text-[9px] font-mono text-emerald-600 tracking-widest mt-0.5">SIPASTI v2.0</p>
         </div>
       </div>
 
       {/* User */}
       <div className="px-3 py-3 border-b border-slate-100 flex-shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-[11px] font-semibold text-purple-700 flex-shrink-0">
-            AF
+          <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-[11px] font-semibold text-emerald-700 flex-shrink-0">
+            DK
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold text-slate-800 truncate">Ahmad Fauzi</p>
-            <p className="text-[9px] font-mono text-cyan-600 tracking-wider">SUPER ADMIN</p>
+            <p className="text-[11px] font-semibold text-slate-800 truncate">Deni Kurniawan</p>
+            <p className="text-[9px] font-mono text-emerald-600 tracking-wider">KEPALA DINAS</p>
           </div>
         </div>
       </div>
@@ -84,13 +77,13 @@ export default function Sidebar() {
                     className={cn(
                       'w-full flex items-center gap-2.5 px-4 py-2 text-[12px] font-medium transition-all duration-150 relative group',
                       isActive
-                        ? 'text-cyan-700 bg-cyan-50 border-r-2 border-cyan-600'
+                        ? 'text-emerald-700 bg-emerald-50 border-r-2 border-emerald-600'
                         : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50',
                     )}
                   >
                     <Icon
                       size={14}
-                      className={cn('flex-shrink-0', isActive ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-500')}
+                      className={cn('flex-shrink-0', isActive ? 'text-emerald-600' : 'text-slate-400 group-hover:text-slate-500')}
                     />
                     <span className="flex-1 text-left truncate">{item.label}</span>
                     {item.badge && (
@@ -103,7 +96,7 @@ export default function Sidebar() {
                         {item.badge}
                       </span>
                     )}
-                    {isActive && <ChevronRight size={10} className="text-cyan-400 flex-shrink-0" />}
+                    {isActive && <ChevronRight size={10} className="text-emerald-400 flex-shrink-0" />}
                   </button>
                 );
               })}
@@ -116,12 +109,11 @@ export default function Sidebar() {
       <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/60 flex-shrink-0">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 pulse-dot flex-shrink-0" />
-          <span className="text-[9px] font-mono text-slate-500">SISTEM ONLINE</span>
-          <span className="ml-auto text-[9px] font-mono text-slate-400">99.8%</span>
+          <span className="text-[9px] font-mono text-slate-500">DINAS ESDM LAMPUNG</span>
         </div>
-        <p className="text-[9px] font-mono text-slate-400 mt-0.5">Uptime bulan ini</p>
+        <p className="text-[9px] font-mono text-slate-400 mt-0.5">Pengawasan Provinsi</p>
       </div>
-          <RoleSwitcher />
+      <RoleSwitcher />
     </aside>
   );
 }

@@ -58,7 +58,6 @@ body {
   50%       { opacity: 0.7; box-shadow: 0 0 0 6px rgba(239,68,68,0); }
 }
 .blink-alert { animation: blink-alert 1.5s ease-in-out infinite; }
-.leaflet-marker-icon.blink-alert { filter: drop-shadow(0 0 0 rgba(239,68,68,0.4)); }
 
 @keyframes fade-in  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slide-up { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }

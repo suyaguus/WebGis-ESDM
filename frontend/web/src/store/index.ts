@@ -1,24 +1,27 @@
 import { create } from 'zustand';
-import type { Role, Sensor } from '../types';
+import type { Role } from '../types';
 
 interface AppState {
   role: Role;
   activePage: string;
   sidebarCollapsed: boolean;
-  selectedSensor: Sensor | null;
   setRole: (role: Role) => void;
   setActivePage: (page: string) => void;
   toggleSidebar: () => void;
-  setSelectedSensor: (sensor: Sensor | null) => void;
 }
 
+const DEFAULT_PAGE: Record<Role, string> = {
+  superadmin: 'dashboard',
+  admin:      'ap-dashboard',
+  kadis:      'kadis-dashboard',
+  supervisor: 'dashboard',
+};
+
 export const useAppStore = create<AppState>((set) => ({
-  role: 'superadmin',
-  activePage: 'dashboard',
+  role:             'admin',          // ← Switch here: 'superadmin' | 'admin'
+  activePage:       'ap-dashboard',
   sidebarCollapsed: false,
-  selectedSensor: null,
-  setRole: (role) => set({ role }),
+  setRole: (role) => set({ role, activePage: DEFAULT_PAGE[role] }),
   setActivePage: (page) => set({ activePage: page }),
   toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
-  setSelectedSensor: (sensor) => set({ selectedSensor: sensor }),
 }));

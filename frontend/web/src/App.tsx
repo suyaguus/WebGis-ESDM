@@ -1,4 +1,7 @@
-import AppShell from './components/layout/superAdmin/AppShell';
+import { useAppStore } from './store';
+
+/* ── Super Admin ── */
+import SuperAdminShell     from './components/layout/superAdmin/AppShell';
 import SuperAdminDashboard from '../src/pages/superadmin/Dashboard';
 import PetaPage            from './pages/superadmin/peta/index';
 import SensorPage          from './pages/superadmin/sensor/index';
@@ -10,11 +13,33 @@ import ReportsPage         from './pages/superadmin/reports/index';
 import ConfigPage          from '../src/pages/superadmin/config/index';
 import ServerPage          from './pages/superadmin/server/index';
 import AuditPage           from './pages/superadmin/audit/index';
-import { useAppStore } from './store';
 
-export default function App() {
+/* ── Admin Perusahaan ── */
+
+import AdminAppShell    from './components/layout/adminPerusahaan/AppShell';
+import AdminDashboard   from './pages/adminPerusahaan/Dashboard';
+import AdminPetaPage    from './pages/adminPerusahaan/peta/index';
+import AdminSumurPage   from './pages/adminPerusahaan/sumur/index';
+import AdminTimPage     from './pages/adminPerusahaan/tim/index';
+import AdminVerifPage   from './pages/adminPerusahaan/verifikasi/index';
+import AdminHistoriPage from './pages/adminPerusahaan/histori/index';
+import AdminLaporanPage from './pages/adminPerusahaan/laporan/index';
+
+/* ── Kepala Dinas ── */
+import KadisShell         from './components/layout/Kadis/AppShell';
+import KadisDashboard     from './pages/kadis/Dashboard';
+import KadisPetaPage      from './pages/kadis/peta/index';
+import KadisPerusahaanPage from './pages/kadis/perusahaan/index';
+import KadisAnalitikPage  from './pages/kadis/analitik/index';
+import KadisLaporanPage   from './pages/kadis/laporan/index';
+
+import PlaceholderPage from './pages/PlaceholderPage';
+
+/* ─────────────────────────────────────────────────────── */
+
+function SuperAdminApp() {
   const { activePage } = useAppStore();
-
+  const isFullH = activePage === 'peta';
   const page = (() => {
     switch (activePage) {
       case 'dashboard':  return <SuperAdminDashboard />;
@@ -31,7 +56,48 @@ export default function App() {
       default:           return <SuperAdminDashboard />;
     }
   })();
+  return <SuperAdminShell fullHeight={isFullH}>{page}</SuperAdminShell>;
+}
 
-  const isFullHeight = activePage === 'peta';
-  return <AppShell fullHeight={isFullHeight}>{page}</AppShell>;
+function AdminPerusahaanApp() {
+  const { activePage } = useAppStore();
+  const isFullH = activePage === 'ap-peta';
+  const page = (() => {
+    switch (activePage) {
+      case 'ap-dashboard':  return <AdminDashboard />;
+      case 'ap-peta':       return <AdminPetaPage />;
+      case 'ap-sumur':      return <AdminSumurPage />;
+      case 'ap-tim':        return <AdminTimPage />;
+      case 'ap-verifikasi': return <AdminVerifPage />;
+      case 'ap-histori':    return <AdminHistoriPage />;
+      case 'ap-laporan':    return <AdminLaporanPage />;
+      default:              return <AdminDashboard />;
+    }
+  })();
+  return <AdminAppShell fullHeight={isFullH}>{page}</AdminAppShell>;
+}
+
+function KadisApp() {
+  const { activePage } = useAppStore();
+  const isFullH = activePage === 'kadis-peta';
+  const page = (() => {
+    switch (activePage) {
+      case 'kadis-dashboard':   return <KadisDashboard />;
+      case 'kadis-peta':        return <KadisPetaPage />;
+      case 'kadis-perusahaan':  return <KadisPerusahaanPage />;
+      case 'kadis-analitik':    return <KadisAnalitikPage />;
+      case 'kadis-laporan':     return <KadisLaporanPage />;
+      default:                  return <KadisDashboard />;
+    }
+  })();
+  return <KadisShell fullHeight={isFullH}>{page}</KadisShell>;
+}
+
+/* ─────────────────────────────────────────────────────── */
+
+export default function App() {
+  const { role } = useAppStore();
+  if (role === 'admin')      return <AdminPerusahaanApp />;
+  if (role === 'kadis')      return <KadisApp />;
+  return <SuperAdminApp />;
 }

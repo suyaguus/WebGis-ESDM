@@ -1,11 +1,8 @@
 import { useState } from 'react';
-import * as React from 'react';
 import { Map } from 'lucide-react';
 import { SectionHeader } from '../../../components/ui';
 import SensorMap from '../../../components/map/SensorMap';
 import { MOCK_SENSORS } from '../../../constants/mockData';
-import { useAppStore } from '../../../store';
-import { cn } from '../../../lib/utils';
 import type { Sensor } from '../../../types';
 
 const LAYERS = ['Street', 'Satellite', 'Terrain', 'Heatmap'];
@@ -19,14 +16,7 @@ const LEGEND = [
 
 export default function MapSection() {
   const [activeLayer, setActiveLayer] = useState('Street');
-  const globalSelectedSensor = useAppStore((s) => s.selectedSensor);
-  const setGlobalSelectedSensor = useAppStore((s) => s.setSelectedSensor);
   const [selectedSensor, setSelectedSensor] = useState<Sensor | null>(null);
-
-  // Sync global selected sensor to local state
-  React.useEffect(() => {
-    if (globalSelectedSensor) setSelectedSensor(globalSelectedSensor);
-  }, [globalSelectedSensor]);
 
   return (
     <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden flex flex-col min-w-0">
@@ -77,54 +67,23 @@ export default function MapSection() {
 
         {/* Selected sensor popup */}
         {selectedSensor && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] bg-white border border-cyan-200 rounded-xl shadow-lg px-5 py-4 min-w-[320px]">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="text-[14px] font-bold font-mono text-cyan-700">{selectedSensor.code}</span>
-                <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border font-mono',
-                  selectedSensor.status === 'alert' ? 'text-red-600 bg-red-50 border-red-200' : 'text-amber-600 bg-amber-50 border-amber-200'
-                )}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0"></span>
-                  {selectedSensor.status.charAt(0).toUpperCase() + selectedSensor.status.slice(1)}
-                </span>
-              </div>
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-white border border-cyan-200 rounded-xl shadow-lg px-4 py-3 z-[1000] min-w-[200px] max-w-[240px]">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[12px] font-semibold font-mono text-cyan-700">{selectedSensor.code}</span>
               <button
-                onClick={() => { setSelectedSensor(null); setGlobalSelectedSensor(null); }}
-                className="text-slate-400 hover:text-slate-600 text-xs"
+                onClick={() => setSelectedSensor(null)}
+                className="text-slate-400 hover:text-slate-600 text-xs ml-4 flex-shrink-0"
               >
                 ✕
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
-              <div>
-                <p className="text-[9px] text-slate-400 font-mono">Lokasi</p>
-                <p className="text-[11px] font-medium text-slate-700">{selectedSensor.location}</p>
-              </div>
-              <div>
-                <p className="text-[9px] text-slate-400 font-mono">Tipe</p>
-                <p className="text-[11px] font-medium text-slate-700">{selectedSensor.type === 'water' ? 'Air Tanah' : 'GNSS'}</p>
-              </div>
-              <div>
-                <p className="text-[9px] text-slate-400 font-mono">Subsidence</p>
-                <p className="text-[11px] font-medium text-slate-700">{selectedSensor.subsidence.toFixed(2)} cm/thn</p>
-              </div>
-              {selectedSensor.waterLevel !== undefined && (
-                <div>
-                  <p className="text-[9px] text-slate-400 font-mono">Muka Air</p>
-                  <p className="text-[11px] font-medium text-slate-700">{selectedSensor.waterLevel.toFixed(2)} m</p>
-                </div>
-              )}
-              {selectedSensor.verticalValue !== undefined && (
-                <div>
-                  <p className="text-[9px] text-slate-400 font-mono">Nilai Vertikal</p>
-                  <p className="text-[11px] font-medium text-slate-700">{selectedSensor.verticalValue.toFixed(3)} mm</p>
-                </div>
-              )}
-              <div>
-                <p className="text-[9px] text-slate-400 font-mono">Update</p>
-                <p className="text-[11px] font-medium text-slate-700">{selectedSensor.lastUpdate}</p>
-              </div>
-            </div>
+            <p className="text-[10px] text-slate-500 mb-1">{selectedSensor.location}</p>
+            <p className="text-[10px] font-mono">
+              Subsidence:{' '}
+              <span className={selectedSensor.subsidence <= -4 ? 'text-red-600' : 'text-slate-700'}>
+                {selectedSensor.subsidence.toFixed(2)} cm/thn
+              </span>
+            </p>
           </div>
         )}
       </div>

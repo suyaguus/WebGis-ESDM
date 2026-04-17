@@ -1,38 +1,22 @@
 import { useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Card, SectionHeader, SeverityBadge } from '../../../components/ui';
-import { MOCK_ALERTS, MOCK_SENSORS } from '../../../constants/mockData';
+import { MOCK_ALERTS } from '../../../constants/mockData';
 import { cn, getSeverityColor } from '../../../lib/utils';
-import { useAppStore } from '../../../store';
 import type { Alert } from '../../../types';
 
 function AlertItem({ alert }: { alert: Alert }) {
-  const setSelectedSensor = useAppStore((s) => s.setSelectedSensor);
-  const setActivePage = useAppStore((s) => s.setActivePage);
   const borderColor =
     alert.severity === 'critical' ? 'border-l-red-400'
     : alert.severity === 'warning' ? 'border-l-amber-400'
     : 'border-l-blue-300';
 
-  const handleClick = () => {
-    if (alert.sensorCode) {
-      const sensor = MOCK_SENSORS.find((s) => s.code === alert.sensorCode);
-      if (sensor) {
-        setSelectedSensor(sensor);
-        setActivePage('peta');
-      }
-    }
-  };
-
   return (
-    <div
-      onClick={handleClick}
-      className={cn(
-        'px-3 py-2.5 border-l-[3px] hover:bg-slate-50/60 transition-colors cursor-pointer',
-        borderColor,
-        !alert.isRead && 'bg-slate-50/40',
-      )}
-    >
+    <div className={cn(
+      'px-3 py-2.5 border-l-[3px] hover:bg-slate-50/60 transition-colors cursor-pointer',
+      borderColor,
+      !alert.isRead && 'bg-slate-50/40',
+    )}>
       <div className="flex items-center gap-2 mb-1">
         <SeverityBadge severity={alert.severity} />
         {!alert.isRead && (

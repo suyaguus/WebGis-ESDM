@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { BarChart3, TrendingDown, Download } from 'lucide-react';
+import { BarChart3, TrendingDown, Download, Building2 } from 'lucide-react';
 import {
   Chart as ChartJS,
   LineController, BarController,
@@ -8,7 +8,7 @@ import {
 } from 'chart.js';
 import { Card, SectionHeader } from '../../../components/ui';
 import { MOCK_COMPANIES, ANALYTICS_MONTHLY } from '../../../constants/mockData';
-import { cn, getSubsidenceColor } from '../../../lib/utils';
+import { cn, getSubsidenceColor, getQuotaPercent } from '../../../lib/utils';
 
 ChartJS.register(
   LineController, BarController,
@@ -19,7 +19,7 @@ ChartJS.register(
 const PERIODS = ['6 Bulan', '12 Bulan', '2 Tahun'] as const;
 
 function TrendLineChart() {
-  const ref = useRef<HTMLCanvasElement>(null);
+  const ref   = useRef<HTMLCanvasElement>(null);
   const chart = useRef<ChartJS | null>(null);
   useEffect(() => {
     if (!ref.current) return;
@@ -30,7 +30,7 @@ function TrendLineChart() {
         labels: ANALYTICS_MONTHLY.map(d => d.month),
         datasets: [
           { label: 'Air Tanah', data: ANALYTICS_MONTHLY.map(d => d.sw), borderColor: '#3B82F6', backgroundColor: 'rgba(59,130,246,0.07)', fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2 },
-          { label: 'GNSS', data: ANALYTICS_MONTHLY.map(d => d.gnss), borderColor: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.07)', fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2 },
+          { label: 'GNSS',      data: ANALYTICS_MONTHLY.map(d => d.gnss), borderColor: '#059669', backgroundColor: 'rgba(5,150,105,0.07)', fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2 },
           { label: 'Threshold', data: ANALYTICS_MONTHLY.map(d => d.threshold), borderColor: 'rgba(239,68,68,0.4)', borderDash: [5,4], pointRadius: 0, borderWidth: 1.5, fill: false },
         ],
       },
@@ -49,8 +49,8 @@ function TrendLineChart() {
   return <div style={{ position: 'relative', height: 220 }}><canvas ref={ref} /></div>;
 }
 
-function BarCompanyChart() {
-  const ref = useRef<HTMLCanvasElement>(null);
+function SubsidenceBarChart() {
+  const ref   = useRef<HTMLCanvasElement>(null);
   const chart = useRef<ChartJS | null>(null);
   useEffect(() => {
     if (!ref.current) return;
@@ -58,10 +58,29 @@ function BarCompanyChart() {
     chart.current = new ChartJS(ref.current, {
       type: 'bar',
       data: {
-        labels: MOCK_COMPANIES.map(c => c.name.replace('PT ', '').substring(0, 12)),
+        labels: MOCK_COMPANIES.map(c => c.name.replace('PT ', '').substring(0, 13)),
         datasets: [
-          { label: 'Avg Subsidence', data: MOCK_COMPANIES.map(c => Math.abs(c.avgSubsidence)), backgroundColor: MOCK_COMPANIES.map(c => c.avgSubsidence <= -3 ? 'rgba(239,68,68,0.7)' : c.avgSubsidence <= -2 ? 'rgba(245,158,11,0.7)' : 'rgba(34,197,94,0.7)'), borderRadius: 6, borderSkipped: false },
-          { label: 'Threshold (4.0)', data: MOCK_COMPANIES.map(() => 4.0), type: 'line', borderColor: 'rgba(239,68,68,0.4)', borderDash: [5,4], pointRadius: 0, borderWidth: 1.5, backgroundColor: 'transparent' },
+          {
+            label: 'Avg Subsidence',
+            data: MOCK_COMPANIES.map(c => Math.abs(c.avgSubsidence)),
+            backgroundColor: MOCK_COMPANIES.map(c =>
+              c.avgSubsidence <= -3 ? 'rgba(239,68,68,0.75)' :
+              c.avgSubsidence <= -2 ? 'rgba(245,158,11,0.75)' :
+              'rgba(5,150,105,0.75)'
+            ),
+            borderRadius: 6,
+            borderSkipped: false,
+          },
+          {
+            label: 'Threshold (4.0)',
+            data: MOCK_COMPANIES.map(() => 4.0),
+            type: 'line' as const,
+            borderColor: 'rgba(239,68,68,0.4)',
+            borderDash: [5, 4],
+            pointRadius: 0,
+            borderWidth: 1.5,
+            backgroundColor: 'transparent',
+          },
         ],
       },
       options: {
@@ -79,7 +98,7 @@ function BarCompanyChart() {
 }
 
 function QuotaBarChart() {
-  const ref = useRef<HTMLCanvasElement>(null);
+  const ref   = useRef<HTMLCanvasElement>(null);
   const chart = useRef<ChartJS | null>(null);
   useEffect(() => {
     if (!ref.current) return;
@@ -87,10 +106,23 @@ function QuotaBarChart() {
     chart.current = new ChartJS(ref.current, {
       type: 'bar',
       data: {
-        labels: MOCK_COMPANIES.map(c => c.name.replace('PT ', '').substring(0, 12)),
+        labels: MOCK_COMPANIES.map(c => c.name.replace('PT ', '').substring(0, 13)),
         datasets: [
-          { label: 'Terpakai (m³)', data: MOCK_COMPANIES.map(c => c.quotaUsed / 1000), backgroundColor: MOCK_COMPANIES.map(c => c.quotaUsed / c.quota >= 1 ? 'rgba(239,68,68,0.7)' : c.quotaUsed / c.quota >= 0.85 ? 'rgba(245,158,11,0.7)' : 'rgba(34,197,94,0.7)'), borderRadius: 6 },
-          { label: 'Kuota Total (m³)', data: MOCK_COMPANIES.map(c => c.quota / 1000), backgroundColor: 'rgba(148,163,184,0.15)', borderRadius: 6 },
+          {
+            label: 'Terpakai (k m³)',
+            data: MOCK_COMPANIES.map(c => c.quotaUsed / 1000),
+            backgroundColor: MOCK_COMPANIES.map(c => {
+              const p = c.quotaUsed / c.quota;
+              return p >= 1 ? 'rgba(239,68,68,0.75)' : p >= 0.85 ? 'rgba(245,158,11,0.75)' : 'rgba(5,150,105,0.75)';
+            }),
+            borderRadius: 6,
+          },
+          {
+            label: 'Kuota Total (k m³)',
+            data: MOCK_COMPANIES.map(c => c.quota / 1000),
+            backgroundColor: 'rgba(148,163,184,0.15)',
+            borderRadius: 6,
+          },
         ],
       },
       options: {
@@ -107,18 +139,20 @@ function QuotaBarChart() {
   return <div style={{ position: 'relative', height: 200 }}><canvas ref={ref} /></div>;
 }
 
-export default function AnalyticsPage() {
+export default function KadisAnalitikPage() {
   const [period, setPeriod] = useState<typeof PERIODS[number]>('12 Bulan');
-  const alertCount = MOCK_COMPANIES.filter(c => c.quotaUsed / c.quota > 1).length;
-  const warnCount  = MOCK_COMPANIES.filter(c => { const p = c.quotaUsed / c.quota; return p >= 0.85 && p <= 1; }).length;
+
+  const overQuota   = MOCK_COMPANIES.filter(c => c.quotaUsed / c.quota >= 1).length;
+  const nearQuota   = MOCK_COMPANIES.filter(c => { const p = c.quotaUsed / c.quota; return p >= 0.85 && p < 1; }).length;
+  const criticalSub = MOCK_COMPANIES.filter(c => c.avgSubsidence <= -3).length;
 
   return (
     <div className="p-5 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[18px] font-semibold text-slate-800">Analytics</h1>
-          <p className="text-[11px] text-slate-400 font-mono mt-0.5">Analisis tren subsidence dan penggunaan air tanah</p>
+          <h1 className="text-[18px] font-semibold text-slate-800">Analitik Tren</h1>
+          <p className="text-[11px] text-slate-400 font-mono mt-0.5">Pemantauan lintas perusahaan · Provinsi Lampung</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
@@ -139,10 +173,10 @@ export default function AnalyticsPage() {
       {/* KPI Row */}
       <div className="grid grid-cols-4 gap-3">
         {[
-          { label: 'Avg Subsidence', value: '-2.34 cm/thn', sub: 'Seluruh sensor', color: '#0891B2' },
-          { label: 'Sensor Kritis', value: '3', sub: '> -4.0 threshold', color: '#EF4444' },
-          { label: 'Kuota Melebihi', value: String(alertCount), sub: 'Perusahaan', color: '#EF4444' },
-          { label: 'Kuota Waspada', value: String(warnCount), sub: '≥ 85% terpakai', color: '#F59E0B' },
+          { label: 'Avg Subsidence Regional', value: '-2.27 cm/thn', sub: 'Rata-rata seluruh sensor',  color: '#059669' },
+          { label: 'Perusahaan Kritis',        value: String(criticalSub), sub: 'Subsidence > 3.0 cm/thn', color: '#EF4444' },
+          { label: 'Melebihi Kuota',           value: String(overQuota), sub: 'Perusahaan >100% kuota',   color: '#EF4444' },
+          { label: 'Mendekati Kuota',          value: String(nearQuota), sub: '≥ 85% dari kuota tahunan', color: '#F59E0B' },
         ].map(({ label, value, sub, color }) => (
           <div key={label} className="bg-white rounded-xl border border-slate-100 shadow-sm px-4 py-3 relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl" style={{ background: color }} />
@@ -155,17 +189,17 @@ export default function AnalyticsPage() {
 
       {/* Trend Chart */}
       <Card padding={false}>
-        <SectionHeader title="Tren Subsidence per Tipe Sensor" icon={<TrendingDown size={13} />} subtitle="RATA-RATA cm/TAHUN" />
+        <SectionHeader title="Tren Subsidence per Tipe Sensor" icon={<TrendingDown size={13} />} accent="#059669" subtitle="RATA-RATA cm/TAHUN" />
         <div className="p-4"><TrendLineChart /></div>
       </Card>
 
-      {/* Bar Charts row */}
+      {/* Bar charts */}
       <div className="grid grid-cols-2 gap-4">
         <Card padding={false}>
-          <SectionHeader title="Subsidence per Perusahaan" icon={<BarChart3 size={13} />} subtitle="|SUBSIDENCE| cm/thn" />
-          <div className="p-4"><BarCompanyChart /></div>
+          <SectionHeader title="Subsidence per Perusahaan" icon={<BarChart3 size={13} />} accent="#059669" subtitle="|SUBSIDENCE| cm/thn" />
+          <div className="p-4"><SubsidenceBarChart /></div>
           <div className="px-4 pb-3 flex gap-3">
-            {[['#EF4444','Kritis (>3.0)'],['#F59E0B','Waspada (2-3)'],['#22C55E','Normal (<2)']].map(([c,l]) => (
+            {[['#EF4444','Kritis (>3.0)'],['#F59E0B','Waspada (2–3)'],['#059669','Normal (<2)']].map(([c, l]) => (
               <div key={l} className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: c }} />
                 <span className="text-[9px] font-mono text-slate-400">{l}</span>
@@ -175,16 +209,16 @@ export default function AnalyticsPage() {
         </Card>
 
         <Card padding={false}>
-          <SectionHeader title="Penggunaan Kuota Air Tanah" icon={<BarChart3 size={13} />} subtitle="RIBU m³" />
+          <SectionHeader title="Penggunaan Kuota Air Tanah" icon={<BarChart3 size={13} />} accent="#059669" subtitle="RIBU m³" />
           <div className="p-4"><QuotaBarChart /></div>
         </Card>
       </div>
 
-      {/* Company table */}
+      {/* Company summary table */}
       <Card padding={false}>
-        <SectionHeader title="Ringkasan per Perusahaan" />
+        <SectionHeader title="Ringkasan Kepatuhan per Perusahaan" icon={<Building2 size={13} />} accent="#059669" />
         <div className="overflow-x-auto">
-          <table className="w-full" style={{ minWidth: '500px' }}>
+          <table className="w-full" style={{ minWidth: 500 }}>
             <thead className="bg-slate-50/60 border-b border-slate-100">
               <tr>
                 {['Perusahaan','Wilayah','Avg Subsidence','Kuota Terpakai','Sensor','Status'].map(h => (
@@ -194,19 +228,21 @@ export default function AnalyticsPage() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {MOCK_COMPANIES.map(c => {
-                const pct = Math.round((c.quotaUsed / c.quota) * 100);
+                const pct = getQuotaPercent(c.quotaUsed, c.quota);
                 const pctColor = pct >= 100 ? '#EF4444' : pct >= 85 ? '#F59E0B' : '#22C55E';
                 return (
-                  <tr key={c.id} className="hover:bg-slate-50/40 transition-colors">
+                  <tr key={c.id} className={cn('hover:bg-slate-50/40 transition-colors', pct >= 100 && 'bg-red-50/30')}>
                     <td className="px-4 py-2.5 text-[12px] font-semibold text-slate-800">{c.name}</td>
                     <td className="px-4 py-2.5 text-[11px] text-slate-500">{c.region}</td>
                     <td className="px-4 py-2.5">
-                      <span className={cn('text-[12px] font-semibold font-mono', getSubsidenceColor(c.avgSubsidence))}>{c.avgSubsidence.toFixed(2)} cm/thn</span>
+                      <span className={cn('text-[12px] font-semibold font-mono', getSubsidenceColor(c.avgSubsidence))}>
+                        {c.avgSubsidence.toFixed(2)} cm/thn
+                      </span>
                     </td>
                     <td className="px-4 py-2.5">
                       <div className="flex items-center gap-2">
                         <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full rounded-full" style={{ width: `${Math.min(pct,100)}%`, background: pctColor }} />
+                          <div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pctColor }} />
                         </div>
                         <span className="text-[10px] font-mono font-semibold" style={{ color: pctColor }}>{pct}%</span>
                       </div>
@@ -214,7 +250,7 @@ export default function AnalyticsPage() {
                     <td className="px-4 py-2.5 text-[11px] font-mono text-slate-700">{c.sensorCount}</td>
                     <td className="px-4 py-2.5">
                       <span className={cn('text-[10px] font-mono px-2 py-0.5 rounded-full border',
-                        c.status === 'online' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        c.status === 'online'    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                         : c.status === 'offline' ? 'bg-red-50 text-red-700 border-red-200'
                         : 'bg-amber-50 text-amber-700 border-amber-200')}>
                         {c.status}

@@ -1,18 +1,18 @@
 import React from 'react';
-import Sidebar from './Sidebar';
-import Topbar from './Topbar';
+import AdminSidebar from './Sidebar';
+import AdminTopbar  from './Topbar';
 
-interface AppShellProps {
+interface AdminAppShellProps {
   children: React.ReactNode;
   fullHeight?: boolean;
 }
 
-export default function AppShell({ children, fullHeight }: AppShellProps) {
+export default function AdminAppShell({ children, fullHeight }: AdminAppShellProps) {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#F0F4F8]">
-      <Sidebar />
+      <AdminSidebar />
       <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
-        <Topbar />
+        <AdminTopbar />
         <main className={fullHeight ? 'flex-1 overflow-hidden' : 'flex-1 overflow-y-auto overflow-x-hidden'}>
           {children}
         </main>
