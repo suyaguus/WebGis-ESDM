@@ -5,10 +5,12 @@ import reportRoutes from "./modules/report/report.routes";
 import wellRourtes from "./modules/well/well.routes";
 import companyRoutes from "./modules/company/company.routes";
 import businessRoutes from "./modules/business/business.routes";
+import { requestLogger } from "./utils/logger";
 
 const app = express();
 
 app.use(express.json());
+app.use(requestLogger);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/reports", reportRoutes);
