@@ -1,35 +1,14 @@
 # SIGAT Frontend (Web)
 
-Frontend dashboard untuk SIGAT-ESDM dengan fokus pada peta, sensor, analitik, laporan, dan manajemen pengguna berbasis role.
+Frontend dashboard SIGAT-ESDM untuk peta, sensor, analitik, laporan, dan manajemen pengguna berbasis role.
 
-## Ringkasan
-
-Aplikasi ini dibangun untuk memantau dan mengelola data spasial/lingkungan melalui antarmuka web yang responsif.
-
-Fitur utama:
-- Peta interaktif (Leaflet)
-- Dashboard analitik (chart)
-- Monitoring sensor
-- Manajemen user, role, perusahaan
-- Laporan dan audit log
-
-## Tech Stack
-
-- React + TypeScript
-- Vite
-- React Router
-- Tailwind CSS
-- React Leaflet / Leaflet
-- Recharts
-- Zustand
-
-## Menjalankan Project
+## Quick Start
 
 Prasyarat:
 - Node.js >= 16
 - pnpm >= 8
 
-Langkah cepat:
+Jalankan:
 
 ```bash
 cd frontend/web
@@ -37,55 +16,166 @@ pnpm install
 pnpm dev
 ```
 
-Default dev server: http://localhost:5173
+Default: http://localhost:5173
 
-## Scripts
+Scripts:
 
 ```bash
-pnpm dev      # Jalankan development server
-pnpm build    # Build production
-pnpm preview  # Preview hasil build
+pnpm dev
+pnpm build
+pnpm preview
 ```
 
-## Struktur Folder Inti
+## Struktur Inti
 
 ```text
 src/
-  components/   # UI, layout, chart, map
-  pages/        # Halaman per role/module
-  services/     # API service layer
-  hooks/        # Custom hooks
-  store/        # Zustand global state
-  types/        # TypeScript shared types
-  constants/    # Mock/static constants
-  lib/          # Helper & util
+  components/  # UI, layout, chart, map
+  pages/       # Halaman per role/module
+  services/    # Layer request API
+  hooks/       # Custom hooks
+  store/       # Zustand state
+  types/       # Shared types
+  lib/api.ts   # Axios instance + auth interceptor
 ```
 
-## Catatan Routing
+## Integrasi Backend (Penting)
 
-- Root mengarah ke dashboard sesuai role
-- Modul utama super admin berada di path /superadmin/*
-- Halaman role lain (mis. admin perusahaan, kadis) dipisah per folder di src/pages
+Backend source ada di ../../backend.
 
-## Integrasi Backend
+### 1) Environment Frontend
 
-Backend ada di folder ../../backend.
-Pastikan endpoint API aktif dan CORS backend sudah sesuai origin frontend.
+Buat .env di frontend/web:
 
-## Alur Development Singkat
+```env
+VITE_API_URL=http://localhost:8000/api
+VITE_USE_MOCK=false
+```
 
-- Tambah page baru di folder pages sesuai role/module
-- Daftarkan route di App.tsx
-- Tambah menu di Sidebar role terkait
-- Jalankan pnpm build sebelum commit
+Catatan:
+- Saat VITE_USE_MOCK=true, frontend memakai data mock.
+- Untuk test integrasi real API, wajib set VITE_USE_MOCK=false.
 
-## Troubleshooting Cepat
+### 2) Kontrak Auth yang Harus Didukung Backend
 
-- Port bentrok: jalankan pnpm dev -- --port 3000
-- Error dependency: hapus node_modules lalu install ulang
-- Build check: jalankan pnpm build
+Frontend mengirim token sebagai Bearer token pada header Authorization.
+
+Endpoint minimum:
+- POST /auth/login
+- POST /auth/logout
+- GET /auth/me
+- POST /auth/refresh
+
+Perilaku penting:
+- Login mengembalikan token dan data user.
+- Jika API mengembalikan 401, frontend otomatis hapus token dan reload ke flow login.
+
+### 3) Kontrak Response API (Disarankan Konsisten)
+
+Sukses (contoh):
+
+```json
+{
+  "data": {},
+  "message": "ok"
+}
+```
+
+Error (contoh):
+
+```json
+{
+  "message": "Validation error",
+  "errors": {
+    "email": ["Email wajib diisi"]
+  }
+}
+```
+
+Minimal backend selalu kirim:
+- HTTP status code yang benar
+- message pada body error
+
+### 4) Endpoint Minimum per Modul Frontend
+
+Auth:
+- POST /auth/login
+- POST /auth/logout
+- GET /auth/me
+- POST /auth/refresh
+
+Sensors:
+- GET /sensors
+- GET /sensors/:id
+- POST /sensors
+- PUT /sensors/:id
+- DELETE /sensors/:id
+
+Measurements:
+- GET /measurements
+- GET /measurements/:id
+- POST /measurements (multipart/form-data untuk upload foto)
+- PUT /measurements/:id/verify
+
+Companies:
+- GET /companies
+- GET /companies/:id
+- POST /companies
+- PUT /companies/:id
+- DELETE /companies/:id
+
+Users:
+- GET /users
+- GET /users/:id
+- POST /users
+- PUT /users/:id
+- DELETE /users/:id
+
+Analytics:
+- GET /analytics/trend
+- GET /analytics/company-summary
+
+Alerts:
+- GET /alerts
+- GET /alerts/unread-count
+- PUT /alerts/:id/read
+- PUT /alerts/read-all
+
+Reports:
+- GET /reports
+- POST /reports/generate
+- GET /reports/status/:jobId
+- GET /reports/:id/download
+
+### 5) CORS & Header Checklist
+
+Izinkan origin frontend dev:
+- http://localhost:5173
+
+Izinkan header:
+- Authorization
+- Content-Type
+
+Izinkan method:
+- GET, POST, PUT, PATCH, DELETE, OPTIONS
+
+### 6) Checklist Backend Siap Integrasi
+
+- VITE_API_URL mengarah ke backend yang aktif
+- VITE_USE_MOCK=false
+- Login sukses mengembalikan token
+- Endpoint GET /auth/me mengembalikan user dari token valid
+- Endpoint list utama (sensors, companies, users) sudah merespons data
+- Upload measurement multipart/form-data sudah berfungsi
+- Error API mengembalikan status + message yang konsisten
+
+## Troubleshooting Singkat
+
+- Port bentrok: pnpm dev -- --port 3000
+- Dependency error: hapus node_modules lalu install ulang
+- Validasi build: pnpm build
 
 ## Versi
 
 - Last updated: April 2026
-- Version: 0.1.0
+- Version: 0.1.1
