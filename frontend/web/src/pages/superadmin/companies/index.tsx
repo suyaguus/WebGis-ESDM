@@ -33,19 +33,20 @@ export default function CompaniesPage() {
   const alertSensors   = (id: string) => companySensors(id).filter(s => s.status === 'alert').length;
 
   return (
-    <div className="p-5 space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="p-3 sm:p-5 space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-[18px] font-semibold text-slate-800">Perusahaan</h1>
           <p className="text-[11px] text-slate-400 font-mono mt-0.5">Kelola data perusahaan pengguna air tanah</p>
         </div>
-        <button className="px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors flex items-center gap-2">
-          <Plus size={13} /> Tambah Perusahaan
+        <button className="px-3 sm:px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto flex-shrink-0">
+          <Plus size={13} /><span className="hidden sm:inline">Tambah Perusahaan</span>
+          <span className="sm:hidden">Tambah Perusahaan</span>
         </button>
       </div>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: 'Total Perusahaan', value: MOCK_COMPANIES.length, color: '#0891B2' },
           { label: 'Online', value: MOCK_COMPANIES.filter(c=>c.status==='online').length, color: '#22C55E' },
@@ -62,17 +63,17 @@ export default function CompaniesPage() {
 
       {/* Company cards grid */}
       <div>
-        <div className="flex items-center gap-3 mb-3">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
+          <div className="relative flex-1 sm:flex-none">
             <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Cari perusahaan / wilayah..."
-              className="pl-8 pr-3 py-1.5 text-[11px] font-mono border border-slate-200 rounded-lg bg-white text-slate-700 w-52 focus:outline-none focus:border-cyan-400" />
+              className="pl-8 pr-3 py-1.5 text-[11px] font-mono border border-slate-200 rounded-lg bg-white text-slate-700 w-full sm:w-52 focus:outline-none focus:border-cyan-400" />
           </div>
           <span className="text-[10px] text-slate-400 font-mono">{data.length} perusahaan</span>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {data.map(c => {
             const pct = getQuotaPercent(c.quotaUsed, c.quota);
             const pctColor = pct >= 100 ? '#EF4444' : pct >= 85 ? '#F59E0B' : '#22C55E';
@@ -126,7 +127,7 @@ export default function CompaniesPage() {
       {/* Detail slide-in */}
       {selected && (
         <div className="fixed inset-0 bg-black/20 z-50 flex justify-end" onClick={() => setSelected(null)}>
-          <div className="w-96 bg-white h-full overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="w-full sm:w-96 bg-white h-full overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="p-5 border-b border-slate-100 flex items-center justify-between">
               <div>
                 <p className="text-[14px] font-bold text-slate-800">{selected.name}</p>
@@ -136,9 +137,9 @@ export default function CompaniesPage() {
                 <span className="text-slate-500 text-sm">✕</span>
               </button>
             </div>
-            <div className="p-5 space-y-4">
+            <div className="p-3 sm:p-5 space-y-4">
               <StatusPill status={selected.status} />
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
                   ['Total Sensor', selected.sensorCount],
                   ['Avg Subsidence', `${selected.avgSubsidence.toFixed(2)} cm/thn`],
@@ -163,7 +164,7 @@ export default function CompaniesPage() {
                   ))}
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <button className="flex-1 px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors">Edit Perusahaan</button>
                 <button className="px-4 py-2 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-xl hover:bg-slate-200 transition-colors">Laporan</button>
               </div>

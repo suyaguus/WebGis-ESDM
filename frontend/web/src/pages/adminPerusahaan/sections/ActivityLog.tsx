@@ -1,15 +1,17 @@
 import { Activity } from 'lucide-react';
 import { SectionHeader } from '../../../components/ui';
 import { COMPANY_ACTIVITY } from '../../../constants/mockData';
+import { faChartSimple, faTriangleExclamation, faSatellite, faFileLines, faUser } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { cn } from '../../../lib/utils';
 import type { ActivityItem } from '../../../constants/mockData';
 
-const TYPE_ICON: Record<ActivityItem['type'], string> = {
-  measurement: '📊',
-  alert:       '🚨',
-  sensor:      '📡',
-  report:      '📄',
-  user:        '👤',
+const TYPE_ICON: Record<ActivityItem['type'], React.ReactNode> = {
+  measurement: <FontAwesomeIcon icon={faChartSimple} />,
+  alert:       <FontAwesomeIcon icon={faTriangleExclamation} />,
+  sensor:      <FontAwesomeIcon icon={faSatellite} />,
+  report:      <FontAwesomeIcon icon={faFileLines} />,
+  user:        <FontAwesomeIcon icon={faUser} />,
 };
 
 const TYPE_COLOR: Record<ActivityItem['type'], string> = {
@@ -24,7 +26,7 @@ export default function AdminActivityLog() {
   return (
     <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden flex flex-col min-w-0">
       <SectionHeader title="Aktivitas Terkini" icon={<Activity size={13} />} accent="#F59E0B" subtitle="HARI INI" />
-      <div className="overflow-y-auto divide-y divide-slate-50" style={{ maxHeight: '280px' }}>
+      <div className="overflow-y-auto divide-y divide-slate-50" style={{ maxHeight: '220px' }}>
         {COMPANY_ACTIVITY.map(item => (
           <div key={item.id} className="flex items-start gap-3 px-4 py-3 hover:bg-slate-50/40 transition-colors">
             <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center text-[13px] flex-shrink-0 border', TYPE_COLOR[item.type])}>

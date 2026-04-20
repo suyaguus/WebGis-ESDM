@@ -63,20 +63,21 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="p-3 sm:p-5 space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-[18px] font-semibold text-slate-800">Pengguna</h1>
           <p className="text-[11px] text-slate-400 font-mono mt-0.5">Kelola akses pengguna dan role</p>
         </div>
-        <button className="px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors flex items-center gap-2">
-          <Plus size={13} /> Tambah Pengguna
+        <button className="px-3 sm:px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto flex-shrink-0">
+          <Plus size={13} /><span className="hidden sm:inline">Tambah Pengguna</span>
+          <span className="sm:hidden">Tambah Pengguna</span>
         </button>
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: 'Total Pengguna', value: summary.total, color: '#0891B2', bg: 'bg-cyan-50', border: 'border-cyan-200' },
           { label: 'Aktif', value: summary.active, color: '#22C55E', bg: 'bg-emerald-50', border: 'border-emerald-200' },
@@ -92,17 +93,17 @@ export default function UsersPage() {
 
       {/* Pending verifikasi banner */}
       {summary.pending > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             <Clock size={16} className="text-amber-600 flex-shrink-0" />
-            <div>
+            <div className="min-w-0">
               <p className="text-[12px] font-semibold text-amber-800">{summary.pending} pengguna menunggu verifikasi</p>
               <p className="text-[11px] text-amber-600">Setujui atau tolak akses akun baru</p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <button className="px-3 py-1.5 bg-emerald-600 text-white text-[11px] font-semibold rounded-lg hover:bg-emerald-700 transition-colors">Setujui Semua</button>
-            <button className="px-3 py-1.5 bg-white border border-amber-200 text-amber-700 text-[11px] font-semibold rounded-lg hover:bg-amber-50 transition-colors">Tinjau Satu per Satu</button>
+          <div className="flex gap-2 flex-shrink-0">
+            <button className="px-3 py-1.5 bg-emerald-600 text-white text-[11px] font-semibold rounded-lg hover:bg-emerald-700 transition-colors whitespace-nowrap">Setujui Semua</button>
+            <button className="px-3 py-1.5 bg-white border border-amber-200 text-amber-700 text-[11px] font-semibold rounded-lg hover:bg-amber-50 transition-colors whitespace-nowrap hidden sm:block">Tinjau Satu per Satu</button>
           </div>
         </div>
       )}
@@ -110,31 +111,31 @@ export default function UsersPage() {
       {/* Table */}
       <Card padding={false}>
         {/* Controls */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 flex-wrap">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-3 border-b border-slate-100">
+          <div className="relative flex-1 sm:flex-none">
             <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Nama / email / perusahaan..."
-              className="pl-8 pr-3 py-1.5 text-[11px] font-mono border border-slate-200 rounded-lg bg-slate-50 text-slate-700 w-52 focus:outline-none focus:border-cyan-400" />
+              className="w-full sm:w-48 pl-8 pr-3 py-1.5 text-[11px] font-mono border border-slate-200 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:border-cyan-400" />
           </div>
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1">
             {(['all','active','pending','inactive'] as const).map(s => (
               <button key={s} onClick={() => setStatusF(s)}
-                className={cn('text-[9px] font-mono px-2.5 py-1 rounded-full border transition-all',
+                className={cn('text-[9px] font-mono px-2.5 py-1 rounded-full border transition-all whitespace-nowrap',
                   statusF === s ? 'bg-cyan-50 text-cyan-700 border-cyan-200' : 'text-slate-400 border-transparent hover:bg-slate-50')}>
-                {s === 'all' ? 'Semua Status' : s.charAt(0).toUpperCase() + s.slice(1)}
+                {s === 'all' ? 'Semua' : s.charAt(0).toUpperCase() + s.slice(1)}
               </button>
             ))}
           </div>
           <select value={roleF} onChange={e => setRoleF(e.target.value as User['role'] | 'all')}
-            className="text-[10px] font-mono border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 text-slate-600 focus:outline-none focus:border-cyan-400">
+            className="w-full sm:w-auto text-[10px] font-mono border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 text-slate-600 focus:outline-none focus:border-cyan-400">
             <option value="all">Semua Role</option>
             <option value="super_admin">Super Admin</option>
             <option value="admin_perusahaan">Admin Perusahaan</option>
             <option value="kepala_instansi">Kepala Instansi</option>
             <option value="supervisor">Supervisor</option>
           </select>
-          <span className="ml-auto text-[10px] text-slate-400 font-mono">{data.length} pengguna</span>
+          <span className="sm:ml-auto text-[10px] text-slate-400 font-mono">{data.length} pengguna</span>
         </div>
 
         <div className="overflow-x-auto">

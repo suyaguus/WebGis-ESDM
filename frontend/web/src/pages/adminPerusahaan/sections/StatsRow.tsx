@@ -11,7 +11,7 @@ export default function AdminStatsRow() {
   const pct     = getQuotaPercent(ADMIN_COMPANY.quotaUsed, ADMIN_COMPANY.quota);
 
   return (
-    <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
       <StatCard label="Total Sensor"    value={total}            sub={`${online} online`}          color="amber"  />
       <StatCard label="Sensor Alert"    value={alert}            sub="↑ 1 dari kemarin"            color="red"    trendDown />
       <StatCard label="Maintenance"     value={maint}            sub="Perlu kalibrasi"             color="purple" />

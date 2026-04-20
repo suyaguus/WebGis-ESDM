@@ -3,7 +3,7 @@ import { SUPERADMIN_STATS } from '../../../constants/mockData';
 
 export default function StatsRow() {
   return (
-    <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
+    <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
       {SUPERADMIN_STATS.map((stat) => (
         <StatCard
           key={stat.label}

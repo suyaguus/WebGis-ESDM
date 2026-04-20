@@ -1,16 +1,25 @@
 import { useState } from 'react';
 import { FileText, Download, Calendar, Building2, CheckCircle, Clock } from 'lucide-react';
 import { Card, SectionHeader, StatusPill } from '../../../components/ui';
+import {
+  faChartSimple,
+  faGear,
+  faSatelliteDish,
+  faCheck,  
+  faWater,
+  faFile
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { MOCK_COMPANIES } from '../../../constants/mockData';
 import { cn } from '../../../lib/utils';
 
 const REPORT_TYPES = [
-  { key: 'subsidence', label: 'Laporan Subsidence', desc: 'Tren penurunan tanah per sensor & wilayah', icon: '📉', color: 'bg-red-50 border-red-200 text-red-700' },
-  { key: 'water',      label: 'Laporan Muka Air',   desc: 'Fluktuasi level muka air tanah',           icon: '💧', color: 'bg-blue-50 border-blue-200 text-blue-700' },
-  { key: 'quota',      label: 'Laporan Kuota',       desc: 'Penggunaan izin pengambilan air tanah',    icon: '📊', color: 'bg-amber-50 border-amber-200 text-amber-700' },
-  { key: 'compliance', label: 'Laporan Kepatuhan',   desc: 'Status kepatuhan per perusahaan',          icon: '✅', color: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
-  { key: 'sensor',     label: 'Laporan Sensor',      desc: 'Status operasional dan histori sensor',    icon: '📡', color: 'bg-purple-50 border-purple-200 text-purple-700' },
-  { key: 'custom',     label: 'Laporan Kustom',      desc: 'Pilih parameter dan rentang sendiri',      icon: '⚙️', color: 'bg-slate-50 border-slate-200 text-slate-700' },
+  { key: 'subsidence', label: 'Laporan Subsidence', desc: 'Tren penurunan tanah per sensor & wilayah', icon: <FontAwesomeIcon icon={faFile} />, color: 'bg-red-50 border-red-200 text-red-700' },
+  { key: 'water',      label: 'Laporan Muka Air',   desc: 'Fluktuasi level muka air tanah',           icon: <FontAwesomeIcon icon={faWater} />, color: 'bg-blue-50 border-blue-200 text-blue-700' },
+  { key: 'quota',      label: 'Laporan Kuota',       desc: 'Penggunaan izin pengambilan air tanah',    icon: <FontAwesomeIcon icon={faChartSimple} />, color: 'bg-amber-50 border-amber-200 text-amber-700' },
+  { key: 'compliance', label: 'Laporan Kepatuhan',   desc: 'Status kepatuhan per perusahaan',          icon: <FontAwesomeIcon icon={faCheck} />, color: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
+  { key: 'sensor',     label: 'Laporan Sensor',      desc: 'Status operasional dan histori sensor',    icon: <FontAwesomeIcon icon={faSatelliteDish} />, color: 'bg-purple-50 border-purple-200 text-purple-700' },
+  { key: 'custom',     label: 'Laporan Kustom',      desc: 'Pilih parameter dan rentang sendiri',      icon: <FontAwesomeIcon icon={faGear} />, color: 'bg-slate-50 border-slate-200 text-slate-700' },
 ];
 
 const RECENT_REPORTS = [
@@ -37,18 +46,18 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="p-3 sm:p-5 space-y-4">
       <div>
         <h1 className="text-[18px] font-semibold text-slate-800">Laporan</h1>
         <p className="text-[11px] text-slate-400 font-mono mt-0.5">Generate dan unduh laporan sistem pemantauan</p>
       </div>
 
-      <div className="grid grid-cols-[1fr_320px] gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4">
         <div className="space-y-4">
           {/* Report type selector */}
           <Card padding={false}>
             <SectionHeader title="Pilih Jenis Laporan" icon={<FileText size={13} />} />
-            <div className="p-4 grid grid-cols-3 gap-3">
+            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
               {REPORT_TYPES.map(t => (
                 <button key={t.key} onClick={() => setSelectedType(t.key)}
                   className={cn('text-left p-3 rounded-xl border transition-all',
@@ -66,7 +75,7 @@ export default function ReportsPage() {
             <h3 className="text-[13px] font-semibold text-slate-800 mb-4 flex items-center gap-2">
               <Calendar size={13} className="text-cyan-600" /> Parameter Laporan
             </h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">Periode</label>
                 <select value={period} onChange={e => setPeriod(e.target.value)}
@@ -117,7 +126,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Recent reports */}
-        <Card padding={false} className="flex flex-col">
+        <Card padding={false} className="flex flex-col max-h-[420px] xl:max-h-none">
           <SectionHeader title="Laporan Terbaru" icon={<Download size={13} />} subtitle={`${RECENT_REPORTS.length} FILE`} />
           <div className="flex-1 divide-y divide-slate-50 overflow-y-auto">
             {RECENT_REPORTS.map(r => (

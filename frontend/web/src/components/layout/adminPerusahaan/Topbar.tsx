@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, ChevronRight, RefreshCw, Download } from 'lucide-react';
+import { Bell, ChevronRight, RefreshCw, Download, Menu } from 'lucide-react';
 import { useAppStore } from '../../../store';
 import { getCurrentDate, getCurrentTime, cn } from '../../../lib/utils';
 import { MOCK_ALERTS } from '../../../constants/mockData';
@@ -20,7 +20,7 @@ const COMPANY_ALERTS = MOCK_ALERTS.filter(a =>
 );
 
 export default function AdminTopbar() {
-  const { activePage } = useAppStore();
+  const { activePage, setMobileSidebarOpen } = useAppStore();
   const [time, setTime]          = useState(getCurrentTime());
   const [showAlerts, setAlerts]  = useState(false);
   const [refreshing, setRefresh] = useState(false);
@@ -33,19 +33,27 @@ export default function AdminTopbar() {
   }, []);
 
   return (
-    <header className="h-[60px] bg-white border-b border-slate-100 flex items-center px-5 gap-4 flex-shrink-0 shadow-sm relative z-20 min-w-0">
+    <header className="h-[60px] bg-white border-b border-slate-100 flex items-center px-4 gap-3 flex-shrink-0 shadow-sm relative z-20 min-w-0">
+      {/* Hamburger — mobile only */}
+      <button
+        onClick={() => setMobileSidebarOpen(true)}
+        className="md:hidden w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center hover:bg-slate-100 transition-colors flex-shrink-0"
+      >
+        <Menu size={16} className="text-slate-500" />
+      </button>
+
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 min-w-0">
-        <span className="text-[11px] text-slate-400 flex-shrink-0">PT Maju Jaya</span>
-        <ChevronRight size={11} className="text-slate-300 flex-shrink-0" />
-        <span className="text-[11px] text-slate-400 flex-shrink-0">{meta.section}</span>
-        <ChevronRight size={11} className="text-slate-300 flex-shrink-0" />
+      <div className="flex items-center gap-1.5 min-w-0 flex-1">
+        <span className="hidden sm:inline text-[11px] text-slate-400 flex-shrink-0">PT Maju Jaya</span>
+        <ChevronRight size={11} className="hidden sm:inline text-slate-300 flex-shrink-0" />
+        <span className="hidden sm:inline text-[11px] text-slate-400 flex-shrink-0">{meta.section}</span>
+        <ChevronRight size={11} className="hidden sm:inline text-slate-300 flex-shrink-0" />
         <span className="text-[12px] font-semibold text-slate-700 truncate">{meta.label}</span>
       </div>
 
       {/* Right */}
-      <div className="ml-auto flex items-center gap-2.5 flex-shrink-0">
-        {/* Quick export shortcut */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {/* Quick export shortcut — hidden on mobile */}
         <button className="hidden md:flex items-center gap-1.5 text-[10px] font-mono text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-lg hover:bg-amber-100 transition-colors">
           <Download size={11} /> Ekspor Laporan
         </button>
@@ -56,7 +64,7 @@ export default function AdminTopbar() {
           <RefreshCw size={13} className={cn('text-slate-500', refreshing && 'animate-spin')} />
         </button>
 
-        {/* Date + time */}
+        {/* Date + time — hidden on mobile */}
         <div className="hidden md:flex text-[10px] font-mono text-slate-400 bg-slate-50 border border-slate-100 px-2.5 py-1.5 rounded-lg whitespace-nowrap items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot" />
           {getCurrentDate()} · {time}
@@ -74,7 +82,7 @@ export default function AdminTopbar() {
             )}
           </button>
           {showAlerts && (
-            <div className="absolute right-0 top-10 w-72 bg-white border border-slate-100 rounded-xl shadow-xl z-50 overflow-hidden animate-slide-up">
+            <div className="absolute right-0 top-10 w-72 max-w-[calc(100vw-1rem)] bg-white border border-slate-100 rounded-xl shadow-xl z-50 overflow-hidden animate-slide-up">
               <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
                 <span className="text-[12px] font-semibold text-slate-700">Notifikasi Perusahaan</span>
                 <span className="text-[9px] font-mono text-red-500 bg-red-50 px-2 py-0.5 rounded-full border border-red-200">{unread} BARU</span>

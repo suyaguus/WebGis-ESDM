@@ -20,33 +20,33 @@ export default function KadisDashboard() {
   const criticalCount = MOCK_ALERTS.filter(a => a.severity === 'critical' && !a.isRead).length;
 
   return (
-    <div className="p-5 pb-8 space-y-4 w-full">
+    <div className="p-3 sm:p-5 pb-8 space-y-4 w-full">
       {/* Page heading */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-[18px] font-semibold text-slate-800 leading-tight">
+      <div className="flex items-center justify-between gap-2 min-w-0">
+        <div className="min-w-0">
+          <h1 className="text-[16px] sm:text-[18px] font-semibold text-slate-800 leading-tight">
             Dashboard Kepala Dinas
           </h1>
-          <p className="text-[11px] text-slate-400 font-mono mt-0.5">
+          <p className="text-[11px] text-slate-400 font-mono mt-0.5 hidden sm:block">
             Pengawasan penggunaan air tanah · Provinsi Lampung
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
           {criticalCount > 0 && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 blink-alert flex-shrink-0" />
-              <span className="text-[10px] font-mono text-red-700 font-semibold">{criticalCount} alert kritis</span>
+              <span className="text-[10px] font-mono text-red-700 font-semibold">{criticalCount} kritis</span>
             </div>
           )}
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 pulse-dot flex-shrink-0" />
-            <span className="text-[10px] font-mono text-slate-400 whitespace-nowrap">Realtime · 30s</span>
+            <span className="text-[10px] font-mono text-slate-400 whitespace-nowrap hidden sm:inline">Realtime · 30s</span>
           </div>
         </div>
       </div>
 
       {/* Quick actions */}
-      <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
         {QUICK_ACTIONS.map(({ key, label, icon: Icon, color }) => (
           <button key={key} onClick={() => setActivePage(key)}
             className={cn('flex items-center gap-2.5 px-4 py-3 rounded-xl border font-medium text-[12px] transition-all shadow-sm hover:shadow', color)}>
@@ -60,13 +60,13 @@ export default function KadisDashboard() {
       <KadisStatsRow />
 
       {/* Map + Alert summary */}
-      <div className="grid gap-4" style={{ gridTemplateColumns: 'minmax(0,1fr) 296px' }}>
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-[1fr_296px]">
         <KadisMapSection />
         <KadisAlertSummary />
       </div>
 
       {/* Compliance table + Trend */}
-      <div className="grid gap-4" style={{ gridTemplateColumns: 'minmax(0,1fr) 320px' }}>
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-[1fr_320px]">
         <KadisComplianceTable />
         <KadisTrendSection />
       </div>

@@ -141,7 +141,7 @@ export default function AdminVerifikasiPage() {
   const pending  = measurements.filter(m => m.status === 'pending').length;
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="p-3 md:p-5 space-y-3 md:space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[18px] font-semibold text-slate-800">Verifikasi Data</h1>
@@ -151,7 +151,7 @@ export default function AdminVerifikasiPage() {
 
       {/* Pending alert */}
       {pending > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between">
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-0 justify-between">
           <div className="flex items-center gap-3">
             <AlertTriangle size={16} className="text-amber-600 flex-shrink-0" />
             <div>
@@ -169,7 +169,7 @@ export default function AdminVerifikasiPage() {
       )}
 
       {/* Summary */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: 'Total Data',    value: measurements.length,                                    color: '#F59E0B', bg: 'bg-amber-50  border-amber-200'   },
           { label: 'Menunggu',      value: measurements.filter(m=>m.status==='pending').length,    color: '#F59E0B', bg: 'bg-amber-50  border-amber-200'   },
@@ -178,14 +178,14 @@ export default function AdminVerifikasiPage() {
         ].map(({ label, value, color, bg }) => (
           <div key={label} className={cn('rounded-xl border px-4 py-3', bg)}>
             <p className="text-[9px] font-mono text-slate-400 uppercase mb-1">{label}</p>
-            <p className="text-[22px] font-bold font-mono" style={{ color }}>{value}</p>
+            <p className="text-[18px] md:text-[22px] font-bold font-mono" style={{ color }}>{value}</p>
           </div>
         ))}
       </div>
 
       {/* Table */}
       <Card padding={false}>
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 flex-shrink-0">
+        <div className="flex flex-wrap items-center gap-2 px-3 md:px-4 py-3 border-b border-slate-100 flex-shrink-0">
           <span className="text-[13px] font-semibold text-slate-800 flex items-center gap-1.5">
             <CheckSquare size={14} className="text-amber-600" /> Data Pengukuran
           </span>

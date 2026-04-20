@@ -74,14 +74,14 @@ export default function RolesPage() {
   const selectedIdx = ROLES.findIndex(r => r.key === selected);
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="p-3 sm:p-5 space-y-4">
       <div>
         <h1 className="text-[18px] font-semibold text-slate-800">Role & Akses</h1>
         <p className="text-[11px] text-slate-400 font-mono mt-0.5">Konfigurasi hak akses per role pengguna</p>
       </div>
 
       {/* Role cards */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {ROLES.map(r => (
           <button key={r.key} onClick={() => setSelected(r.key)}
             className={cn(
@@ -101,7 +101,31 @@ export default function RolesPage() {
       <Card padding={false}>
         <SectionHeader title="Matriks Hak Akses" icon={<Shield size={13} />}
           subtitle={`SOROT: ${ROLES.find(r => r.key === selected)?.label.toUpperCase()}`} />
-        <div className="overflow-x-auto">
+
+        <div className="md:hidden px-4 py-3 space-y-3 border-b border-slate-100 bg-slate-50/40">
+          {PERMISSION_GROUPS.map(group => (
+            <div key={group.group} className="bg-white rounded-lg border border-slate-100 overflow-hidden">
+              <p className="px-3 py-2 text-[9px] font-mono font-semibold text-slate-500 uppercase tracking-widest bg-slate-50/70">
+                {group.group}
+              </p>
+              <div className="divide-y divide-slate-50">
+                {group.items.map(item => {
+                  const allowed = item.perms[selectedIdx];
+                  return (
+                    <div key={item.label} className="px-3 py-2.5 flex items-center justify-between gap-2">
+                      <span className="text-[11px] text-slate-600">{item.label}</span>
+                      {allowed
+                        ? <Check size={14} className="text-emerald-500 flex-shrink-0" />
+                        : <X size={14} className="text-slate-300 flex-shrink-0" />}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full" style={{ minWidth: '560px' }}>
             <thead className="bg-slate-50/60 border-b border-slate-100">
               <tr>

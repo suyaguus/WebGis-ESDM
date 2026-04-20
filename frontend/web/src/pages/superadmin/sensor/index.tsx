@@ -38,7 +38,7 @@ function DetailModal({ sensor, onClose }: { sensor: Sensor; onClose: () => void 
           </div>
         </div>
         {/* Body */}
-        <div className="px-6 py-5 grid grid-cols-2 gap-4">
+        <div className="px-4 sm:px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
             ['Tipe Sensor', sensor.type === 'water' ? 'Air Tanah (Groundwater)' : 'GNSS'],
             ['Perusahaan', co?.name ?? '-'],
@@ -56,7 +56,7 @@ function DetailModal({ sensor, onClose }: { sensor: Sensor; onClose: () => void 
           ))}
         </div>
         {/* Actions */}
-        <div className="px-6 py-4 border-t border-slate-100 flex gap-2">
+        <div className="px-4 sm:px-6 py-4 border-t border-slate-100 flex flex-col sm:flex-row gap-2">
           <button className="flex-1 px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors">Lihat Histori</button>
           <button className="px-4 py-2 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-xl hover:bg-slate-200 transition-colors">Edit Sensor</button>
           <button className="px-4 py-2 bg-red-50 text-red-600 text-[12px] font-semibold rounded-xl hover:bg-red-100 transition-colors border border-red-200">Nonaktifkan</button>
@@ -106,20 +106,20 @@ export default function SensorPage() {
   };
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="p-3 sm:p-5 space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-[18px] font-semibold text-slate-800">Semua Sensor</h1>
           <p className="text-[11px] text-slate-400 font-mono mt-0.5">Kelola dan pantau seluruh sensor terdaftar</p>
         </div>
-        <button className="px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors flex items-center gap-2">
+        <button className="px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto">
           <Radio size={13} /> Tambah Sensor
         </button>
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: 'Online', count: summary.online, color: '#22C55E', bg: 'bg-emerald-50', border: 'border-emerald-200' },
           { label: 'Alert', count: summary.alert, color: '#EF4444', bg: 'bg-red-50', border: 'border-red-200' },
@@ -139,11 +139,11 @@ export default function SensorPage() {
       <Card padding={false}>
         {/* Controls */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 flex-wrap">
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Cari kode / lokasi..."
-              className="pl-8 pr-3 py-1.5 text-[11px] font-mono border border-slate-200 rounded-lg bg-slate-50 text-slate-700 w-48 focus:outline-none focus:border-cyan-400" />
+              className="pl-8 pr-3 py-1.5 text-[11px] font-mono border border-slate-200 rounded-lg bg-slate-50 text-slate-700 w-full sm:w-48 focus:outline-none focus:border-cyan-400" />
           </div>
           <div className="flex gap-1">
             {(['all','online','alert','maintenance','offline'] as const).map(s => (

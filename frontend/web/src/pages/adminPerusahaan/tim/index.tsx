@@ -102,19 +102,19 @@ export default function AdminTimPage() {
   const online         = SUPERVISOR_TASKS.filter(s => s.status !== 'offline').length;
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="p-3 md:p-5 space-y-3 md:space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[18px] font-semibold text-slate-800">Tim Lapangan</h1>
           <p className="text-[11px] text-slate-400 font-mono mt-0.5">Supervisor aktif PT Maju Jaya Tbk</p>
         </div>
-        <button className="px-4 py-2 bg-amber-500 text-white text-[12px] font-semibold rounded-xl hover:bg-amber-600 flex items-center gap-2">
-          <Users size={13} /> Atur Penugasan
+        <button className="px-3 md:px-4 py-2 bg-amber-500 text-white text-[12px] font-semibold rounded-xl hover:bg-amber-600 flex items-center gap-2 whitespace-nowrap">
+          <Users size={13} /><span className="hidden sm:block">Atur Penugasan</span>
         </button>
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: 'Total Supervisor', value: SUPERVISOR_TASKS.length, color: '#F59E0B', bg: 'bg-amber-50  border-amber-200'   },
           { label: 'Online / Aktif',   value: online,                   color: '#22C55E', bg: 'bg-emerald-50 border-emerald-200' },
@@ -123,7 +123,7 @@ export default function AdminTimPage() {
         ].map(({ label, value, color, bg }) => (
           <div key={label} className={cn('rounded-xl border px-4 py-3', bg)}>
             <p className="text-[9px] font-mono text-slate-400 uppercase mb-1">{label}</p>
-            <p className="text-[22px] font-bold font-mono" style={{ color }}>{value}</p>
+            <p className="text-[18px] md:text-[22px] font-bold font-mono" style={{ color }}>{value}</p>
           </div>
         ))}
       </div>
@@ -145,7 +145,7 @@ export default function AdminTimPage() {
       </Card>
 
       {/* Supervisor cards */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {SUPERVISOR_TASKS.map(sv => <SupervisorCard key={sv.id} sv={sv} />)}
       </div>
     </div>

@@ -2,7 +2,7 @@ import RoleSwitcher from '../../ui/RoleSwitcher';
 import React from 'react';
 import {
   LayoutDashboard, Map, Radio, Users, FileText,
-  CheckSquare, ClipboardList, TrendingDown, Building2, ChevronRight,
+  CheckSquare, ClipboardList, Building2, ChevronRight, X,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { useAppStore } from '../../../store';
@@ -18,12 +18,12 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { key: 'ap-dashboard', label: 'Dashboard',         icon: LayoutDashboard, section: 'overview' },
-  { key: 'ap-peta',      label: 'Peta Sensor',       icon: Map,             section: 'overview' },
   { key: 'ap-sumur',     label: 'Daftar Sumur',      icon: Radio,           badge: 2, badgeColor: 'red', section: 'overview' },
   { key: 'ap-tim',       label: 'Tim Lapangan',      icon: Users,           section: 'operasional' },
   { key: 'ap-verifikasi',label: 'Verifikasi Data',   icon: CheckSquare,     badge: 3, badgeColor: 'amber', section: 'operasional' },
   { key: 'ap-histori',   label: 'Histori Pengukuran',icon: ClipboardList,   section: 'operasional' },
   { key: 'ap-laporan',   label: 'Laporan & Ekspor',  icon: FileText,        section: 'laporan' },
+  { key: 'ap-peta',      label: 'Peta Sensor',       icon: Map,             section: 'overview' },
 ];
 
 const SECTIONS = [
@@ -32,37 +32,52 @@ const SECTIONS = [
   { key: 'laporan',     label: 'Laporan' },
 ];
 
-export default function AdminSidebar() {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+export default function AdminSidebar({ onClose }: SidebarProps) {
   const { activePage, setActivePage } = useAppStore();
 
   return (
     <aside className="w-56 flex-shrink-0 bg-white border-r border-slate-100 flex flex-col h-full shadow-sm overflow-hidden">
       {/* Logo */}
-      <div className="h-[60px] flex items-center gap-2.5 px-4 border-b border-slate-100 flex-shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm flex-shrink-0">
+      <div className="h-[64px] flex items-center gap-2.5 px-3.5 border-b border-slate-100 bg-gradient-to-r from-slate-50/80 to-white flex-shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 ring-1 ring-amber-200/80 flex items-center justify-center shadow-sm flex-shrink-0">
           <Building2 size={16} className="text-white" />
         </div>
-        <div className="min-w-0">
-          <p className="text-[13px] font-semibold text-slate-800 leading-none">WebGIS</p>
-          <p className="text-[9px] font-mono text-amber-600 tracking-widest mt-0.5">SIPASTI v2.0</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-[13px] font-semibold text-slate-800 leading-none tracking-[0.04em]">SIGAT</p>
+          <p className="text-[9px] font-mono text-amber-700/90 tracking-wide mt-0.5">Sistem Informasi Geologi dan Air Tanah</p>
         </div>
+        {/* Close button — mobile only */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="md:hidden flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg border border-transparent hover:border-slate-200 hover:bg-white transition-colors"
+          >
+            <X size={16} className="text-slate-500" />
+          </button>
+        )}
       </div>
 
       {/* Company + User info */}
-      <div className="px-3 py-3 border-b border-slate-100 flex-shrink-0">
-        <div className="flex items-center gap-2.5 mb-2">
-          <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-[11px] font-semibold text-amber-700 flex-shrink-0">
+      <div className="px-3 py-3 border-b border-slate-100 bg-white flex-shrink-0">
+        <div className="rounded-xl border border-slate-100 bg-slate-50/70 px-2.5 py-2">
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className="w-8 h-8 rounded-full bg-amber-100 ring-1 ring-amber-200 flex items-center justify-center text-[11px] font-semibold text-amber-700 flex-shrink-0">
             BS
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold text-slate-800 truncate">Budi Santoso</p>
+              <p className="text-[9px] font-mono text-amber-700 tracking-wider">ADMIN PERUSAHAAN</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold text-slate-800 truncate">Budi Santoso</p>
-            <p className="text-[9px] font-mono text-amber-600 tracking-wider">ADMIN PERUSAHAAN</p>
+          {/* Company badge */}
+          <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-100 rounded-lg px-2 py-1.5">
+            <Building2 size={10} className="text-amber-600 flex-shrink-0" />
+            <p className="text-[9px] font-mono text-amber-700 font-medium truncate">PT Maju Jaya Tbk</p>
           </div>
-        </div>
-        {/* Company badge */}
-        <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-100 rounded-lg px-2 py-1.5">
-          <Building2 size={10} className="text-amber-600 flex-shrink-0" />
-          <p className="text-[9px] font-mono text-amber-700 font-medium truncate">PT Maju Jaya Tbk</p>
         </div>
       </div>
 
@@ -83,7 +98,7 @@ export default function AdminSidebar() {
                     key={item.key}
                     onClick={() => setActivePage(item.key)}
                     className={cn(
-                      'w-full flex items-center gap-2.5 px-4 py-2 text-[12px] font-medium transition-all duration-150 group',
+                      'w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] font-medium transition-all duration-150 group',
                       isActive
                         ? 'text-amber-700 bg-amber-50 border-r-2 border-amber-500'
                         : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50',
@@ -117,9 +132,7 @@ export default function AdminSidebar() {
         </div>
         <p className="text-[8px] font-mono text-slate-400">174.000 / 200.000 m³</p>
       </div>
-          <RoleSwitcher />
+      <RoleSwitcher />
     </aside>
   );
 }
-
-/* ── NOTE: Role switcher injected at bottom of file for dev demo ── */

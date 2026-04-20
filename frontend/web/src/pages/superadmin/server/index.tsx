@@ -8,14 +8,14 @@ import { cn } from '../../../lib/utils';
 ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip);
 
 const SERVICES = [
-  { name: 'API Gateway',     status: 'ok',   latency: '12ms',  uptime: '99.98%', endpoint: 'api.sipasti.go.id' },
-  { name: 'GIS Service',     status: 'ok',   latency: '38ms',  uptime: '99.94%', endpoint: 'gis.sipasti.go.id' },
-  { name: 'Auth Service',    status: 'ok',   latency: '8ms',   uptime: '99.99%', endpoint: 'auth.sipasti.go.id' },
-  { name: 'Analytics Svc',   status: 'warn', latency: '142ms', uptime: '99.72%', endpoint: 'analytics.sipasti.go.id' },
-  { name: 'WebSocket Hub',   status: 'ok',   latency: '5ms',   uptime: '99.95%', endpoint: 'ws.sipasti.go.id' },
+  { name: 'API Gateway',     status: 'ok',   latency: '12ms',  uptime: '99.98%', endpoint: 'api.sigat.go.id' },
+  { name: 'GIS Service',     status: 'ok',   latency: '38ms',  uptime: '99.94%', endpoint: 'gis.sigat.go.id' },
+  { name: 'Auth Service',    status: 'ok',   latency: '8ms',   uptime: '99.99%', endpoint: 'auth.sigat.go.id' },
+  { name: 'Analytics Svc',   status: 'warn', latency: '142ms', uptime: '99.72%', endpoint: 'analytics.sigat.go.id' },
+  { name: 'WebSocket Hub',   status: 'ok',   latency: '5ms',   uptime: '99.95%', endpoint: 'ws.sigat.go.id' },
   { name: 'PostgreSQL + PostGIS', status: 'ok', latency: '4ms', uptime: '100%', endpoint: 'db-primary' },
   { name: 'Redis Cache',     status: 'ok',   latency: '1ms',   uptime: '100%',   endpoint: 'redis-01' },
-  { name: 'MinIO Storage',   status: 'ok',   latency: '22ms',  uptime: '99.91%', endpoint: 'storage.sipasti.go.id' },
+  { name: 'MinIO Storage',   status: 'ok',   latency: '22ms',  uptime: '99.91%', endpoint: 'storage.sigat.go.id' },
 ];
 
 const API_ENDPOINTS = [
@@ -55,13 +55,13 @@ export default function ServerPage() {
   const overallWarn = SERVICES.filter(s => s.status === 'warn').length;
 
   return (
-    <div className="p-5 space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="p-3 sm:p-5 space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-[18px] font-semibold text-slate-800">Server & API</h1>
           <p className="text-[11px] text-slate-400 font-mono mt-0.5">Monitoring infrastruktur dan performa API</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
           <div className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[10px] font-mono font-semibold',
             overallWarn > 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200')}>
             {overallWarn > 0 ? <AlertTriangle size={11} /> : <CheckCircle size={11} />}
@@ -75,7 +75,7 @@ export default function ServerPage() {
       </div>
 
       {/* Server Metrics */}
-      <div className="grid grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         {SERVER_METRICS.map(m => {
           const color = m.status === 'ok' ? '#22C55E' : m.status === 'warn' ? '#F59E0B' : '#EF4444';
           const bg    = m.status === 'ok' ? 'border-emerald-100' : m.status === 'warn' ? 'border-amber-200' : 'border-red-200';
@@ -94,12 +94,12 @@ export default function ServerPage() {
         <SectionHeader title="Status Layanan" icon={<Server size={13} />} subtitle={`${overallOk}/${SERVICES.length} ONLINE`} />
         <div className="divide-y divide-slate-50">
           {SERVICES.map(s => (
-            <div key={s.name} className="flex items-center gap-4 px-4 py-3 hover:bg-slate-50/40 transition-colors">
+            <div key={s.name} className="flex flex-wrap md:flex-nowrap items-center gap-2 md:gap-4 px-4 py-3 hover:bg-slate-50/40 transition-colors">
               <div className={cn('w-2 h-2 rounded-full flex-shrink-0', s.status === 'ok' ? 'bg-emerald-400' : 'bg-amber-400 blink-alert')} />
-              <span className="text-[12px] font-semibold text-slate-800 w-40 flex-shrink-0">{s.name}</span>
-              <span className="text-[10px] font-mono text-slate-400 flex-1 truncate">{s.endpoint}</span>
-              <span className="text-[10px] font-mono text-slate-500 w-16 text-right">{s.latency}</span>
-              <span className={cn('text-[10px] font-mono w-16 text-right font-semibold',
+              <span className="text-[12px] font-semibold text-slate-800 w-full md:w-40 flex-shrink-0">{s.name}</span>
+              <span className="text-[10px] font-mono text-slate-400 w-full md:flex-1 truncate">{s.endpoint}</span>
+              <span className="text-[10px] font-mono text-slate-500 w-auto md:w-16 md:text-right">{s.latency}</span>
+              <span className={cn('text-[10px] font-mono w-auto md:w-16 md:text-right font-semibold',
                 s.uptime === '100%' ? 'text-emerald-600' : 'text-amber-600')}>{s.uptime}</span>
               <span className={cn('text-[9px] font-mono px-2 py-0.5 rounded-full border',
                 s.status === 'ok' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200')}>

@@ -79,7 +79,7 @@ export default function AlertPanel() {
       </div>
 
       {/* Alert list — scrollable */}
-      <div className="overflow-y-auto divide-y divide-slate-50" style={{ maxHeight: '360px' }}>
+      <div className="overflow-y-auto divide-y divide-slate-50 max-h-[240px] md:max-h-[360px]">
         {filtered.map((alert) => (
           <AlertItem key={alert.id} alert={alert} />
         ))}

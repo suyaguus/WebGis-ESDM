@@ -37,7 +37,7 @@ export default function KadisPerusahaanPage() {
   const overQuota = MOCK_COMPANIES.filter(c => getQuotaPercent(c.quotaUsed, c.quota) >= 100).length;
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="p-3 sm:p-5 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -55,7 +55,7 @@ export default function KadisPerusahaanPage() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: 'Total Perusahaan',  value: String(MOCK_COMPANIES.length),                                               color: '#059669' },
           { label: 'Status Online',     value: String(MOCK_COMPANIES.filter(c => c.status === 'online').length),            color: '#22C55E' },
@@ -70,7 +70,7 @@ export default function KadisPerusahaanPage() {
         ))}
       </div>
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: 'minmax(0,1fr) 300px' }}>
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-[1fr_300px]">
         {/* Table */}
         <Card padding={false}>
           <SectionHeader

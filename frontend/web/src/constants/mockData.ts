@@ -1,4 +1,4 @@
-import type { Sensor, Company, Alert, TrendDataPoint } from '../../../web/src/types';
+import type { Sensor, Company, Alert, TrendDataPoint } from '../types';
 
 export const MOCK_SENSORS: Sensor[] = [
   // c1 — PT Maju Jaya Tbk (Bandar Lampung)
@@ -92,7 +92,7 @@ export interface ServerMetric {
 }
 
 export const MOCK_USERS: User[] = [
-  { id: 'u1', name: 'Ahmad Fauzi', email: 'ahmad.f@sipasti.go.id', role: 'super_admin', company: 'ESDM Pusat', status: 'active', lastLogin: '08:14 WIB', createdAt: '2024-01-10', avatar: 'AF' },
+  { id: 'u1', name: 'Ahmad Fauzi', email: 'ahmad.f@sigat.go.id', role: 'super_admin', company: 'ESDM Pusat', status: 'active', lastLogin: '08:14 WIB', createdAt: '2024-01-10', avatar: 'AF' },
   { id: 'u2', name: 'Budi Santoso', email: 'budi.s@majujaya.co.id', role: 'admin_perusahaan', company: 'PT Maju Jaya Tbk', status: 'active', lastLogin: '07:55 WIB', createdAt: '2024-02-14', avatar: 'BS' },
   { id: 'u3', name: 'Citra Dewi', email: 'citra.d@bumiraya.co.id', role: 'admin_perusahaan', company: 'PT Bumi Raya', status: 'active', lastLogin: '06:30 WIB', createdAt: '2024-03-01', avatar: 'CD' },
   { id: 'u4', name: 'Deni Kurniawan', email: 'deni.k@dinas.go.id', role: 'kepala_instansi', company: 'Dinas ESDM DKI', status: 'active', lastLogin: 'Kemarin', createdAt: '2024-01-20', avatar: 'DK' },

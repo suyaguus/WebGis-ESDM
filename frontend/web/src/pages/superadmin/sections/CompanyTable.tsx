@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Building2, ArrowUpDown } from 'lucide-react';
-import { SectionHeader, StatusPill } from '../../../components/ui';
-import { MOCK_COMPANIES } from '../../../constants/mockData';
-import { cn, getSubsidenceColor, getQuotaPercent } from '../../../lib/utils';
+import { SectionHeader, StatusPill } from '@/components/ui';
+import { MOCK_COMPANIES } from '@/constants/mockData';
+import { cn, getSubsidenceColor, getQuotaPercent } from '@/lib/utils';
 
 type SortKey = 'name' | 'sensorCount' | 'avgSubsidence' | 'quotaUsed';
 
@@ -46,7 +46,46 @@ export default function CompanyTable() {
         }
       />
 
-      <div className="overflow-x-auto flex-1">
+      {/* ── Mobile: card list (hidden on md+) ── */}
+      <div className="md:hidden divide-y divide-slate-50">
+        {sorted.map((company) => {
+          const pct = getQuotaPercent(company.quotaUsed, company.quota);
+          const pctColor = pct >= 100 ? '#EF4444' : pct >= 85 ? '#F59E0B' : '#22C55E';
+          return (
+            <div key={company.id} className="px-4 py-3 hover:bg-slate-50/60 transition-colors">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[12px] font-semibold text-slate-800 truncate flex-1 min-w-0 mr-2">
+                  {company.name}
+                </span>
+                <StatusPill status={company.status} />
+              </div>
+              <p className="text-[10px] text-slate-400 font-mono mb-2">{company.region}</p>
+              <div className="grid grid-cols-3 gap-2 text-center mb-2">
+                <div>
+                  <p className="text-[11px] font-mono font-semibold text-slate-700">{company.sensorCount}</p>
+                  <p className="text-[9px] text-slate-400 font-mono">Sensor</p>
+                </div>
+                <div>
+                  <p className={cn('text-[11px] font-mono font-semibold', getSubsidenceColor(company.avgSubsidence))}>
+                    {company.avgSubsidence.toFixed(2)}
+                  </p>
+                  <p className="text-[9px] text-slate-400 font-mono">cm/thn</p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-mono font-semibold" style={{ color: pctColor }}>{pct}%</p>
+                  <p className="text-[9px] text-slate-400 font-mono">Kuota</p>
+                </div>
+              </div>
+              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pctColor }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── Desktop: table (hidden on mobile) ── */}
+      <div className="hidden md:block overflow-x-auto flex-1">
         <table className="w-full" style={{ tableLayout: 'fixed', minWidth: '480px' }}>
           <colgroup>
             <col style={{ width: '30%' }} />
@@ -90,10 +129,7 @@ export default function CompanyTable() {
                   <td className="px-3 py-2.5">
                     <div className="flex items-center gap-1.5">
                       <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden" style={{ minWidth: '36px' }}>
-                        <div
-                          className="h-full rounded-full"
-                          style={{ width: `${Math.min(pct, 100)}%`, background: pctColor }}
-                        />
+                        <div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pctColor }} />
                       </div>
                       <span className="text-[10px] font-mono flex-shrink-0" style={{ color: pctColor }}>{pct}%</span>
                     </div>

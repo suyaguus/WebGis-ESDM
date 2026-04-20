@@ -3,7 +3,7 @@ import { Search, Plus, ArrowUpDown, X } from 'lucide-react';
 import { Card, SectionHeader, StatusPill, Badge } from '../../../components/ui';
 import { COMPANY_SENSORS } from '../../../constants/mockData';
 import { cn, getSubsidenceColor } from '../../../lib/utils';
-import type { Sensor, SensorStatus, SensorType } from '../../../types';
+import type { Sensor, SensorStatus, SensorType } from '@/types';
 
 type SortKey = 'code' | 'location' | 'subsidence' | 'status' | 'lastUpdate';
 
@@ -77,19 +77,19 @@ export default function AdminSumurPage() {
   );
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="p-3 md:p-5 space-y-3 md:space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[18px] font-semibold text-slate-800">Daftar Sumur</h1>
           <p className="text-[11px] text-slate-400 font-mono mt-0.5">Semua sensor PT Maju Jaya Tbk</p>
         </div>
-        <button className="px-4 py-2 bg-amber-500 text-white text-[12px] font-semibold rounded-xl hover:bg-amber-600 transition-colors flex items-center gap-2">
-          <Plus size={13} /> Tambah Sensor
+        <button className="px-3 md:px-4 py-2 bg-amber-500 text-white text-[12px] font-semibold rounded-xl hover:bg-amber-600 transition-colors flex items-center gap-2 whitespace-nowrap">
+          <Plus size={13} /><span className="hidden sm:block">Tambah Sensor</span>
         </button>
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: 'Total Sensor',   value: COMPANY_SENSORS.length,                                         color: '#F59E0B', bg: 'bg-amber-50  border-amber-200'   },
           { label: 'Online',         value: COMPANY_SENSORS.filter(s=>s.status==='online').length,          color: '#22C55E', bg: 'bg-emerald-50 border-emerald-200' },
@@ -98,18 +98,18 @@ export default function AdminSumurPage() {
         ].map(({ label, value, color, bg }) => (
           <div key={label} className={cn('rounded-xl border px-4 py-3', bg)}>
             <p className="text-[9px] font-mono text-slate-400 uppercase mb-1">{label}</p>
-            <p className="text-[22px] font-bold font-mono" style={{ color }}>{value}</p>
+            <p className="text-[18px] md:text-[22px] font-bold font-mono" style={{ color }}>{value}</p>
           </div>
         ))}
       </div>
 
       {/* Table */}
       <Card padding={false}>
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 flex-wrap">
+        <div className="flex flex-wrap items-center gap-2 px-3 md:px-4 py-3 border-b border-slate-100">
           <div className="relative">
             <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari kode / lokasi..."
-              className="pl-8 pr-3 py-1.5 text-[11px] font-mono border border-slate-200 rounded-lg bg-slate-50 text-slate-700 w-48 focus:outline-none focus:border-amber-400" />
+              className="pl-8 pr-3 py-1.5 text-[11px] font-mono border border-slate-200 rounded-lg bg-slate-50 text-slate-700 w-full sm:w-48 focus:outline-none focus:border-amber-400" />
           </div>
           <div className="flex gap-1">
             {(['all','online','alert','maintenance','offline'] as const).map(s => (

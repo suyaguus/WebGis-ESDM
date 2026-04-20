@@ -41,7 +41,7 @@ export default function AdminLaporanPage() {
   const pct = Math.round((co.quotaUsed / co.quota) * 100);
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="p-3 md:p-5 space-y-3 md:space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -51,7 +51,7 @@ export default function AdminLaporanPage() {
       </div>
 
       {/* Quick stats */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: 'Laporan Bulan Ini',   value: '3',      color: '#F59E0B' },
           { label: 'Total Unduhan',       value: '12',     color: '#3B82F6' },
@@ -61,18 +61,18 @@ export default function AdminLaporanPage() {
           <div key={label} className="bg-white rounded-xl border border-slate-100 shadow-sm px-4 py-3 relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl" style={{ background: color }} />
             <p className="text-[9px] font-mono text-slate-400 uppercase tracking-wider mb-1">{label}</p>
-            <p className="text-[22px] font-bold font-mono" style={{ color }}>{value}</p>
+            <p className="text-[18px] md:text-[22px] font-bold font-mono" style={{ color }}>{value}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-[1fr_300px] gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
         {/* Left: Generator */}
         <div className="space-y-4">
           {/* Report type */}
           <Card padding={false}>
             <SectionHeader title="Pilih Jenis Laporan" icon={<FileText size={13} />} accent="#F59E0B" />
-            <div className="p-4 grid grid-cols-2 gap-3">
+            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
               {REPORT_TYPES.map(t => {
                 const Icon = t.icon;
                 return (
@@ -93,7 +93,7 @@ export default function AdminLaporanPage() {
           {/* Parameters */}
           <Card>
             <h3 className="text-[13px] font-semibold text-slate-800 mb-4">Parameter Laporan</h3>
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">Periode</label>
                 <select value={period} onChange={e => setPeriod(e.target.value)}
@@ -134,7 +134,7 @@ export default function AdminLaporanPage() {
             </div>
 
             {/* Options */}
-            <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
               {['Sertakan grafik','Sertakan peta sensor','Sertakan histori pengukuran','Kirim ke email admin'].map(o => (
                 <label key={o} className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" defaultChecked={o.includes('grafik') || o.includes('histori')} className="w-3 h-3 accent-amber-500" />

@@ -3,7 +3,7 @@ import { AlertTriangle } from 'lucide-react';
 import { SectionHeader, SeverityBadge } from '../../../components/ui';
 import { MOCK_ALERTS } from '../../../constants/mockData';
 import { cn } from '../../../lib/utils';
-import type { Alert } from '../../../types';
+import type { Alert } from '@/types';
 
 // Alerts scoped to PT Maju Jaya
 const COMPANY_ALERTS = MOCK_ALERTS.filter(a =>
@@ -32,7 +32,7 @@ export default function AdminAlertPanel() {
       </div>
 
       {/* Alert list */}
-      <div className="overflow-y-auto divide-y divide-slate-50" style={{ maxHeight: '320px' }}>
+      <div className="overflow-y-auto divide-y divide-slate-50" style={{ maxHeight: '280px' }}>
         {filtered.map(a => (
           <div key={a.id} className={cn('px-3 py-3 hover:bg-slate-50/60 transition-colors',
             a.severity === 'critical' ? 'border-l-[3px] border-l-red-400'

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, ChevronRight, RefreshCw } from 'lucide-react';
+import { Bell, ChevronRight, RefreshCw, Menu } from 'lucide-react';
 import { useAppStore } from '../../../store';
 import { getCurrentDate, getCurrentTime } from '../../../lib/utils';
 import { MOCK_ALERTS } from '../../../constants/mockData';
@@ -20,12 +20,12 @@ const PAGE_META: Record<string, { label: string; section: string }> = {
 };
 
 export default function Topbar() {
-  const { activePage } = useAppStore();
+  const { activePage, setMobileSidebarOpen } = useAppStore();
   const [time, setTime]         = useState(getCurrentTime());
   const [showAlerts, setAlerts] = useState(false);
   const [refreshing, setRefresh] = useState(false);
   const unread = MOCK_ALERTS.filter(a => !a.isRead).length;
-  const meta   = PAGE_META[activePage] ?? { label: activePage, section: 'SIPASTI' };
+  const meta   = PAGE_META[activePage] ?? { label: activePage, section: 'SIGAT' };
 
   useEffect(() => {
     const t = setInterval(() => setTime(getCurrentTime()), 30_000);
@@ -38,25 +38,33 @@ export default function Topbar() {
   };
 
   return (
-    <header className="h-[60px] bg-white border-b border-slate-100 flex items-center px-5 gap-4 flex-shrink-0 shadow-sm relative z-20 min-w-0">
+    <header className="h-[60px] bg-white border-b border-slate-100 flex items-center px-4 gap-3 flex-shrink-0 shadow-sm relative z-20 min-w-0">
+      {/* Hamburger — mobile only */}
+      <button
+        onClick={() => setMobileSidebarOpen(true)}
+        className="md:hidden w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center hover:bg-slate-100 transition-colors flex-shrink-0"
+      >
+        <Menu size={16} className="text-slate-500" />
+      </button>
+
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 text-[12px] min-w-0">
-        <span className="text-slate-400 flex-shrink-0 text-[11px]">SIPASTI</span>
-        <ChevronRight size={11} className="text-slate-300 flex-shrink-0" />
-        <span className="text-slate-400 flex-shrink-0 text-[11px]">{meta.section}</span>
-        <ChevronRight size={11} className="text-slate-300 flex-shrink-0" />
+      <div className="flex items-center gap-1.5 text-[12px] min-w-0 flex-1">
+        <span className="hidden sm:inline text-slate-400 flex-shrink-0 text-[11px]">SIGAT</span>
+        <ChevronRight size={11} className="hidden sm:inline text-slate-300 flex-shrink-0" />
+        <span className="hidden sm:inline text-slate-400 flex-shrink-0 text-[11px]">{meta.section}</span>
+        <ChevronRight size={11} className="hidden sm:inline text-slate-300 flex-shrink-0" />
         <span className="font-semibold text-slate-700 truncate text-[12px]">{meta.label}</span>
       </div>
 
       {/* Right controls */}
-      <div className="ml-auto flex items-center gap-2.5 flex-shrink-0">
+      <div className="flex items-center gap-2 flex-shrink-0">
         {/* Refresh */}
         <button onClick={handleRefresh}
           className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center hover:bg-slate-100 transition-colors">
           <RefreshCw size={13} className={cn('text-slate-500 transition-transform', refreshing && 'animate-spin')} />
         </button>
 
-        {/* Date + time */}
+        {/* Date + time — hidden on mobile */}
         <div className="hidden md:flex text-[10px] font-mono text-slate-400 bg-slate-50 border border-slate-100 px-2.5 py-1.5 rounded-lg whitespace-nowrap items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot flex-shrink-0" />
           {getCurrentDate()} · {time}
@@ -75,7 +83,7 @@ export default function Topbar() {
           </button>
 
           {showAlerts && (
-            <div className="absolute right-0 top-10 w-72 bg-white border border-slate-100 rounded-xl shadow-xl z-50 overflow-hidden animate-slide-up">
+            <div className="absolute right-0 top-10 w-72 max-w-[calc(100vw-1rem)] bg-white border border-slate-100 rounded-xl shadow-xl z-50 overflow-hidden animate-slide-up">
               <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
                 <span className="text-[12px] font-semibold text-slate-700">Notifikasi</span>
                 <span className="text-[9px] font-mono text-red-500 bg-red-50 px-2 py-0.5 rounded-full border border-red-200">{unread} BARU</span>

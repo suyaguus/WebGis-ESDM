@@ -1,7 +1,7 @@
 import React from 'react';
 import RoleSwitcher from '../../ui/RoleSwitcher';
 import {
-  LayoutDashboard, Map, BarChart3, FileText, ChevronRight, Building2,
+  LayoutDashboard, Map, BarChart3, FileText, ChevronRight, Building2, X,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { useAppStore } from '../../../store';
@@ -29,31 +29,44 @@ const SECTIONS = [
   { key: 'reports',   label: 'Laporan'   },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+export default function Sidebar({ onClose }: SidebarProps) {
   const { activePage, setActivePage } = useAppStore();
 
   return (
     <aside className="w-56 flex-shrink-0 bg-white border-r border-slate-100 flex flex-col h-full shadow-sm overflow-hidden">
       {/* Logo */}
-      <div className="h-[60px] flex items-center gap-2.5 px-4 border-b border-slate-100 flex-shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm flex-shrink-0">
+      <div className="h-[64px] flex items-center gap-2.5 px-3.5 border-b border-slate-100 bg-gradient-to-r from-slate-50/80 to-white flex-shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 ring-1 ring-emerald-200/70 flex items-center justify-center shadow-sm flex-shrink-0">
           <Map size={16} className="text-white" />
         </div>
-        <div className="min-w-0">
-          <p className="text-[13px] font-semibold text-slate-800 leading-none">WebGIS</p>
-          <p className="text-[9px] font-mono text-emerald-600 tracking-widest mt-0.5">SIPASTI v2.0</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-[13px] font-semibold text-slate-800 leading-none tracking-[0.04em]">SIGAT</p>
+          <p className="text-[9px] font-mono text-emerald-700/90 tracking-wide mt-0.5">Sistem Informasi Geologi dan Air Tanah</p>
         </div>
+        {/* Close button — mobile only */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="md:hidden flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg border border-transparent hover:border-slate-200 hover:bg-white transition-colors"
+          >
+            <X size={16} className="text-slate-500" />
+          </button>
+        )}
       </div>
 
       {/* User */}
-      <div className="px-3 py-3 border-b border-slate-100 flex-shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-[11px] font-semibold text-emerald-700 flex-shrink-0">
+      <div className="px-3 py-3 border-b border-slate-100 bg-white flex-shrink-0">
+        <div className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-slate-50/70 px-2.5 py-2">
+          <div className="w-8 h-8 rounded-full bg-emerald-100 ring-1 ring-emerald-200 flex items-center justify-center text-[11px] font-semibold text-emerald-700 flex-shrink-0">
             DK
           </div>
           <div className="min-w-0">
             <p className="text-[11px] font-semibold text-slate-800 truncate">Deni Kurniawan</p>
-            <p className="text-[9px] font-mono text-emerald-600 tracking-wider">KEPALA DINAS</p>
+            <p className="text-[9px] font-mono text-emerald-700 tracking-wider">KEPALA DINAS</p>
           </div>
         </div>
       </div>
@@ -75,7 +88,7 @@ export default function Sidebar() {
                     key={item.key}
                     onClick={() => setActivePage(item.key)}
                     className={cn(
-                      'w-full flex items-center gap-2.5 px-4 py-2 text-[12px] font-medium transition-all duration-150 relative group',
+                      'w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] font-medium transition-all duration-150 relative group',
                       isActive
                         ? 'text-emerald-700 bg-emerald-50 border-r-2 border-emerald-600'
                         : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50',

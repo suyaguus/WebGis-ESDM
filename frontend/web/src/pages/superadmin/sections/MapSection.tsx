@@ -48,15 +48,16 @@ export default function MapSection() {
       </div>
 
       {/* Map container — relative for legend overlay */}
-      <div className="relative flex-1" style={{ minHeight: '300px' }}>
+      <div className="relative flex-1 min-w-0 min-h-[250px] sm:min-h-[240px]" style={{ height: 'clamp(250px, 72vw, 380px)' }}>
         <SensorMap
           sensors={MOCK_SENSORS}
-          height={300}
+          height="100%"
+          className="rounded-none sm:rounded-b-xl"
           onMarkerClick={setSelectedSensor}
         />
 
         {/* Legend overlay */}
-        <div className="absolute bottom-3 left-3 bg-white/95 border border-slate-100 rounded-xl shadow-sm px-3 py-2.5 z-[1000]">
+        <div className="absolute bottom-3 left-3 bg-white/95 border border-slate-100 rounded-xl shadow-sm px-3 py-2.5 z-[1000] hidden sm:block">
           {LEGEND.map(({ color, label }) => (
             <div key={label} className="flex items-center gap-2 mb-1.5 last:mb-0">
               <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: color }} />
@@ -67,7 +68,7 @@ export default function MapSection() {
 
         {/* Selected sensor popup */}
         {selectedSensor && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-white border border-cyan-200 rounded-xl shadow-lg px-4 py-3 z-[1000] min-w-[200px] max-w-[240px]">
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-white border border-cyan-200 rounded-xl shadow-lg px-4 py-3 z-[1000] min-w-[200px] max-w-[240px] hidden sm:block">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[12px] font-semibold font-mono text-cyan-700">{selectedSensor.code}</span>
               <button
@@ -75,6 +76,41 @@ export default function MapSection() {
                 className="text-slate-400 hover:text-slate-600 text-xs ml-4 flex-shrink-0"
               >
                 ✕
+              </button>
+            </div>
+            <p className="text-[10px] text-slate-500 mb-1">{selectedSensor.location}</p>
+            <p className="text-[10px] font-mono">
+              Subsidence:{' '}
+              <span className={selectedSensor.subsidence <= -4 ? 'text-red-600' : 'text-slate-700'}>
+                {selectedSensor.subsidence.toFixed(2)} cm/thn
+              </span>
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="sm:hidden border-t border-slate-100 bg-slate-50/60 px-3 py-3 space-y-3">
+        <div>
+          <p className="text-[9px] font-mono text-slate-400 uppercase tracking-wide mb-2">Legenda Sensor</p>
+          <div className="grid grid-cols-1 gap-2">
+            {LEGEND.map(({ color, label }) => (
+              <div key={label} className="flex items-center gap-2 bg-white border border-slate-100 rounded-lg px-2.5 py-1.5">
+                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: color }} />
+                <span className="text-[9px] font-mono text-slate-600">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {selectedSensor && (
+          <div className="bg-white border border-cyan-200 rounded-xl shadow-sm px-3 py-3">
+            <div className="flex items-center justify-between mb-1.5 gap-2">
+              <span className="text-[12px] font-semibold font-mono text-cyan-700">{selectedSensor.code}</span>
+              <button
+                onClick={() => setSelectedSensor(null)}
+                className="text-slate-400 hover:text-slate-600 text-[11px]"
+              >
+                Tutup
               </button>
             </div>
             <p className="text-[10px] text-slate-500 mb-1">{selectedSensor.location}</p>

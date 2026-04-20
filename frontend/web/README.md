@@ -1,10 +1,10 @@
-# WebGIS Frontend — Super Admin Dashboard
+# SIGAT Frontend — Super Admin Dashboard
 
 A modern, responsive admin dashboard application for managing spatial and environmental data across multiple modules including maps, sensors, analytics, users, and system administration.
 
 ## 📋 Overview
 
-This is the web frontend application for the **WebGIS-ESDM** (Web Geographic Information System - Environmental Spatial Data Management) project. It provides a comprehensive dashboard for:
+This is the web frontend application for the **SIGAT-ESDM** (Web Geographic Information System - Environmental Spatial Data Management) project. It provides a comprehensive dashboard for:
 
 - 🗺️ **Spatial Data Management** - Interactive maps with Leaflet integration
 - 📊 **Analytics & Visualization** - Real-time data visualization with charts
@@ -492,7 +492,7 @@ Untuk menambah halaman role baru (misal Admin Perusahaan):
 
 ## 📝 License
 
-Part of WebGIS-ESDM project.
+Part of SIGAT-ESDM project.
 
 ---
 

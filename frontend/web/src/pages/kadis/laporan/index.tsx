@@ -32,7 +32,7 @@ export default function KadisLaporanPage() {
     setCompanies(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]);
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="p-3 sm:p-5 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -42,7 +42,7 @@ export default function KadisLaporanPage() {
       </div>
 
       {/* Quick stats */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: 'Laporan Q1 2026', value: '4',  color: '#059669' },
           { label: 'Total Laporan',   value: '21', color: '#3B82F6' },
@@ -57,7 +57,7 @@ export default function KadisLaporanPage() {
         ))}
       </div>
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: 'minmax(0,1fr) 300px' }}>
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-[1fr_300px]">
         {/* Left: Generator */}
         <div className="space-y-4">
           {/* Report type */}

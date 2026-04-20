@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { ClipboardList, Download } from 'lucide-react';
-import { Chart as ChartJS, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip } from 'chart.js';
+import { Chart as ChartJS, LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip } from 'chart.js';
 import { Card, SectionHeader } from '../../../components/ui';
-import { COMPANY_MEASUREMENTS, COMPANY_SENSORS, COMPANY_TREND_DATA } from '../../../../src/constants/mockData';
+import { COMPANY_MEASUREMENTS, COMPANY_SENSORS, COMPANY_TREND_DATA } from '../../../constants/mockData';
 import { cn, getSubsidenceColor } from '../../../lib/utils';
 
-ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip);
+ChartJS.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip);
 
 function MiniHistoryChart({ color, data }: { color: string; data: number[] }) {
   const ref   = useRef<HTMLCanvasElement>(null);
@@ -34,19 +34,19 @@ export default function AdminHistoriPage() {
     selectedSensor === 'all' || m.sensorCode === selectedSensor);
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="p-3 md:p-5 space-y-3 md:space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[18px] font-semibold text-slate-800">Histori Pengukuran</h1>
           <p className="text-[11px] text-slate-400 font-mono mt-0.5">Riwayat data pengukuran lapangan</p>
         </div>
-        <button className="px-4 py-2 bg-white border border-amber-200 text-amber-700 text-[12px] font-semibold rounded-xl hover:bg-amber-50 flex items-center gap-2">
+        <button className="px-3 md:px-4 py-2 bg-white border border-amber-200 text-amber-700 text-[12px] font-semibold rounded-xl hover:bg-amber-50 flex items-center gap-2 whitespace-nowrap">
           <Download size={13} /> Ekspor CSV
         </button>
       </div>
 
       {/* Filter bar */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex flex-wrap items-center gap-2">
         <select value={selectedSensor} onChange={e => setSelectedSensor(e.target.value)}
           className="text-[11px] font-mono border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 focus:outline-none focus:border-amber-400">
           <option value="all">Semua Sensor</option>

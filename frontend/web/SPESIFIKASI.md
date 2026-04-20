@@ -1,5 +1,5 @@
 # Dokumen Spesifikasi Sistem
-# WebGIS SIPASTI — Sistem Informasi Pengawasan Airtanah
+# SIGAT — Sistem Informasi geologi dan Air Tanah
 
 **Versi:** 2.0 (Prototipe Frontend)
 **Tanggal:** 17 April 2026
@@ -28,7 +28,7 @@
 
 ### 1.1 Deskripsi
 
-SIPASTI adalah aplikasi WebGIS berbasis web untuk memantau penurunan tanah (*land subsidence*) dan muka airtanah di Provinsi Lampung. Sistem ini digunakan oleh instansi ESDM (Energi dan Sumber Daya Mineral) untuk mengawasi penggunaan airtanah oleh perusahaan-perusahaan yang memiliki izin pengeboran sumur.
+SIGAT adalah aplikasi berbasis web untuk memantau penurunan tanah (*land subsidence*) dan muka airtanah di Provinsi Lampung. Sistem ini digunakan oleh instansi ESDM (Energi dan Sumber Daya Mineral) untuk mengawasi penggunaan airtanah oleh perusahaan-perusahaan yang memiliki izin pengeboran sumur.
 
 ### 1.2 Tujuan Sistem
 

@@ -1,13 +1,13 @@
 import { useRef, useEffect } from 'react';
 import { TrendingDown } from 'lucide-react';
 import {
-  Chart as ChartJS, LineElement, PointElement,
+  Chart as ChartJS, LineController, LineElement, PointElement,
   LinearScale, CategoryScale, Filler, Tooltip, Legend,
 } from 'chart.js';
 import { SectionHeader } from '../../../components/ui';
 import { TREND_DATA } from '../../../constants/mockData';
 
-ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip, Legend);
+ChartJS.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip, Legend);
 
 export default function KadisTrendSection() {
   const ref   = useRef<HTMLCanvasElement>(null);

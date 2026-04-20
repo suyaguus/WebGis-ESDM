@@ -147,7 +147,7 @@ export default function KadisAnalitikPage() {
   const criticalSub = MOCK_COMPANIES.filter(c => c.avgSubsidence <= -3).length;
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="p-3 sm:p-5 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -171,7 +171,7 @@ export default function KadisAnalitikPage() {
       </div>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: 'Avg Subsidence Regional', value: '-2.27 cm/thn', sub: 'Rata-rata seluruh sensor',  color: '#059669' },
           { label: 'Perusahaan Kritis',        value: String(criticalSub), sub: 'Subsidence > 3.0 cm/thn', color: '#EF4444' },
