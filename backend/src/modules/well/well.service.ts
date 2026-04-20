@@ -10,8 +10,10 @@ export const createWell = async (data: CreateWellInput, user: any) => {
 
   if (!company) throw new Error(WELL_MESSAGES.COMPANY_NOT_FOUND);
 
-  if (user.role !== "super_admin" && company.createdBy !== user.id) {
-    throw new Error(WELL_MESSAGES.FORBIDDEN);
+  if (user.role === "admin_perusahaan") {
+    if (company.createdBy !== user.id) {
+      throw new Error(WELL_MESSAGES.FORBIDDEN);
+    }
   }
 
   return prisma.well.create({
