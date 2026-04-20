@@ -9,7 +9,7 @@ const router = express.Router();
 router.post(
   "/",
   authMiddleware,
-  roleMiddleware("super_admin", "admin_perusahaan"),
+  roleMiddleware("super_admin", "admin_perusahaan", "supervisor"),
   wellController.create,
 );
 
