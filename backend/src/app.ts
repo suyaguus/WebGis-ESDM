@@ -15,7 +15,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "http://localhost:4173",
-      "https://web-gis-esdm.vercel.app",
+      "https://web-gis-esdm-w192.vercel.app",
     ],
     credentials: true,
   }),
