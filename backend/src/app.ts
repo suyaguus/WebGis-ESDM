@@ -18,4 +18,8 @@ app.use("/api/wells", wellRourtes);
 app.use("/api/companies", companyRoutes);
 app.use("/api/businesses", businessRoutes);
 
+app.get("/api", (req, res) => {
+  res.json({ message: "Welcome to the Web GIS API" });
+});
+
 export default app;
