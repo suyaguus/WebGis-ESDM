@@ -32,19 +32,36 @@ const DEFAULT_PAGE: Record<Role, string> = {
   superadmin: 'dashboard',
   admin:      'ap-dashboard',
   kadis:      'kadis-dashboard',
-  surveyor: 'sv-dashboard',
+  surveyor:   'sv-dashboard',
 };
 
-export const useAppStore = create<AppState>((set) => ({
-  role:               'admin',
-  activePage:         'ap-dashboard',
-  sidebarCollapsed:   false,
-  mobileSidebarOpen:  false,
-  setRole: (role) => set({ role, activePage: DEFAULT_PAGE[role] }),
-  setActivePage: (page) => set({ activePage: page, mobileSidebarOpen: false }),
-  toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
-  setMobileSidebarOpen: (open) => set({ mobileSidebarOpen: open }),
-}));
+const VALID_ROLES: Role[] = ['superadmin', 'admin', 'kadis', 'surveyor'];
+
+/* Baca role dari auth yang sudah di-persist agar tidak reset ke default saat reload */
+function getInitialRole(): Role {
+  try {
+    const stored = localStorage.getItem('sigat_auth');
+    if (stored) {
+      const role = JSON.parse(stored)?.state?.user?.role as Role | undefined;
+      if (role && VALID_ROLES.includes(role)) return role;
+    }
+  } catch {}
+  return 'superadmin';
+}
+
+export const useAppStore = create<AppState>((set) => {
+  const role = getInitialRole();
+  return {
+    role,
+    activePage:        DEFAULT_PAGE[role] ?? 'dashboard',
+    sidebarCollapsed:  false,
+    mobileSidebarOpen: false,
+    setRole: (role) => set({ role, activePage: DEFAULT_PAGE[role] }),
+    setActivePage: (page) => set({ activePage: page, mobileSidebarOpen: false }),
+    toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+    setMobileSidebarOpen: (open) => set({ mobileSidebarOpen: open }),
+  };
+});
 
 /* ── Auth Store ── */
 
