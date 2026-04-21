@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import authRoutes from "./routes/auth.route";
 import userRoutes from "./modules/user/user.routes";
 import reportRoutes from "./modules/report/report.routes";
@@ -8,6 +9,17 @@ import businessRoutes from "./modules/business/business.routes";
 import { requestLogger } from "./utils/logger";
 
 const app = express();
+
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:4173",
+      "https://web-gis-esdm.vercel.app",
+    ],
+    credentials: true,
+  }),
+);
 
 app.use(express.json());
 app.use(requestLogger);
