@@ -36,7 +36,7 @@ import AdminLaporanPage from "@/pages/adminPerusahaan/laporan/index";
 import AdminKirimSurveyorPage from "@/pages/adminPerusahaan/kirim/index";
 
 /* ── Kadis ── */
-import KadisAppShell from "@/components/layout/Kadis/appShell";
+import KadisAppShell from "@/components/layout/Kadis/AppShell";
 import KadisDashboard from "@/pages/kadis/Dashboard";
 import KadisPetaPage from "@/pages/kadis/peta/index";
 import KadisAnalitikPage from "@/pages/kadis/analitik/index";
