@@ -1,244 +1,176 @@
-import { useState } from 'react'
-import {
-  Search, Plus, MoreVertical, Building2,
-  MapPin, Cpu, TrendingDown, X, ChevronRight,
-} from 'lucide-react'
-import Topbar from '@/components/layout/Topbar'
-import { Panel, StatusPill } from '@/components/ui'
-import { cn } from '@/lib/utils'
+import { useState } from 'react';
+import { Building2, Plus, Search, MoreHorizontal, ArrowUpDown } from 'lucide-react';
+import { Card, StatusPill } from '../../../components/ui';
+import { MOCK_COMPANIES, MOCK_SENSORS } from '../../../constants/mockData';
+import { cn, getSubsidenceColor, getQuotaPercent } from '../../../lib/utils';
+import type { Company } from '../../../types';
 
-const COMPANIES = [
-  { id:'1', name:'PT Maju Jaya Tbk',   region:'Jakarta Utara', sensors:34, active:34, status:'active'     as const, avg:-2.41, admin:'Budi Raharjo',  email:'admin@majujaya.co.id',  joined:'15 Mar 2024', izin:'2024-2027' },
-  { id:'2', name:'PT Bumi Raya',        region:'Bekasi',        sensors:18, active:17, status:'evaluation' as const, avg:-4.82, admin:'Rina Kusuma',   email:'admin@bumiraya.co.id',  joined:'01 Feb 2024', izin:'2023-2026' },
-  { id:'3', name:'PT Tirta Mandiri',    region:'Tangerang',     sensors:27, active:27, status:'active'     as const, avg:-1.10, admin:'Sari Wulandari',email:'admin@tirta.co.id',     joined:'10 Mar 2024', izin:'2024-2027' },
-  { id:'4', name:'PT Sumber Air',       region:'Depok',         sensors:21, active:20, status:'active'     as const, avg:-3.30, admin:'Agus Pratama',  email:'admin@sumberair.co.id', joined:'20 Jan 2024', izin:'2023-2026' },
-  { id:'5', name:'PT Karya Makmur',     region:'Bogor',         sensors:15, active:15, status:'active'     as const, avg:-0.82, admin:'Dedi Haryanto', email:'admin@karya.co.id',     joined:'20 Feb 2024', izin:'2024-2027' },
-  { id:'6', name:'PT Indo Nusantara',   region:'Jakarta Barat', sensors:11, active:11, status:'active'     as const, avg:-2.90, admin:'Hendra Saputra',email:'admin@indo.co.id',      joined:'05 Mar 2024', izin:'2024-2027' },
-]
-
-type StatusFilter = 'all' | 'active' | 'evaluation' | 'inactive'
-
-/* ── Add Company Modal ─────────────────────────────────────────────── */
-function AddCompanyModal({ onClose }: { onClose: () => void }) {
-  const [step, setStep] = useState(0)
-  const STEPS = ['Info Perusahaan', 'Admin & Kontak', 'Izin & Sensor']
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-bg-card border border-border-base rounded-2xl shadow-[0_20px_60px_rgba(15,23,42,0.15)] w-[480px]"
-        onClick={e => e.stopPropagation()}>
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-border-base">
-          <div className="w-9 h-9 rounded-xl bg-fill-blue flex items-center justify-center">
-            <Building2 size={16} className="text-accent-blue" />
-          </div>
-          <div className="flex-1">
-            <p className="text-[13px] font-bold text-text-primary">Tambah Perusahaan</p>
-            <div className="flex gap-1 mt-1.5">
-              {STEPS.map((s, i) => (
-                <div key={s} className={cn('flex-1 h-1 rounded-full transition-all',
-                  i < step ? 'bg-accent-cyan' : i === step ? 'bg-accent-blue' : 'bg-border-base')} />
-              ))}
-            </div>
-          </div>
-          <button onClick={onClose}><X size={16} className="text-text-muted hover:text-text-primary transition-colors" /></button>
-        </div>
-        <div className="p-6">
-          <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wide mb-4">Langkah {step + 1}: {STEPS[step]}</p>
-          {step === 0 && (
-            <div className="space-y-3">
-              {[['Nama Perusahaan', 'PT Nama Perusahaan'], ['Nomor SIUP', '503/BPPM/...'], ['Wilayah Operasi', 'Jakarta Utara']].map(([l, p]) => (
-                <div key={l}>
-                  <label className="block text-[10px] font-semibold text-text-secondary mb-1.5">{l}</label>
-                  <input placeholder={p} className="w-full bg-bg-card3 border border-border-base rounded-lg px-3 h-9 text-[11px] text-text-primary outline-none focus:border-accent-cyan placeholder:text-text-muted transition-colors" />
-                </div>
-              ))}
-            </div>
-          )}
-          {step === 1 && (
-            <div className="space-y-3">
-              {[['Nama Admin', 'John Doe'], ['Email Admin', 'admin@company.co.id'], ['No. Telepon', '+62 21 ...']].map(([l, p]) => (
-                <div key={l}>
-                  <label className="block text-[10px] font-semibold text-text-secondary mb-1.5">{l}</label>
-                  <input placeholder={p} className="w-full bg-bg-card3 border border-border-base rounded-lg px-3 h-9 text-[11px] text-text-primary outline-none focus:border-accent-cyan placeholder:text-text-muted transition-colors" />
-                </div>
-              ))}
-            </div>
-          )}
-          {step === 2 && (
-            <div className="space-y-3">
-              {[['Masa Berlaku Izin', '2024-2027'], ['Kuota Sensor', '50'], ['Kuota Air (m³/hari)', '1000']].map(([l, p]) => (
-                <div key={l}>
-                  <label className="block text-[10px] font-semibold text-text-secondary mb-1.5">{l}</label>
-                  <input placeholder={p} className="w-full bg-bg-card3 border border-border-base rounded-lg px-3 h-9 text-[11px] text-text-primary outline-none focus:border-accent-cyan placeholder:text-text-muted transition-colors" />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="flex gap-2 px-6 pb-6">
-          <button onClick={() => step > 0 ? setStep(s => s - 1) : onClose()}
-            className="flex-1 border border-border-base rounded-xl py-2.5 text-[11px] font-semibold text-text-secondary hover:bg-bg-card3 transition-colors">
-            {step === 0 ? 'Batal' : 'Kembali'}
-          </button>
-          <button onClick={() => step < 2 ? setStep(s => s + 1) : onClose()}
-            className="flex-1 bg-accent-blue text-white rounded-xl py-2.5 text-[11px] font-semibold hover:bg-blue-700 transition-colors">
-            {step < 2 ? 'Lanjut →' : 'Simpan Perusahaan'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+type SortKey = 'name' | 'region' | 'sensorCount' | 'avgSubsidence' | 'quotaUsed' | 'status';
 
 export default function CompaniesPage() {
-  const [search,    setSearch]    = useState('')
-  const [status,    setStatus]    = useState<StatusFilter>('all')
-  const [view,      setView]      = useState<'table' | 'card'>('table')
-  const [showAdd,   setShowAdd]   = useState(false)
-  const [menuOpen,  setMenuOpen]  = useState<string | null>(null)
+  const [search, setSearch]   = useState('');
+  const [sortKey, setSortKey] = useState<SortKey>('name');
+  const [sortAsc, setSortAsc] = useState(true);
+  const [menuId, setMenuId]   = useState<string | null>(null);
+  const [selected, setSelected] = useState<Company | null>(null);
 
-  const filtered = COMPANIES.filter(c => {
-    if (status !== 'all' && c.status !== status) return false
-    if (search) {
-      const q = search.toLowerCase()
-      return c.name.toLowerCase().includes(q) || c.region.toLowerCase().includes(q) || c.admin.toLowerCase().includes(q)
-    }
-    return true
-  })
+  const data = [...MOCK_COMPANIES]
+    .filter(c => !search || c.name.toLowerCase().includes(search.toLowerCase()) || c.region.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      const av = a[sortKey] as string | number, bv = b[sortKey] as string | number;
+      if (typeof av === 'string') return sortAsc ? av.localeCompare(bv as string) : (bv as string).localeCompare(av);
+      return sortAsc ? (av as number) - (bv as number) : (bv as number) - (av as number);
+    });
+
+  const sort = (k: SortKey) => { setSortKey(k); if (sortKey === k) setSortAsc(p => !p); else setSortAsc(true); };
+  const Th = ({ label, k }: { label: string; k: SortKey }) => (
+    <th onClick={() => sort(k)} className="text-[9px] font-mono text-slate-400 uppercase tracking-wider px-4 py-3 text-left cursor-pointer hover:text-slate-600 whitespace-nowrap select-none">
+      <span className="flex items-center gap-1">{label}<ArrowUpDown size={9} className={sortKey === k ? 'text-cyan-500' : 'text-slate-300'} /></span>
+    </th>
+  );
+
+  const companySensors = (id: string) => MOCK_SENSORS.filter(s => s.companyId === id);
+  const alertSensors   = (id: string) => companySensors(id).filter(s => s.status === 'alert').length;
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <Topbar
-        breadcrumbs={[{ label: 'Super Admin' }, { label: 'Perusahaan' }]}
-        actions={
-          <button onClick={() => setShowAdd(true)}
-            className="flex items-center gap-1.5 text-[11px] font-semibold bg-accent-blue text-white rounded-lg px-3 h-8 hover:bg-blue-700 transition-colors">
-            <Plus size={13} /> Tambah Perusahaan
-          </button>
-        }
-      />
-
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
-        {/* Summary */}
-        <div className="grid grid-cols-4 gap-3">
-          {[
-            { label: 'Total Perusahaan',    value: COMPANIES.length,                                        color: 'text-accent-blue'   },
-            { label: 'Aktif',               value: COMPANIES.filter(c => c.status === 'active').length,     color: 'text-accent-green'  },
-            { label: 'Evaluasi',            value: COMPANIES.filter(c => c.status === 'evaluation').length, color: 'text-accent-amber'  },
-            { label: 'Total Sensor Terdaftar', value: COMPANIES.reduce((a, c) => a + c.sensors, 0),          color: 'text-accent-cyan'   },
-          ].map((s) => (
-            <div key={s.label} className="bg-bg-card border border-border-base rounded-xl p-4 shadow-card">
-              <p className="text-[9px] text-text-muted uppercase tracking-wide font-mono mb-1">{s.label}</p>
-              <p className={cn('text-[26px] font-bold font-mono leading-none', s.color)}>{s.value}</p>
-            </div>
-          ))}
+    <div className="p-3 sm:p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-[18px] font-semibold text-slate-800">Perusahaan</h1>
+          <p className="text-[11px] text-slate-400 font-mono mt-0.5">Kelola data perusahaan pengguna air tanah</p>
         </div>
-
-        <Panel
-          title="Daftar Perusahaan"
-          icon={<Building2 size={12} className="text-accent-blue" />}
-          headerRight={<span className="text-[10px] font-mono text-text-muted">{filtered.length} perusahaan</span>}
-        >
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-border-base bg-bg-card3">
-            <div className="flex items-center gap-2 bg-bg-card border border-border-base rounded-lg px-3 h-8 min-w-[220px]">
-              <Search size={12} className="text-text-muted flex-shrink-0" />
-              <input value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Cari perusahaan..."
-                className="bg-transparent outline-none text-[11px] text-text-primary placeholder:text-text-muted flex-1" />
-            </div>
-            <div className="flex items-center gap-1 bg-bg-card border border-border-base rounded-lg p-1">
-              {(['all', 'active', 'evaluation', 'inactive'] as StatusFilter[]).map((s) => (
-                <button key={s} onClick={() => setStatus(s)}
-                  className={cn('px-2.5 py-1 rounded-md text-[10px] capitalize transition-all font-medium',
-                    status === s ? 'bg-bg-card3 text-text-primary shadow-sm border border-border-base' : 'text-text-muted hover:text-text-secondary')}>
-                  {s === 'all' ? 'Semua' : s === 'active' ? 'Aktif' : s === 'evaluation' ? 'Evaluasi' : 'Nonaktif'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Perusahaan</th>
-                <th>Wilayah</th>
-                <th>Admin</th>
-                <th>Sensor</th>
-                <th>Avg Subsidence</th>
-                <th>Masa Izin</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((co) => (
-                <tr key={co.id} className="cursor-pointer group">
-                  <td>
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-fill-blue flex items-center justify-center flex-shrink-0">
-                        <Building2 size={13} className="text-accent-blue" />
-                      </div>
-                      <div>
-                        <p className="text-[11px] font-semibold text-text-primary">{co.name}</p>
-                        <p className="text-[9px] text-text-muted font-mono">{co.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="flex items-center gap-1 text-[10px] text-text-secondary">
-                      <MapPin size={10} className="text-text-muted" />{co.region}
-                    </div>
-                  </td>
-                  <td className="text-[11px] text-text-secondary">{co.admin}</td>
-                  <td>
-                    <div className="flex items-center gap-1.5">
-                      <Cpu size={10} className="text-accent-cyan" />
-                      <span className="text-[11px] font-semibold text-text-primary">{co.active}</span>
-                      <span className="text-[9px] text-text-muted">/{co.sensors}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="flex items-center gap-2">
-                      <span className={cn('text-[11px] font-bold font-mono',
-                        co.avg < -3.5 ? 'text-accent-red' : co.avg < -2.5 ? 'text-accent-amber' : 'text-accent-green')}>
-                        {co.avg.toFixed(2)}
-                      </span>
-                      <div className="w-12 h-1.5 bg-bg-card3 rounded-full overflow-hidden">
-                        <div className={cn('h-full rounded-full', co.avg < -3.5 ? 'bg-accent-red' : co.avg < -2.5 ? 'bg-accent-amber' : 'bg-accent-green')}
-                          style={{ width: `${Math.abs(co.avg) / 5 * 100}%` }} />
-                      </div>
-                    </div>
-                  </td>
-                  <td className="td-mono text-text-muted">{co.izin}</td>
-                  <td>
-                    {co.status === 'active' ? <StatusPill variant="online" /> : <StatusPill variant="warning" />}
-                  </td>
-                  <td>
-                    <div className="relative">
-                      <button onClick={() => setMenuOpen(menuOpen === co.id ? null : co.id)}
-                        className="p-1 rounded-lg hover:bg-bg-card3 text-text-muted hover:text-text-secondary transition-colors">
-                        <MoreVertical size={14} />
-                      </button>
-                      {menuOpen === co.id && (
-                        <div className="absolute right-0 top-8 z-10 bg-white border border-border-base rounded-xl shadow-card-hover min-w-[150px] overflow-hidden">
-                          {['Lihat Detail', 'Edit Info', 'Kelola Sensor', 'Laporan Perusahaan', 'Nonaktifkan'].map((action) => (
-                            <button key={action} onClick={() => setMenuOpen(null)}
-                              className={cn('w-full text-left px-4 py-2.5 text-[11px] hover:bg-bg-card3 transition-colors',
-                                action === 'Nonaktifkan' ? 'text-accent-red' : 'text-text-secondary')}>
-                              {action}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Panel>
+        <button className="px-3 sm:px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors flex items-center gap-2 whitespace-nowrap flex-shrink-0">
+          <Plus size={13} /><span className="hidden sm:inline">Tambah Perusahaan</span>
+        </button>
       </div>
 
-      {showAdd && <AddCompanyModal onClose={() => setShowAdd(false)} />}
+      {/* KPI Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: 'Total Perusahaan', value: MOCK_COMPANIES.length, color: '#0891B2' },
+          { label: 'Online', value: MOCK_COMPANIES.filter(c=>c.status==='online').length, color: '#22C55E' },
+          { label: 'Kuota Melebihi', value: MOCK_COMPANIES.filter(c=>c.quotaUsed>c.quota).length, color: '#EF4444' },
+          { label: 'Total Sensor', value: MOCK_COMPANIES.reduce((a,c)=>a+c.sensorCount,0), color: '#8B5CF6' },
+        ].map(({ label, value, color }) => (
+          <div key={label} className="bg-white rounded-xl border border-slate-100 shadow-sm px-4 py-3 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl" style={{ background: color }} />
+            <p className="text-[9px] font-mono text-slate-400 uppercase tracking-wider mb-1">{label}</p>
+            <p className="text-[22px] font-bold font-mono" style={{ color }}>{value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Company cards grid */}
+      <div>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
+          <div className="relative flex-1 sm:flex-none">
+            <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Cari perusahaan / wilayah..."
+              className="pl-8 pr-3 py-1.5 text-[11px] font-mono border border-slate-200 rounded-lg bg-white text-slate-700 w-full sm:w-52 focus:outline-none focus:border-cyan-400" />
+          </div>
+          <span className="text-[10px] text-slate-400 font-mono">{data.length} perusahaan</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {data.map(c => {
+            const pct = getQuotaPercent(c.quotaUsed, c.quota);
+            const pctColor = pct >= 100 ? '#EF4444' : pct >= 85 ? '#F59E0B' : '#22C55E';
+            const alerts = alertSensors(c.id);
+            return (
+              <div key={c.id} onClick={() => setSelected(c)}
+                className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 cursor-pointer hover:border-cyan-200 hover:shadow-md transition-all">
+                {/* Company header */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center flex-shrink-0">
+                    <Building2 size={18} className="text-cyan-600" />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {alerts > 0 && <span className="text-[9px] font-mono bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-full">{alerts} alert</span>}
+                    <StatusPill status={c.status} />
+                  </div>
+                </div>
+                <h3 className="text-[13px] font-bold text-slate-800 leading-tight mb-0.5">{c.name}</h3>
+                <p className="text-[10px] text-slate-400 font-mono mb-3">{c.region}</p>
+
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  {[
+                    { label: 'Sensor', value: c.sensorCount },
+                    { label: 'Subsidence', value: `${c.avgSubsidence.toFixed(1)}`, unit: 'cm/thn', valueClass: getSubsidenceColor(c.avgSubsidence) },
+                    { label: 'Kuota', value: `${pct}%`, valueClass: pct >= 100 ? 'text-red-600' : pct >= 85 ? 'text-amber-600' : 'text-emerald-600' },
+                  ].map(({ label, value, unit, valueClass }) => (
+                    <div key={label} className="bg-slate-50 rounded-lg px-2 py-2 text-center">
+                      <p className={cn('text-[13px] font-bold font-mono', valueClass ?? 'text-slate-800')}>{value}<span className="text-[8px] text-slate-400 font-mono ml-0.5">{unit}</span></p>
+                      <p className="text-[8px] text-slate-400 font-mono">{label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Quota bar */}
+                <div>
+                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(pct,100)}%`, background: pctColor }} />
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span className="text-[8px] font-mono text-slate-400">{(c.quotaUsed/1000).toFixed(0)}k m³</span>
+                    <span className="text-[8px] font-mono text-slate-400">{(c.quota/1000).toFixed(0)}k m³</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Detail slide-in */}
+      {selected && (
+        <div className="fixed inset-0 bg-black/20 z-50 flex justify-end" onClick={() => setSelected(null)}>
+          <div className="w-full sm:w-96 bg-white h-full overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <p className="text-[14px] font-bold text-slate-800">{selected.name}</p>
+                <p className="text-[10px] text-slate-400 font-mono">{selected.region}</p>
+              </div>
+              <button onClick={() => setSelected(null)} className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200">
+                <span className="text-slate-500 text-sm">✕</span>
+              </button>
+            </div>
+            <div className="p-3 sm:p-5 space-y-4">
+              <StatusPill status={selected.status} />
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  ['Total Sensor', selected.sensorCount],
+                  ['Avg Subsidence', `${selected.avgSubsidence.toFixed(2)} cm/thn`],
+                  ['Kuota Total', `${(selected.quota/1000).toFixed(0)}k m³`],
+                  ['Kuota Terpakai', `${getQuotaPercent(selected.quotaUsed, selected.quota)}%`],
+                ].map(([k, v]) => (
+                  <div key={String(k)} className="bg-slate-50 rounded-xl p-3">
+                    <p className="text-[9px] font-mono text-slate-400 mb-1">{k}</p>
+                    <p className="text-[13px] font-bold text-slate-800">{v}</p>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold text-slate-700 mb-2">Sensor Perusahaan</p>
+                <div className="space-y-2">
+                  {companySensors(selected.id).map(s => (
+                    <div key={s.id} className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg">
+                      <span className="text-[11px] font-mono font-semibold text-slate-700">{s.code}</span>
+                      <span className="text-[10px] text-slate-400">{s.location}</span>
+                      <StatusPill status={s.status} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button className="flex-1 px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors">Edit Perusahaan</button>
+                <button className="px-4 py-2 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-xl hover:bg-slate-200 transition-colors">Laporan</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 }

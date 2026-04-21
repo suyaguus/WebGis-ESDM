@@ -1,194 +1,259 @@
-import { useState } from 'react'
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
-import { Layers } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { MOCK_SENSORS } from '@/constants/mockData'
-import type { Sensor } from '@/types'
+import { useEffect, useRef } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import type { Sensor } from '../../types';
 
-const TILE_LAYERS = {
-  voyager: {
-    url:   'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    attr:  '© OpenStreetMap, © CARTO',
-    label: 'Voyager',
-  },
-  osm: {
-    url:   'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attr:  '© OpenStreetMap contributors',
-    label: 'Street',
-  },
-  positron: {
-    url:   'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    attr:  '© OpenStreetMap, © CARTO',
-    label: 'Positron',
-  },
-  satellite: {
-    url:   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    attr:  '© Esri',
-    label: 'Satellite',
-  },
+interface SensorMapProps {
+  sensors: Sensor[];
+  height?: number | string;
+  className?: string;
+  onMarkerClick?: (sensor: Sensor) => void;
 }
 
-type LayerKey = keyof typeof TILE_LAYERS
+/* ─────────────────────────────────────────────
+   Color map per type + status
+   ──────────────────────────────────────────── */
+const MARKER_COLORS: Record<string, string> = {
+  water_online:       '#3B82F6',
+  water_alert:        '#EF4444',
+  water_maintenance:  '#F59E0B',
+  water_offline:      '#94A3B8',
+  gnss_online:        '#F59E0B',
+  gnss_alert:         '#EF4444',
+  gnss_maintenance:   '#CBD5E1',
+  gnss_offline:       '#94A3B8',
+};
 
-const MARKER_STYLE: Record<string, { color: string; fillColor: string; radius: number; weight: number }> = {
-  online:   { color: '#1d4ed8', fillColor: '#3b82f6', radius: 8,  weight: 2   },
-  warning:  { color: '#b45309', fillColor: '#f59e0b', radius: 8,  weight: 2   },
-  critical: { color: '#b91c1c', fillColor: '#ef4444', radius: 10, weight: 2.5 },
-  offline:  { color: '#334155', fillColor: '#64748b', radius: 6,  weight: 1.5 },
+const KEYFRAMES = `
+  @keyframes sa-pulse {
+    0%   { transform: scale(1);   opacity: 0.8; }
+    70%  { transform: scale(2.2); opacity: 0;   }
+    100% { transform: scale(2.2); opacity: 0;   }
+  }
+  @keyframes sa-blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.45; }
+  }
+`;
+
+function buildDropletIcon(color: string, opacity = '1'): string {
+  return `
+    <svg width="20" height="20" viewBox="0 0 20 20" style="opacity:${opacity};filter:drop-shadow(0 1px 3px rgba(0,0,0,0.3));">
+      <path d="M10 2 C14 5, 16 8, 16 11 C16 15.4, 13.3 18, 10 18 C6.7 18, 4 15.4, 4 11 C4 8, 6 5, 10 2 Z" fill="${color}" stroke="white" stroke-width="1.3" stroke-linejoin="round"/>
+    </svg>`;
 }
 
-function LayerSwitcher({ active, onChange }: { active: LayerKey; onChange: (l: LayerKey) => void }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="absolute top-3 right-3 z-[1000]">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 bg-white/90 backdrop-blur-sm border border-gray-200 shadow-md rounded-lg px-2.5 py-1.5 text-[10px] text-gray-700 hover:text-gray-900 transition-colors font-mono"
-      >
-        <Layers size={11} />
-        {TILE_LAYERS[active].label}
-      </button>
-      {open && (
-        <div className="absolute right-0 mt-1 bg-white border border-gray-200 shadow-xl rounded-lg overflow-hidden min-w-[110px]">
-          {(Object.keys(TILE_LAYERS) as LayerKey[]).map((k) => (
-            <button
-              key={k}
-              onClick={() => { onChange(k); setOpen(false) }}
-              className={cn(
-                'w-full text-left px-3 py-2 text-[10px] font-mono transition-colors hover:bg-gray-50',
-                active === k ? 'text-blue-600 font-semibold' : 'text-gray-600',
-              )}
-            >
-              {TILE_LAYERS[k].label}
-            </button>
-          ))}
+function buildIconHTML(color: string, status: Sensor['status']): string {
+  const isAlert = status === 'alert';
+  const isMaintenance = status === 'maintenance';
+
+  if (isAlert) {
+    return `
+      <style>${KEYFRAMES}</style>
+      <div style="position:relative;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">
+        <div style="position:absolute;width:16px;height:16px;border-radius:50%;background:${color};opacity:0;animation:sa-pulse 1.6s ease-out infinite;"></div>
+        <div style="position:absolute;width:16px;height:16px;border-radius:50%;background:${color};opacity:0;animation:sa-pulse 1.6s ease-out 0.5s infinite;"></div>
+        <div style="position:relative;z-index:2;display:flex;align-items:center;justify-content:center;">
+          ${buildDropletIcon(color)}
         </div>
-      )}
-    </div>
-  )
+      </div>`;
+  }
+
+  if (isMaintenance) {
+    return `
+      <style>${KEYFRAMES}</style>
+      <div style="position:relative;width:30px;height:30px;display:flex;align-items:center;justify-content:center;animation:sa-blink 2s ease-in-out infinite;">
+        ${buildDropletIcon(color)}
+      </div>`;
+  }
+
+  const opacity = status === 'offline' ? '0.6' : '1';
+  return `
+    <div style="position:relative;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">
+      ${buildDropletIcon(color, opacity)}
+    </div>`;
 }
 
-function SensorPopup({ sensor }: { sensor: Sensor }) {
-  const isCritical = sensor.status === 'critical'
-  const isWarning  = sensor.status === 'warning'
-  const accent = isCritical ? '#dc2626' : isWarning ? '#d97706' : '#2563eb'
-  return (
-    <div style={{ minWidth: 168, fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
-      <p style={{ fontSize: 9, margin: '0 0 3px', fontFamily: '"JetBrains Mono", monospace', color: accent, fontWeight: 600 }}>
-        ● {sensor.code} · {sensor.type === 'air_tanah' ? 'AIR TANAH' : 'GNSS'}
-      </p>
-      <p style={{ fontSize: 12, fontWeight: 700, margin: '0 0 8px', color: '#0f172a' }}>{sensor.location}</p>
-      {[
-        { k: 'Perusahaan', v: sensor.companyName },
-        { k: 'Koordinat',  v: `${sensor.lng.toFixed(3)} / ${sensor.lat.toFixed(3)}` },
-        { k: 'Nilai',      v: `${sensor.value} ${sensor.unit}` },
-        { k: 'Update',     v: sensor.lastUpdate },
-      ].map(({ k, v }) => (
-        <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 3 }}>
-          <span style={{ fontSize: 9, color: '#64748b' }}>{k}</span>
-          <span style={{ fontSize: 9, color: '#0f172a', fontFamily: '"JetBrains Mono", monospace', textAlign: 'right' }}>{v}</span>
-        </div>
-      ))}
-      <button style={{
-        width: '100%', marginTop: 9, background: accent, color: '#fff',
-        border: 'none', borderRadius: 6, padding: '6px 0', fontSize: 9,
-        fontWeight: 700, cursor: 'pointer',
-      }}>
-        Lihat Detail →
-      </button>
-    </div>
-  )
+function makeIcon(color: string, status: Sensor['status']): L.DivIcon {
+  return L.divIcon({
+    className:   '',
+    html:        buildIconHTML(color, status),
+    iconSize:    [30, 30],
+    iconAnchor:  [15, 30],
+    popupAnchor: [0, -35],
+  });
 }
 
-const FILTER_TABS = ['Semua', 'Air Tanah', 'GNSS', 'Alert'] as const
-type FilterTab = typeof FILTER_TABS[number]
+/* ─────────────────────────────────────────────
+   Popup HTML
+   ──────────────────────────────────────────── */
+function buildPopup(sensor: Sensor, color: string): string {
+  const subColor = sensor.subsidence <= -4.0 ? '#EF4444'
+                 : sensor.subsidence <= -2.5  ? '#F59E0B'
+                 : '#22C55E';
 
-export default function SensorMap() {
-  const [layer,  setLayer]  = useState<LayerKey>('voyager')
-  const [filter, setFilter] = useState<FilterTab>('Semua')
+  const rows: [string, string][] = [
+    ['Tipe',       sensor.type === 'water' ? 'Air Tanah' : 'GNSS'],
+    ['Status',     sensor.status.charAt(0).toUpperCase() + sensor.status.slice(1)],
+    ['Subsidence', `${sensor.subsidence.toFixed(2)} cm/thn`],
+    ...(sensor.waterLevel   !== undefined ? [['Muka Air',       `${sensor.waterLevel} m`]   as [string, string]] : []),
+    ...(sensor.verticalValue !== undefined ? [['Nilai Vertikal', `${sensor.verticalValue} mm`] as [string, string]] : []),
+    ['Update', sensor.lastUpdate],
+  ];
 
-  const tile = TILE_LAYERS[layer]
-
-  const visible = MOCK_SENSORS.filter((s) => {
-    if (filter === 'Air Tanah') return s.type === 'air_tanah'
-    if (filter === 'GNSS')      return s.type === 'gnss'
-    if (filter === 'Alert')     return s.status === 'critical' || s.status === 'warning'
-    return true
-  })
-
-  const alertCount = MOCK_SENSORS.filter(
-    (s) => s.status === 'critical' || s.status === 'warning',
-  ).length
-
-  return (
-    <div className="flex flex-col h-full">
-      {/* Filter bar */}
-      <div className="flex items-center gap-1.5 px-4 py-2 border-b border-border-base">
-        {FILTER_TABS.map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={cn(
-              'text-[9px] px-2.5 py-[5px] rounded-md font-mono border transition-colors',
-              filter === f
-                ? 'bg-accent-blue/15 text-blue-400 border-accent-blue/30'
-                : 'text-text-muted border-transparent hover:text-text-secondary',
-            )}
-          >
-            {f}
-            {f === 'Alert' && <span className="ml-1 text-red-400">({alertCount})</span>}
-          </button>
-        ))}
-        <span className="ml-auto text-[9px] text-text-muted font-mono">{visible.length} titik</span>
+  return `
+    <div style="font-family:'IBM Plex Mono',monospace;min-width:190px;max-width:220px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #F1F5F9">
+        <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0"></div>
+        <span style="font-size:13px;font-weight:700;color:#0F172A">${sensor.code}</span>
+        <span style="font-size:10px;color:#64748B;margin-left:2px">${sensor.location}</span>
       </div>
+      <table style="width:100%;font-size:10px;border-collapse:collapse;line-height:1.6">
+        ${rows.map(([k, v]) => `
+          <tr>
+            <td style="color:#94A3B8;padding:1px 0;white-space:nowrap">${k}</td>
+            <td style="text-align:right;color:${k === 'Subsidence' ? subColor : k === 'Status' ? color : '#475569'};font-weight:${k === 'Subsidence' ? '600' : '400'}">${v}</td>
+          </tr>`).join('')}
+      </table>
+    </div>`;
+}
 
-      {/* Map */}
-      <div className="flex-1 relative min-h-0">
-        <MapContainer
-          center={[-5.12, 105.10]}
-          zoom={8}
-          style={{ height: '100%', width: '100%' }}
-          zoomControl
-        >
-          <TileLayer url={tile.url} attribution={tile.attr} />
+/* ─────────────────────────────────────────────
+   Main Component
+   ──────────────────────────────────────────── */
+export default function SensorMap({ sensors, height = 300, className, onMarkerClick }: SensorMapProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef       = useRef<L.Map | null>(null);
+  const markersRef   = useRef<L.Marker[]>([]);
 
-          {visible.map((sensor) => {
-            const s = MARKER_STYLE[sensor.status] ?? MARKER_STYLE.online
-            return (
-              <CircleMarker
-                key={sensor.id}
-                center={[sensor.lat, sensor.lng]}
-                radius={s.radius}
-                pathOptions={{
-                  color: s.color, fillColor: s.fillColor,
-                  fillOpacity: 0.92, weight: s.weight, opacity: 1,
-                }}
-              >
-                <Popup closeButton={false} minWidth={172}>
-                  <SensorPopup sensor={sensor} />
-                </Popup>
-              </CircleMarker>
-            )
-          })}
-        </MapContainer>
+  const resolvedHeight = typeof height === 'number' ? `${height}px` : height;
 
-        <LayerSwitcher active={layer} onChange={setLayer} />
+  /* Init map once */
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
 
-        {/* Legend */}
-        <div className="absolute bottom-3 left-3 z-[1000] bg-white/95 backdrop-blur-sm border border-border-base shadow-card rounded-lg px-2.5 py-2 space-y-1.5">
-          {[
-            { color: '#3b82f6', label: 'Sensor Air Tanah' },
-            { color: '#f59e0b', label: 'Sensor GNSS'      },
-            { color: '#ef4444', label: 'Alert / Kritis'   },
-            { color: '#64748b', label: 'Offline'           },
-          ].map((l) => (
-            <div key={l.label} className="flex items-center gap-2">
-              <span className="w-[8px] h-[8px] rounded-full flex-shrink-0" style={{ background: l.color }} />
-              <span className="text-[8px] text-text-secondary font-mono">{l.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
+    mapRef.current = L.map(containerRef.current, {
+      center:      [-5.45, 105.27],
+      zoom:        10,
+      zoomControl: false,
+      zoomAnimation: false,
+    });
+
+    L.control.zoom({ position: 'topright' }).addTo(mapRef.current);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap',
+      maxZoom:     19,
+    }).addTo(mapRef.current);
+
+    const handleResize = () => {
+      mapRef.current?.invalidateSize();
+    };
+
+    const resizeObserver = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(() => handleResize())
+      : null;
+
+    resizeObserver?.observe(containerRef.current);
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', handleResize);
+      markersRef.current.forEach((marker) => {
+        marker.off();
+        marker.remove();
+      });
+      markersRef.current = [];
+      mapRef.current?.stop();
+      mapRef.current?.off();
+      mapRef.current?.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  /* Refresh markers whenever sensors change */
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    markersRef.current.forEach((marker) => {
+      marker.off();
+      marker.remove();
+    });
+    markersRef.current = [];
+
+    sensors.forEach(sensor => {
+      const color  = MARKER_COLORS[`${sensor.type}_${sensor.status}`] ?? '#94A3B8';
+      const marker = L.marker([sensor.lat, sensor.lng] as [number, number], { icon: makeIcon(color, sensor.status) })
+        .addTo(mapRef.current!)
+        .bindPopup(buildPopup(sensor, color), { maxWidth: 240, className: 'leaflet-popup-light' });
+
+      if (onMarkerClick) marker.on('click', () => onMarkerClick(sensor));
+      markersRef.current.push(marker);
+    });
+
+    if (sensors.length > 0) {
+      const bounds = L.latLngBounds(sensors.map(s => [s.lat, s.lng] as [number, number]));
+      mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
+    }
+  }, [sensors, onMarkerClick]);
+
+  return (
+    <>
+      <style>{`
+        .sensor-map-root .leaflet-top.leaflet-right {
+          top: 10px;
+          right: 10px;
+        }
+        .sensor-map-root .leaflet-control-zoom {
+          border: 1px solid #E2E8F0;
+          border-radius: 10px;
+          overflow: hidden;
+          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+        }
+        .sensor-map-root .leaflet-control-zoom a {
+          width: 30px;
+          height: 30px;
+          line-height: 30px;
+          color: #334155;
+          font-size: 16px;
+          background: #FFFFFF;
+        }
+        .leaflet-popup-light .leaflet-popup-content-wrapper {
+          border-radius: 12px;
+          border: 1px solid #E2E8F0;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+          padding: 0;
+        }
+        .leaflet-popup-light .leaflet-popup-content { margin: 12px 14px; }
+        .leaflet-popup-light .leaflet-popup-tip { background: white; }
+        .leaflet-popup-light .leaflet-popup-close-button {
+          color: #94A3B8 !important;
+          font-size: 16px !important;
+          top: 6px !important;
+          right: 8px !important;
+        }
+        @media (max-width: 640px) {
+          .sensor-map-root .leaflet-top.leaflet-right {
+            top: auto;
+            bottom: 12px;
+            right: 10px;
+          }
+          .sensor-map-root .leaflet-control-zoom a {
+            width: 34px;
+            height: 34px;
+            line-height: 34px;
+            font-size: 18px;
+          }
+          .leaflet-popup-light .leaflet-popup-content {
+            margin: 10px 12px;
+          }
+          .leaflet-popup-light .leaflet-popup-content-wrapper {
+            border-radius: 10px;
+          }
+        }
+      `}</style>
+      <div ref={containerRef} className={`sensor-map-root ${className ?? ''}`} style={{ height: resolvedHeight, width: '100%' }} />
+    </>
+  );
 }

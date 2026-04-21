@@ -1,30 +1,100 @@
-import { create } from 'zustand'
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type { Role } from '../types';
+import type { AuthUser } from '../types/api';
 
-/* ── UI Store ──────────────────────────────────────────────────────── */
+/* ── UI Store ── */
+
 interface UIState {
-  sidebarCollapsed: boolean
-  mapLayer: 'street' | 'satellite' | 'terrain'
-  toggleSidebar: () => void
-  setMapLayer: (l: UIState['mapLayer']) => void
+  sidebarCollapsed: boolean;
+  toggleSidebar: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
   sidebarCollapsed: false,
-  mapLayer: 'street',
   toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
-  setMapLayer: (mapLayer) => set({ mapLayer }),
-}))
+}));
 
-/* ── Auth Store ────────────────────────────────────────────────────── */
-interface AuthState {
-  user: { name: string; initials: string; role: string; email: string }
+/* ── App / Role Store ── */
+
+interface AppState {
+  role: Role;
+  activePage: string;
+  sidebarCollapsed: boolean;
+  mobileSidebarOpen: boolean;
+  setRole: (role: Role) => void;
+  setActivePage: (page: string) => void;
+  toggleSidebar: () => void;
+  setMobileSidebarOpen: (open: boolean) => void;
 }
 
-export const useAuthStore = create<AuthState>(() => ({
-  user: {
-    name:     'Ahmad Fauzi',
-    initials: 'SA',
-    role:     'Super Admin',
-    email:    'ahmad.fauzi@webgis.id',
-  },
-}))
+const DEFAULT_PAGE: Record<Role, string> = {
+  superadmin: 'dashboard',
+  admin:      'ap-dashboard',
+  kadis:      'kadis-dashboard',
+  surveyor:   'sv-dashboard',
+};
+
+const VALID_ROLES: Role[] = ['superadmin', 'admin', 'kadis', 'surveyor'];
+
+/* Baca role dari auth yang sudah di-persist agar tidak reset ke default saat reload */
+function getInitialRole(): Role {
+  try {
+    const stored = localStorage.getItem('sigat_auth');
+    if (stored) {
+      const role = JSON.parse(stored)?.state?.user?.role as Role | undefined;
+      if (role && VALID_ROLES.includes(role)) return role;
+    }
+  } catch {}
+  return 'superadmin';
+}
+
+export const useAppStore = create<AppState>((set) => {
+  const role = getInitialRole();
+  return {
+    role,
+    activePage:        DEFAULT_PAGE[role] ?? 'dashboard',
+    sidebarCollapsed:  false,
+    mobileSidebarOpen: false,
+    setRole: (role) => set({ role, activePage: DEFAULT_PAGE[role] }),
+    setActivePage: (page) => set({ activePage: page, mobileSidebarOpen: false }),
+    toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+    setMobileSidebarOpen: (open) => set({ mobileSidebarOpen: open }),
+  };
+});
+
+/* ── Auth Store ── */
+
+const TOKEN_KEY = 'sigat_token';
+
+interface AuthState {
+  isAuthenticated: boolean;
+  token: string | null;
+  user: AuthUser | null;
+  setAuth: (token: string, user: AuthUser) => void;
+  clearAuth: () => void;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      isAuthenticated: false,
+      token:           localStorage.getItem(TOKEN_KEY),
+      user:            null,
+
+      setAuth: (token, user) => {
+        localStorage.setItem(TOKEN_KEY, token);
+        set({ isAuthenticated: true, token, user });
+      },
+
+      clearAuth: () => {
+        localStorage.removeItem(TOKEN_KEY);
+        set({ isAuthenticated: false, token: null, user: null });
+      },
+    }),
+    {
+      name:    'sigat_auth',
+      partialize: (s) => ({ token: s.token, user: s.user, isAuthenticated: s.isAuthenticated }),
+    },
+  ),
+);

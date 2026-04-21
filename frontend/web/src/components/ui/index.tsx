@@ -1,127 +1,158 @@
-import { cn } from '@/lib/utils'
+import React from 'react';
+import { cn, getSeverityBadge, getSeverityLabel, getStatusColor, getStatusLabel } from '../../lib/utils';
 
-/* ── Badge ─────────────────────────────────────────────────────────── */
-type BadgeVariant = 'critical' | 'warning' | 'info' | 'success'
-const BADGE_CLS: Record<BadgeVariant, string> = {
-  critical: 'badge-critical',
-  warning:  'badge-warning',
-  info:     'badge-info',
-  success:  'badge-success',
+/* ── Badge ─────────────────────────────────────────────── */
+interface BadgeProps {
+  variant?: 'critical' | 'warning' | 'info' | 'success' | 'neutral';
+  children: React.ReactNode;
+  className?: string;
 }
-export function Badge({ label, variant, className }: { label: string; variant: BadgeVariant; className?: string }) {
-  return <span className={cn('badge', BADGE_CLS[variant], className)}>{label}</span>
-}
-
-/* ── Status Pill ───────────────────────────────────────────────────── */
-type PillVariant = 'online' | 'offline' | 'warning' | 'evaluation'
-const PILL_CLS: Record<PillVariant, string> = {
-  online:     'pill-online',
-  offline:    'pill-offline',
-  warning:    'pill-warning',
-  evaluation: 'pill-evaluation',
-}
-const PILL_TXT: Record<PillVariant, string> = {
-  online: '● Online', offline: '● Offline', warning: '● Warning', evaluation: '● Evaluasi',
-}
-export function StatusPill({ variant, className }: { variant: PillVariant; className?: string }) {
-  return <span className={cn('status-pill', PILL_CLS[variant], className)}>{PILL_TXT[variant]}</span>
-}
-
-/* ── Nav Badge ─────────────────────────────────────────────────────── */
-const NAV_BADGE_CLS = {
-  red:   'bg-accent-red   text-white',
-  amber: 'bg-accent-amber text-white',
-  green: 'bg-accent-green text-white',
-}
-export function NavBadge({ count, variant = 'red' }: { count: number | string; variant?: 'red' | 'amber' | 'green' }) {
+export function Badge({ variant = 'neutral', children, className }: BadgeProps) {
+  const styles: Record<string, string> = {
+    critical: 'bg-red-50 text-red-700 border border-red-200',
+    warning:  'bg-amber-50 text-amber-700 border border-amber-200',
+    info:     'bg-blue-50 text-blue-700 border border-blue-200',
+    success:  'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    neutral:  'bg-slate-100 text-slate-600 border border-slate-200',
+  };
   return (
-    <span className={cn('ml-auto text-[8px] font-mono font-semibold px-[5px] py-[1px] rounded-full', NAV_BADGE_CLS[variant])}>
-      {count}
+    <span className={cn('inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium font-mono', styles[variant], className)}>
+      {children}
     </span>
-  )
+  );
 }
 
-/* ── Stat Card ─────────────────────────────────────────────────────── */
-type AccentKey = 'cyan' | 'amber' | 'red' | 'green' | 'purple' | 'blue'
-
-const ACCENT_BAR: Record<AccentKey, string> = {
-  cyan:   'bg-accent-cyan',
-  amber:  'bg-accent-amber',
-  red:    'bg-accent-red',
-  green:  'bg-accent-green',
-  purple: 'bg-accent-purple',
-  blue:   'bg-accent-blue',
-}
-const ACCENT_ICON_BG: Record<AccentKey, string> = {
-  cyan:   'bg-fill-cyan',
-  amber:  'bg-fill-amber',
-  red:    'bg-fill-red',
-  green:  'bg-fill-green',
-  purple: 'bg-fill-purple',
-  blue:   'bg-fill-blue',
-}
-const ACCENT_VALUE: Record<AccentKey, string> = {
-  cyan:   'text-accent-cyan',
-  amber:  'text-accent-amber',
-  red:    'text-accent-red',
-  green:  'text-accent-green',
-  purple: 'text-accent-purple',
-  blue:   'text-accent-blue',
-}
-
-interface StatCardProps {
-  label:     string
-  value:     string | number
-  sub?:      string
-  subColor?: string
-  accent:    AccentKey
-  icon?:     React.ReactNode
-}
-export function StatCard({ label, value, sub, subColor, accent, icon }: StatCardProps) {
+/* ── Severity Badge ─────────────────────────────────────── */
+export function SeverityBadge({ severity }: { severity: string }) {
   return (
-    <div className="stat-card flex flex-col gap-1.5">
-      <div className={cn('stat-card-bar', ACCENT_BAR[accent])} />
-      {icon && (
-        <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center mb-0.5', ACCENT_ICON_BG[accent])}>
-          {icon}
-        </div>
-      )}
-      <p className="text-[9px] text-text-muted font-mono uppercase tracking-[0.8px]">{label}</p>
-      <p className={cn('text-[22px] font-bold font-mono leading-none', ACCENT_VALUE[accent])}>{value}</p>
-      {sub && (
-        <p className={cn('text-[10px]', subColor ?? 'text-text-secondary')}>{sub}</p>
-      )}
-    </div>
-  )
+    <span className={cn('inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium font-mono', getSeverityBadge(severity))}>
+      {getSeverityLabel(severity)}
+    </span>
+  );
 }
 
-/* ── Panel ─────────────────────────────────────────────────────────── */
-interface PanelProps {
-  title:        string
-  sub?:         string
-  icon?:        React.ReactNode
-  children:     React.ReactNode
-  className?:   string
-  headerRight?: React.ReactNode
-}
-export function Panel({ title, sub, icon, children, className, headerRight }: PanelProps) {
+/* ── Status Pill ───────────────────────────────────────── */
+export function StatusPill({ status }: { status: string }) {
   return (
-    <div className={cn('panel', className)}>
-      <div className="panel-header">
-        {icon && <span className="flex-shrink-0">{icon}</span>}
-        <span className="panel-title">{title}</span>
-        <div className="ml-auto flex items-center gap-2">
-          {headerRight ?? (sub && <span className="panel-sub">{sub}</span>)}
-        </div>
-      </div>
+    <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border font-mono', getStatusColor(status))}>
+      <span className="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0" />
+      {getStatusLabel(status)}
+    </span>
+  );
+}
+
+/* ── Card ───────────────────────────────────────────────── */
+interface CardProps {
+  children: React.ReactNode;
+  className?: string;
+  padding?: boolean;
+}
+export function Card({ children, className, padding = true }: CardProps) {
+  return (
+    <div className={cn('bg-white rounded-xl border border-slate-100 shadow-sm', padding && 'p-4', className)}>
       {children}
     </div>
-  )
+  );
 }
 
-/* ── Live Dot ──────────────────────────────────────────────────────── */
-export function LiveDot({ className }: { className?: string }) {
+/* ── Section Header ─────────────────────────────────────── */
+interface SectionHeaderProps {
+  title: string;
+  subtitle?: string;
+  icon?: React.ReactNode;
+  action?: React.ReactNode;
+  accent?: string;
+}
+export function SectionHeader({ title, subtitle, icon, action, accent = '#0891B2' }: SectionHeaderProps) {
   return (
-    <span className={cn('inline-block w-[6px] h-[6px] rounded-full bg-accent-green animate-pulse-soft', className)} />
-  )
+    <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-100 flex-shrink-0">
+      {icon && <span style={{ color: accent }} className="flex-shrink-0">{icon}</span>}
+      <span className="text-[13px] font-semibold text-slate-800 truncate">{title}</span>
+      {subtitle && (
+        <span className="ml-auto text-[10px] text-slate-400 font-mono whitespace-nowrap flex-shrink-0">{subtitle}</span>
+      )}
+      {action && <span className="ml-auto flex-shrink-0">{action}</span>}
+    </div>
+  );
+}
+
+/* ── Stat Card ──────────────────────────────────────────── */
+const ACCENT_COLORS: Record<string, string> = {
+  cyan:   '#0891B2',
+  amber:  '#F59E0B',
+  red:    '#EF4444',
+  green:  '#22C55E',
+  purple: '#8B5CF6',
+  blue:   '#3B82F6',
+};
+
+interface StatCardProps {
+  label: string;
+  value: string | number;
+  sub: string;
+  color?: string;
+  trendUp?: boolean;
+  trendDown?: boolean;
+}
+export function StatCard({ label, value, sub, color = 'cyan', trendUp, trendDown }: StatCardProps) {
+  const accentColor = ACCENT_COLORS[color] ?? ACCENT_COLORS.cyan;
+  const subColor = trendUp ? '#22C55E' : trendDown ? '#EF4444' : '#94A3B8';
+
+  return (
+    <div className="relative bg-white rounded-xl border border-slate-100 shadow-sm px-3 pt-3.5 pb-3 overflow-hidden min-w-0">
+      <div
+        className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl"
+        style={{ background: accentColor }}
+      />
+      <p className="text-[9px] font-mono font-medium text-slate-400 tracking-wide uppercase mb-1.5 truncate">
+        {label}
+      </p>
+      <p className="text-[20px] font-semibold font-mono leading-none text-slate-800 truncate">
+        {value}
+      </p>
+      <p className="text-[10px] mt-1.5 font-mono truncate" style={{ color: subColor }}>
+        {sub}
+      </p>
+    </div>
+  );
+}
+
+/* ── Divider ─────────────────────────────────────────────── */
+export function Divider({ label }: { label?: string }) {
+  if (!label) return <hr className="border-slate-100 my-2" />;
+  return (
+    <div className="flex items-center gap-2 my-2">
+      <div className="flex-1 h-px bg-slate-100" />
+      <span className="text-[9px] text-slate-400 font-mono tracking-wider">{label}</span>
+      <div className="flex-1 h-px bg-slate-100" />
+    </div>
+  );
+}
+
+/* ── Quota Bar ───────────────────────────────────────────── */
+interface QuotaBarProps {
+  percent: number;
+  used: string;
+  total: string;
+}
+export function QuotaBar({ percent, used, total }: QuotaBarProps) {
+  const color = percent >= 100 ? '#EF4444' : percent >= 85 ? '#F59E0B' : '#22C55E';
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-1.5">
+        <span className="text-[11px] text-slate-500 font-mono">Kuota Air Tanah</span>
+        <span className="text-[11px] font-semibold font-mono" style={{ color }}>{percent}%</span>
+      </div>
+      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${Math.min(percent, 100)}%`, background: color }}
+        />
+      </div>
+      <div className="flex justify-between mt-1">
+        <span className="text-[9px] text-slate-400 font-mono">{used}</span>
+        <span className="text-[9px] text-slate-400 font-mono">{total}</span>
+      </div>
+    </div>
+  );
 }

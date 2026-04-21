@@ -2,7 +2,7 @@ role:
 - Super Admin
 - Admin Perusahaan
 - Kepala Instansi (Kabid-Kadis)
-- Supervisor (orang yang di lapangan)
+- Superveyor(orang yang di lapangan)
 
 admin Perusahaan
 - data Perusahaan
@@ -48,7 +48,8 @@ fe
       - kedalaman air tanah
 - responsif react
 
-login 4 user: register: admin perusahaan yang di verifikasi super admin
+login 4 user
+register: admin perusahaan yang di verifikasi super admin
 
 data sumur galian
 - id
