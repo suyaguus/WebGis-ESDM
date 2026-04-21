@@ -1,4 +1,4 @@
-Project ini adalah sebuah WebGIS (Web-based Geographic Information System) — aplikasi peta berbasis web yang menampilkan data pemantauan kondisi tanah (land subsidence / penurunan muka tanah) dan air tanah secara visual di atas peta interaktif. Referensinya adalah SIPASTI (Sistem Pemantauan Air Tanah dan Subsidence Terintegrasi) milik Badan Geologi ESDM.
+Project ini bernama sebuah SIGAT (Sistem Informasi geologi dan Air Tanah) — aplikasi peta berbasis web yang menampilkan data pemantauan kondisi tanah (land subsidence / penurunan muka tanah) dan air tanah secara visual di atas peta interaktif. Referensinya adalah SIPASTI (Sistem Informasi geologi dan Air Tanah) milik Badan Geologi ESDM.
 
 Komponen Utama: 
 
