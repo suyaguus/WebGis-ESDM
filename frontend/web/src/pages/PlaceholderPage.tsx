@@ -1,16 +1,36 @@
 import { Construction } from 'lucide-react';
 
 const PAGE_LABELS: Record<string, string> = {
-  peta:      'Peta Interaktif',
-  sensor:    'Semua Sensor',
-  analytics: 'Analytics',
-  users:     'Pengguna',
-  companies: 'Perusahaan',
-  roles:     'Role & Akses',
-  reports:   'Laporan',
-  config:    'Konfigurasi',
-  server:    'Server & API',
-  audit:     'Audit Log',
+  /* Super Admin */
+  peta:           'Peta Interaktif',
+  sensor:         'Semua Sensor',
+  analytics:      'Analytics',
+  users:          'Pengguna',
+  companies:      'Perusahaan',
+  roles:          'Role & Akses',
+  verifikasi:     'Verifikasi Data',
+  reports:        'Laporan',
+  'kirim-kadis':  'Kirim ke Kadis',
+  config:         'Konfigurasi',
+  server:         'Server & API',
+  audit:          'Audit Log',
+  /* Admin Perusahaan */
+  'ap-sumur':     'Data Sumur',
+  'ap-dokumen':   'Pengajuan Dokumen',
+  'ap-status':    'Status Pengajuan',
+  'ap-laporan':   'Laporan & Ekspor',
+  'ap-kirim':     'Kirim ke Surveyor',
+  /* Surveyor */
+  'sv-sumur':     'Sumur Ditugaskan',
+  'sv-input':     'Input Pemetaan Sensor',
+  'sv-dokumen':   'Verifikasi Dokumen',
+  'sv-laporan':   'Riwayat Laporan',
+  'sv-kirim':     'Kirim ke Super Admin',
+  /* Kadis */
+  'kadis-perusahaan':  'Data Perusahaan',
+  'kadis-analitik':    'Analitik Tren',
+  'kadis-laporan':     'Laporan Terverifikasi',
+  'kadis-persetujuan': 'Persetujuan Izin',
 };
 
 export default function PlaceholderPage({ page }: { page: string }) {

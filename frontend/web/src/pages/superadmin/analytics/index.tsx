@@ -115,22 +115,22 @@ export default function AnalyticsPage() {
   return (
     <div className="p-3 sm:p-5 space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[18px] font-semibold text-slate-800">Analytics</h1>
           <p className="text-[11px] text-slate-400 font-mono mt-0.5">Analisis tren subsidence dan penggunaan air tanah</p>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
-          <div className="flex gap-1 bg-slate-100 rounded-lg p-1 w-full sm:w-auto overflow-x-auto">
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
             {PERIODS.map(p => (
               <button key={p} onClick={() => setPeriod(p)}
-                className={cn('text-[10px] font-mono px-2.5 py-1 rounded-md transition-all whitespace-nowrap',
+                className={cn('text-[10px] font-mono px-2.5 py-1 rounded-md transition-all',
                   period === p ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700')}>
                 {p}
               </button>
             ))}
           </div>
-          <button className="px-3 py-2 bg-white border border-slate-200 text-slate-600 text-[11px] rounded-xl hover:bg-slate-50 flex items-center justify-center gap-1.5 w-full sm:w-auto">
+          <button className="px-3 py-2 bg-white border border-slate-200 text-slate-600 text-[11px] rounded-xl hover:bg-slate-50 flex items-center gap-1.5">
             <Download size={12} /> Ekspor PDF
           </button>
         </div>
@@ -160,7 +160,7 @@ export default function AnalyticsPage() {
       </Card>
 
       {/* Bar Charts row */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <Card padding={false}>
           <SectionHeader title="Subsidence per Perusahaan" icon={<BarChart3 size={13} />} subtitle="|SUBSIDENCE| cm/thn" />
           <div className="p-4"><BarCompanyChart /></div>

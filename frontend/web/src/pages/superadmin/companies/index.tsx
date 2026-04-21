@@ -34,14 +34,13 @@ export default function CompaniesPage() {
 
   return (
     <div className="p-3 sm:p-5 space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[18px] font-semibold text-slate-800">Perusahaan</h1>
           <p className="text-[11px] text-slate-400 font-mono mt-0.5">Kelola data perusahaan pengguna air tanah</p>
         </div>
-        <button className="px-3 sm:px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto flex-shrink-0">
+        <button className="px-3 sm:px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors flex items-center gap-2 whitespace-nowrap flex-shrink-0">
           <Plus size={13} /><span className="hidden sm:inline">Tambah Perusahaan</span>
-          <span className="sm:hidden">Tambah Perusahaan</span>
         </button>
       </div>
 
@@ -139,7 +138,7 @@ export default function CompaniesPage() {
             </div>
             <div className="p-3 sm:p-5 space-y-4">
               <StatusPill status={selected.status} />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 {[
                   ['Total Sensor', selected.sensorCount],
                   ['Avg Subsidence', `${selected.avgSubsidence.toFixed(2)} cm/thn`],
@@ -164,7 +163,7 @@ export default function CompaniesPage() {
                   ))}
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex gap-2">
                 <button className="flex-1 px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors">Edit Perusahaan</button>
                 <button className="px-4 py-2 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-xl hover:bg-slate-200 transition-colors">Laporan</button>
               </div>

@@ -91,7 +91,7 @@ export default function AuditPage() {
 
   return (
     <div className="p-3 sm:p-5 space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[18px] font-semibold text-slate-800">
             Audit Log
@@ -100,7 +100,7 @@ export default function AuditPage() {
             Rekam jejak aktivitas seluruh pengguna sistem
           </p>
         </div>
-        <button className="px-3 py-2 bg-white border border-slate-200 text-slate-600 text-[11px] font-semibold rounded-xl hover:bg-slate-50 flex items-center justify-center gap-1.5 w-full sm:w-auto">
+        <button className="px-3 py-2 bg-white border border-slate-200 text-slate-600 text-[11px] font-semibold rounded-xl hover:bg-slate-50 flex items-center gap-1.5">
           <Download size={12} /> Ekspor Log
         </button>
       </div>
@@ -148,7 +148,7 @@ export default function AuditPage() {
       <Card padding={false}>
         {/* Controls */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 flex-wrap">
-          <div className="relative w-full sm:w-auto">
+          <div className="relative">
             <Search
               size={12}
               className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
@@ -157,7 +157,7 @@ export default function AuditPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari pengguna / aksi / target..."
-              className="pl-8 pr-3 py-1.5 text-[11px] font-mono border border-slate-200 rounded-lg bg-slate-50 text-slate-700 w-full sm:w-56 focus:outline-none focus:border-cyan-400"
+              className="pl-8 pr-3 py-1.5 text-[11px] font-mono border border-slate-200 rounded-lg bg-slate-50 text-slate-700 w-56 focus:outline-none focus:border-cyan-400"
             />
           </div>
           <div className="flex gap-1">
@@ -271,7 +271,7 @@ export default function AuditPage() {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center gap-2 sm:justify-between">
+        <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <p className="text-[10px] text-slate-400 font-mono flex items-center gap-1.5">
             <Shield size={10} /> Log tersimpan selama 365 hari sesuai kebijakan
             retensi

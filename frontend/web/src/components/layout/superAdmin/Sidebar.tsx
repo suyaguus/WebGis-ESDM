@@ -1,8 +1,8 @@
-import RoleSwitcher from '../../ui/RoleSwitcher';
 import React from 'react';
 import {
   LayoutDashboard, Map, Radio, BarChart3, Users, Building2,
   Shield, FileText, Settings, Server, ScrollText, ChevronRight, X,
+  ClipboardCheck, SendHorizonal,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { useAppStore } from '../../../store';
@@ -17,23 +17,26 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: 'dashboard',  label: 'Dashboard',      icon: LayoutDashboard, section: 'overview' },
-  { key: 'peta',       label: 'Peta Interaktif', icon: Map,             section: 'overview' },
-  { key: 'sensor',     label: 'Semua Sensor',    icon: Radio,           badge: 3, badgeColor: 'red', section: 'overview' },
-  { key: 'analytics',  label: 'Analytics',       icon: BarChart3,       section: 'overview' },
-  { key: 'users',      label: 'Pengguna',        icon: Users,           badge: 12, badgeColor: 'amber', section: 'management' },
-  { key: 'companies',  label: 'Perusahaan',      icon: Building2,       section: 'management' },
-  { key: 'roles',      label: 'Role & Akses',    icon: Shield,          section: 'management' },
-  { key: 'reports',    label: 'Laporan',         icon: FileText,        section: 'management' },
-  { key: 'config',     label: 'Konfigurasi',     icon: Settings,        section: 'system' },
-  { key: 'server',     label: 'Server & API',    icon: Server,          section: 'system' },
-  { key: 'audit',      label: 'Audit Log',       icon: ScrollText,      section: 'system' },
+  { key: 'dashboard',   label: 'Dashboard',        icon: LayoutDashboard, section: 'overview' },
+  { key: 'peta',        label: 'Peta Interaktif',  icon: Map,             section: 'overview' },
+  { key: 'sensor',      label: 'Semua Sensor',     icon: Radio,           badge: 3, badgeColor: 'red', section: 'overview' },
+  { key: 'analytics',   label: 'Analytics',        icon: BarChart3,       section: 'overview' },
+  { key: 'users',       label: 'Pengguna',         icon: Users,           badge: 12, badgeColor: 'amber', section: 'management' },
+  { key: 'companies',   label: 'Perusahaan',       icon: Building2,       section: 'management' },
+  { key: 'roles',       label: 'Role & Akses',     icon: Shield,          section: 'management' },
+  { key: 'verifikasi',  label: 'Verifikasi Data',  icon: ClipboardCheck,  badge: 5, badgeColor: 'red', section: 'verifikasi' },
+  { key: 'reports',     label: 'Laporan',          icon: FileText,        section: 'verifikasi' },
+  { key: 'kirim-kadis', label: 'Kirim ke Kadis',   icon: SendHorizonal,   section: 'verifikasi' },
+  { key: 'config',      label: 'Konfigurasi',      icon: Settings,        section: 'system' },
+  { key: 'server',      label: 'Server & API',     icon: Server,          section: 'system' },
+  { key: 'audit',       label: 'Audit Log',        icon: ScrollText,      section: 'system' },
 ];
 
 const SECTIONS = [
   { key: 'overview',    label: 'Overview' },
-  { key: 'management', label: 'Manajemen' },
-  { key: 'system',     label: 'Sistem' },
+  { key: 'management',  label: 'Manajemen' },
+  { key: 'verifikasi',  label: 'Verifikasi & Laporan' },
+  { key: 'system',      label: 'Sistem' },
 ];
 
 interface SidebarProps {
@@ -134,7 +137,6 @@ export default function Sidebar({ onClose }: SidebarProps) {
         </div>
         <p className="text-[9px] font-mono text-slate-400 mt-0.5">Uptime bulan ini</p>
       </div>
-      <RoleSwitcher />
     </aside>
   );
 }

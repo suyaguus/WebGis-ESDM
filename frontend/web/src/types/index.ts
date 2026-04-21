@@ -1,4 +1,4 @@
-export type Role = 'superadmin' | 'admin' | 'kadis' | 'supervisor';
+export type Role = 'superadmin' | 'admin' | 'kadis' | 'surveyor';
 
 export type SensorStatus = 'online' | 'offline' | 'alert' | 'maintenance';
 export type SensorType = 'water' | 'gnss';

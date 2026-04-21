@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Users, Phone, MapPin, CheckCircle, Clock, WifiOff, Activity } from 'lucide-react';
 import { Card, SectionHeader } from '../../../components/ui';
-import { SUPERVISOR_TASKS, COMPANY_SENSORS } from '../../../constants/mockData';
+import { SURVEYOR_TASKS, COMPANY_SENSORS } from '../../../constants/mockData';
 import { cn } from '../../../lib/utils';
-import type { SupervisorTask } from '../../../constants/mockData';
+import type { SurveyorTask } from '../../../constants/mockData';
 
 const STATUS_CONFIG = {
   online:    { label: 'Online',     color: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', icon: CheckCircle },
@@ -11,7 +11,7 @@ const STATUS_CONFIG = {
   offline:   { label: 'Offline',    color: 'bg-slate-100 text-slate-500 border-slate-200',     dot: 'bg-slate-400',   icon: WifiOff },
 };
 
-function SupervisorCard({ sv }: { sv: SupervisorTask }) {
+function SurveyorCard({ sv }: { sv: SurveyorTask }) {
   const cfg = STATUS_CONFIG[sv.status];
   const StatusIcon = cfg.icon;
   const progress = sv.totalToday > 0 ? (sv.completedToday / sv.totalToday) * 100 : 0;
@@ -23,12 +23,12 @@ function SupervisorCard({ sv }: { sv: SupervisorTask }) {
         <div className="flex items-center gap-3">
           <div className="relative">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[13px] font-bold text-white flex-shrink-0">
-              {sv.supervisorAvatar}
+              {sv.surveyorAvatar}
             </div>
             <span className={cn('absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white flex-shrink-0', cfg.dot)} />
           </div>
           <div>
-            <p className="text-[13px] font-semibold text-slate-800 leading-tight">{sv.supervisorName}</p>
+            <p className="text-[13px] font-semibold text-slate-800 leading-tight">{sv.surveyorName}</p>
             <div className="flex items-center gap-1 mt-0.5">
               <Phone size={9} className="text-slate-400" />
               <span className="text-[9px] font-mono text-slate-400">{sv.phone}</span>
@@ -97,16 +97,16 @@ function SupervisorCard({ sv }: { sv: SupervisorTask }) {
 }
 
 export default function AdminTimPage() {
-  const totalTasks     = SUPERVISOR_TASKS.reduce((a, s) => a + s.totalToday, 0);
-  const completedTasks = SUPERVISOR_TASKS.reduce((a, s) => a + s.completedToday, 0);
-  const online         = SUPERVISOR_TASKS.filter(s => s.status !== 'offline').length;
+  const totalTasks     = SURVEYOR_TASKS.reduce((a, s) => a + s.totalToday, 0);
+  const completedTasks = SURVEYOR_TASKS.reduce((a, s) => a + s.completedToday, 0);
+  const online         = SURVEYOR_TASKS.filter(s => s.status !== 'offline').length;
 
   return (
     <div className="p-3 md:p-5 space-y-3 md:space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[18px] font-semibold text-slate-800">Tim Lapangan</h1>
-          <p className="text-[11px] text-slate-400 font-mono mt-0.5">Supervisor aktif PT Maju Jaya Tbk</p>
+          <p className="text-[11px] text-slate-400 font-mono mt-0.5">Surveyor aktif PT Maju Jaya Tbk</p>
         </div>
         <button className="px-3 md:px-4 py-2 bg-amber-500 text-white text-[12px] font-semibold rounded-xl hover:bg-amber-600 flex items-center gap-2 whitespace-nowrap">
           <Users size={13} /><span className="hidden sm:block">Atur Penugasan</span>
@@ -116,7 +116,7 @@ export default function AdminTimPage() {
       {/* Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Total Supervisor', value: SUPERVISOR_TASKS.length, color: '#F59E0B', bg: 'bg-amber-50  border-amber-200'   },
+          { label: 'Total Surveyor', value: SURVEYOR_TASKS.length, color: '#F59E0B', bg: 'bg-amber-50  border-amber-200'   },
           { label: 'Online / Aktif',   value: online,                   color: '#22C55E', bg: 'bg-emerald-50 border-emerald-200' },
           { label: 'Tugas Selesai',    value: completedTasks,            color: '#3B82F6', bg: 'bg-blue-50    border-blue-200'   },
           { label: 'Total Tugas',      value: totalTasks,                color: '#8B5CF6', bg: 'bg-purple-50  border-purple-200' },
@@ -144,9 +144,9 @@ export default function AdminTimPage() {
         </div>
       </Card>
 
-      {/* Supervisor cards */}
+      {/* Surveyor cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {SUPERVISOR_TASKS.map(sv => <SupervisorCard key={sv.id} sv={sv} />)}
+        {SURVEYOR_TASKS.map(sv => <SurveyorCard key={sv.id} sv={sv} />)}
       </div>
     </div>
   );

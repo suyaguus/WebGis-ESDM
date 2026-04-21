@@ -6,7 +6,12 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "allowImportingTsExtensions": true,
+    "ignoreDeprecations": "6.0",
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
@@ -16,5 +21,5 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": false
   },
-  "include": ["src", "src/types"]
+  "include": ["src", "src/types", "public/Contact.tsx", "public/Home.tsx", "public/Info.tsx", "public/Landing.tsx"]
 }

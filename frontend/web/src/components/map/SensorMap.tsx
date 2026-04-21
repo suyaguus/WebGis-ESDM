@@ -36,39 +36,51 @@ const KEYFRAMES = `
   }
 `;
 
-function buildIconHTML(color: string, isAlert: boolean, isMaintenance: boolean): string {
+function buildDropletIcon(color: string, opacity = '1'): string {
+  return `
+    <svg width="20" height="20" viewBox="0 0 20 20" style="opacity:${opacity};filter:drop-shadow(0 1px 3px rgba(0,0,0,0.3));">
+      <path d="M10 2 C14 5, 16 8, 16 11 C16 15.4, 13.3 18, 10 18 C6.7 18, 4 15.4, 4 11 C4 8, 6 5, 10 2 Z" fill="${color}" stroke="white" stroke-width="1.3" stroke-linejoin="round"/>
+    </svg>`;
+}
+
+function buildIconHTML(color: string, status: Sensor['status']): string {
+  const isAlert = status === 'alert';
+  const isMaintenance = status === 'maintenance';
+
   if (isAlert) {
     return `
       <style>${KEYFRAMES}</style>
-      <div style="position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
-        <div style="position:absolute;width:14px;height:14px;border-radius:50%;background:${color};opacity:0;animation:sa-pulse 1.6s ease-out infinite;"></div>
-        <div style="position:absolute;width:14px;height:14px;border-radius:50%;background:${color};opacity:0;animation:sa-pulse 1.6s ease-out 0.5s infinite;"></div>
-        <div style="position:relative;width:12px;height:12px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 1px 5px rgba(0,0,0,0.35);z-index:2;"></div>
+      <div style="position:relative;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">
+        <div style="position:absolute;width:16px;height:16px;border-radius:50%;background:${color};opacity:0;animation:sa-pulse 1.6s ease-out infinite;"></div>
+        <div style="position:absolute;width:16px;height:16px;border-radius:50%;background:${color};opacity:0;animation:sa-pulse 1.6s ease-out 0.5s infinite;"></div>
+        <div style="position:relative;z-index:2;display:flex;align-items:center;justify-content:center;">
+          ${buildDropletIcon(color)}
+        </div>
       </div>`;
   }
 
   if (isMaintenance) {
     return `
       <style>${KEYFRAMES}</style>
-      <div style="position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
-        <div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.25);animation:sa-blink 2s ease-in-out infinite;"></div>
+      <div style="position:relative;width:30px;height:30px;display:flex;align-items:center;justify-content:center;animation:sa-blink 2s ease-in-out infinite;">
+        ${buildDropletIcon(color)}
       </div>`;
   }
 
-  const opacity = color === '#94A3B8' ? '0.6' : '1';
+  const opacity = status === 'offline' ? '0.6' : '1';
   return `
-    <div style="position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
-      <div style="width:11px;height:11px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.25);opacity:${opacity};"></div>
+    <div style="position:relative;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">
+      ${buildDropletIcon(color, opacity)}
     </div>`;
 }
 
-function makeIcon(color: string, status: string): L.DivIcon {
+function makeIcon(color: string, status: Sensor['status']): L.DivIcon {
   return L.divIcon({
     className:   '',
-    html:        buildIconHTML(color, status === 'alert', status === 'maintenance'),
-    iconSize:    [28, 28],
-    iconAnchor:  [14, 14],
-    popupAnchor: [0, -14],
+    html:        buildIconHTML(color, status),
+    iconSize:    [30, 30],
+    iconAnchor:  [15, 30],
+    popupAnchor: [0, -35],
   });
 }
 
@@ -124,6 +136,7 @@ export default function SensorMap({ sensors, height = 300, className, onMarkerCl
       center:      [-5.45, 105.27],
       zoom:        10,
       zoomControl: false,
+      zoomAnimation: false,
     });
 
     L.control.zoom({ position: 'topright' }).addTo(mapRef.current);
@@ -147,6 +160,13 @@ export default function SensorMap({ sensors, height = 300, className, onMarkerCl
     return () => {
       resizeObserver?.disconnect();
       window.removeEventListener('resize', handleResize);
+      markersRef.current.forEach((marker) => {
+        marker.off();
+        marker.remove();
+      });
+      markersRef.current = [];
+      mapRef.current?.stop();
+      mapRef.current?.off();
       mapRef.current?.remove();
       mapRef.current = null;
     };
@@ -156,7 +176,10 @@ export default function SensorMap({ sensors, height = 300, className, onMarkerCl
   useEffect(() => {
     if (!mapRef.current) return;
 
-    markersRef.current.forEach(m => m.remove());
+    markersRef.current.forEach((marker) => {
+      marker.off();
+      marker.remove();
+    });
     markersRef.current = [];
 
     sensors.forEach(sensor => {

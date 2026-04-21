@@ -146,7 +146,7 @@ export default function AdminLaporanPage() {
             <button onClick={handleGenerate} disabled={!selectedType || generating}
               className={cn('w-full py-2.5 text-[12px] font-semibold rounded-xl transition-all',
                 selectedType && !generating ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-slate-100 text-slate-400 cursor-not-allowed')}>
-              {generating ? '⏳ Membuat laporan...' : done ? '✅ Laporan siap diunduh' : '📄 Generate Laporan'}
+              {generating ? 'Membuat laporan...' : done ? 'Laporan siap diunduh' : 'Generate Laporan'}
             </button>
           </Card>
         </div>

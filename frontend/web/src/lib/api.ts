@@ -27,6 +27,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('sigat_token');
+      localStorage.removeItem('sigat_auth');
       // Redirect ke login — App.tsx akan mendeteksi token kosong
       window.location.reload();
     }

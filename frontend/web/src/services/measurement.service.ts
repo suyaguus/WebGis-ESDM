@@ -4,7 +4,7 @@
  * Endpoint yang dibutuhkan backend:
  *   GET    /measurements                → Measurement[]  (filter: companyId, status, startDate, endDate)
  *   GET    /measurements/:id            → Measurement
- *   POST   /measurements                → Measurement    (supervisor only)
+ *   POST   /measurements                → Measurement    (surveyor only)
  *   PUT    /measurements/:id/verify     → Measurement    (admin perusahaan only)
  *   PUT    /measurements/:id/reject     → Measurement    (admin perusahaan only)
  */
@@ -47,7 +47,7 @@ export const measurementService = {
   },
 
   /**
-   * Submit pengukuran lapangan (dari Supervisor).
+   * Submit pengukuran lapangan (dari Surveyor).
    * Gunakan FormData jika ada upload foto.
    */
   submit: async (payload: CreateMeasurementRequest): Promise<Measurement> => {

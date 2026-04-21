@@ -52,12 +52,12 @@ export default function ReportsPage() {
         <p className="text-[11px] text-slate-400 font-mono mt-0.5">Generate dan unduh laporan sistem pemantauan</p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
         <div className="space-y-4">
           {/* Report type selector */}
           <Card padding={false}>
             <SectionHeader title="Pilih Jenis Laporan" icon={<FileText size={13} />} />
-            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
               {REPORT_TYPES.map(t => (
                 <button key={t.key} onClick={() => setSelectedType(t.key)}
                   className={cn('text-left p-3 rounded-xl border transition-all',
@@ -126,7 +126,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Recent reports */}
-        <Card padding={false} className="flex flex-col max-h-[420px] xl:max-h-none">
+        <Card padding={false} className="flex flex-col">
           <SectionHeader title="Laporan Terbaru" icon={<Download size={13} />} subtitle={`${RECENT_REPORTS.length} FILE`} />
           <div className="flex-1 divide-y divide-slate-50 overflow-y-auto">
             {RECENT_REPORTS.map(r => (

@@ -36,10 +36,10 @@ function MeasurementRow({ m, onAction }: { m: Measurement; onAction: (id: string
         <td className="px-4 py-3">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
-              {m.supervisorAvatar}
+              {m.surveyorAvatar}
             </div>
             <div>
-              <p className="text-[11px] font-semibold text-slate-800">{m.supervisorName}</p>
+              <p className="text-[11px] font-semibold text-slate-800">{m.surveyorName}</p>
               <p className="text-[9px] font-mono text-slate-400">{m.submittedAt}</p>
             </div>
           </div>
@@ -98,7 +98,7 @@ function MeasurementRow({ m, onAction }: { m: Measurement; onAction: (id: string
             <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <p className="text-[9px] font-mono text-slate-400 uppercase tracking-wider mb-1">Catatan Supervisor</p>
+                  <p className="text-[9px] font-mono text-slate-400 uppercase tracking-wider mb-1">Catatan Surveyor</p>
                   <p className="text-[11px] text-slate-700 leading-relaxed">{m.catatan || 'Tidak ada catatan'}</p>
                 </div>
                 <div>
@@ -145,7 +145,7 @@ export default function AdminVerifikasiPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[18px] font-semibold text-slate-800">Verifikasi Data</h1>
-          <p className="text-[11px] text-slate-400 font-mono mt-0.5">Review pengukuran lapangan dari supervisor</p>
+          <p className="text-[11px] text-slate-400 font-mono mt-0.5">Review pengukuran lapangan dari surveyor</p>
         </div>
       </div>
 
@@ -204,7 +204,7 @@ export default function AdminVerifikasiPage() {
           <table className="w-full" style={{ minWidth: '760px' }}>
             <thead className="bg-slate-50/60 border-b border-slate-100">
               <tr>
-                {['Supervisor','Sensor','Subsidence','Muka Air','Kondisi','Status','Foto','Aksi'].map(h => (
+                {['Surveyor','Sensor','Subsidence','Muka Air','Kondisi','Status','Foto','Aksi'].map(h => (
                   <th key={h} className="text-[9px] font-mono text-slate-400 uppercase tracking-wider px-4 py-2.5 text-left whitespace-nowrap">{h}</th>
                 ))}
               </tr>

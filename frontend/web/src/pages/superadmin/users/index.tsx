@@ -9,14 +9,14 @@ const ROLE_LABELS: Record<User['role'], string> = {
   super_admin:      'Super Admin',
   admin_perusahaan: 'Admin Perusahaan',
   kepala_instansi:  'Kepala Instansi',
-  supervisor:       'Supervisor',
+  surveyor:       'Surveyor',
 };
 
 const ROLE_COLORS: Record<User['role'], string> = {
   super_admin:      'bg-purple-50 text-purple-700 border-purple-200',
   admin_perusahaan: 'bg-amber-50 text-amber-700 border-amber-200',
   kepala_instansi:  'bg-teal-50 text-teal-700 border-teal-200',
-  supervisor:       'bg-blue-50 text-blue-700 border-blue-200',
+  surveyor:       'bg-blue-50 text-blue-700 border-blue-200',
 };
 
 const STATUS_ICON = {
@@ -65,14 +65,13 @@ export default function UsersPage() {
   return (
     <div className="p-3 sm:p-5 space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[18px] font-semibold text-slate-800">Pengguna</h1>
           <p className="text-[11px] text-slate-400 font-mono mt-0.5">Kelola akses pengguna dan role</p>
         </div>
-        <button className="px-3 sm:px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto flex-shrink-0">
+        <button className="px-3 sm:px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors flex items-center gap-2 whitespace-nowrap flex-shrink-0">
           <Plus size={13} /><span className="hidden sm:inline">Tambah Pengguna</span>
-          <span className="sm:hidden">Tambah Pengguna</span>
         </button>
       </div>
 
@@ -128,12 +127,12 @@ export default function UsersPage() {
             ))}
           </div>
           <select value={roleF} onChange={e => setRoleF(e.target.value as User['role'] | 'all')}
-            className="w-full sm:w-auto text-[10px] font-mono border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 text-slate-600 focus:outline-none focus:border-cyan-400">
+            className="text-[10px] font-mono border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 text-slate-600 focus:outline-none focus:border-cyan-400">
             <option value="all">Semua Role</option>
             <option value="super_admin">Super Admin</option>
             <option value="admin_perusahaan">Admin Perusahaan</option>
             <option value="kepala_instansi">Kepala Instansi</option>
-            <option value="supervisor">Supervisor</option>
+            <option value="surveyor">Surveyor</option>
           </select>
           <span className="sm:ml-auto text-[10px] text-slate-400 font-mono">{data.length} pengguna</span>
         </div>

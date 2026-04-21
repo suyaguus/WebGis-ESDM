@@ -37,19 +37,19 @@ export default function ConfigPage() {
 
   return (
     <div className="p-3 sm:p-5 space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[18px] font-semibold text-slate-800">Konfigurasi Sistem</h1>
           <p className="text-[11px] text-slate-400 font-mono mt-0.5">Pengaturan global aplikasi SIGAT</p>
         </div>
         <button onClick={handleSave}
-          className={cn('px-4 py-2 text-[12px] font-semibold rounded-xl flex items-center justify-center gap-2 transition-all w-full sm:w-auto',
+          className={cn('px-4 py-2 text-[12px] font-semibold rounded-xl flex items-center gap-2 transition-all',
             saved ? 'bg-emerald-600 text-white' : 'bg-cyan-600 text-white hover:bg-cyan-700')}>
           <Save size={13} /> {saved ? 'Tersimpan ✓' : 'Simpan Perubahan'}
         </button>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {/* Alert settings */}
         <Card padding={false}>
           <SectionHeader title="Threshold & Alert" icon={<AlertTriangle size={13} />} accent="#EF4444" />
@@ -85,7 +85,7 @@ export default function ConfigPage() {
           <div className="p-4 space-y-4">
             <div>
               <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">Layer Peta Default</label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {['Street','Satellite','Terrain'].map(l => (
                   <button key={l} onClick={() => update('mapDefault', l)}
                     className={cn('py-2 text-[10px] font-mono font-medium rounded-lg border transition-all',
@@ -120,7 +120,7 @@ export default function ConfigPage() {
         <Card padding={false}>
           <SectionHeader title="Sistem & Performa" icon={<Settings size={13} />} />
           <div className="p-4 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {[
                 { label: 'Auto Refresh (detik)', key: 'autoRefresh' as const, min: 10, max: 300, step: 5 },
                 { label: 'Session Timeout (menit)', key: 'sessionTimeout' as const, min: 15, max: 480, step: 15 },
@@ -161,7 +161,7 @@ export default function ConfigPage() {
             </div>
             <div>
               <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">Frekuensi Backup</label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {['Harian','Mingguan','Manual'].map(f => (
                   <button key={f} onClick={() => update('backupFreq', f)}
                     className={cn('py-2 text-[10px] font-mono font-medium rounded-lg border transition-all',

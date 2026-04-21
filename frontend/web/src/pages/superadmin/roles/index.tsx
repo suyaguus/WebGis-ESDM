@@ -4,67 +4,69 @@ import { Card, SectionHeader } from '../../../../../web/src/components/ui';
 import { cn } from '../../../../../web/src/lib/utils';
 
 const ROLES = [
-  { key: 'super_admin',      label: 'Super Admin',        color: 'bg-purple-50 text-purple-700 border-purple-200', count: 1, desc: 'Akses penuh ke seluruh sistem, konfigurasi, dan audit' },
-  { key: 'admin_perusahaan', label: 'Admin Perusahaan',   color: 'bg-amber-50 text-amber-700 border-amber-200',    count: 4, desc: 'Kelola sensor dan laporan dalam lingkup perusahaan sendiri' },
-  { key: 'kepala_instansi',  label: 'Kepala Instansi',    color: 'bg-teal-50 text-teal-700 border-teal-200',       count: 2, desc: 'Pantau kepatuhan lintas perusahaan, setujui izin' },
-  { key: 'supervisor',       label: 'Supervisor Lapangan', color: 'bg-blue-50 text-blue-700 border-blue-200',      count: 6, desc: 'Input data pengukuran lapangan, upload foto' },
+  { key: 'super_admin',      label: 'Super Admin',        color: 'bg-purple-50 text-purple-700 border-purple-200', count: 1, desc: 'Verifikasi data dari semua pihak, kelola sistem, & kirim laporan ke Kadis' },
+  { key: 'admin_perusahaan', label: 'Admin Perusahaan',   color: 'bg-amber-50 text-amber-700 border-amber-200',    count: 4, desc: 'Input data sumur perusahaan & ajukan dokumen legalitas sumur' },
+  { key: 'surveyor',         label: 'Surveyor',            color: 'bg-blue-50 text-blue-700 border-blue-200',       count: 6, desc: 'Petakan sensor air tanah & subsidence berdasarkan data sumur perusahaan' },
+  { key: 'kadis',            label: 'Kepala Dinas',        color: 'bg-teal-50 text-teal-700 border-teal-200',       count: 2, desc: 'Terima & review laporan terverifikasi dari Super Admin, setujui izin' },
 ];
 
+// columns: [Super Admin, Admin Perusahaan, Surveyor, Kadis]
 const PERMISSION_GROUPS = [
   {
-    group: 'Dashboard',
+    group: 'Dashboard & Peta',
     items: [
-      { label: 'Lihat Dashboard',           perms: [true,  true,  true,  true]  },
-      { label: 'Lihat Peta Semua Sensor',   perms: [true,  false, true,  false] },
-      { label: 'Lihat Peta Sensor Sendiri', perms: [true,  true,  true,  true]  },
+      { label: 'Lihat Dashboard',              perms: [true,  true,  true,  true]  },
+      { label: 'Peta Semua Sensor (Provinsi)', perms: [true,  false, false, true]  },
+      { label: 'Peta Sensor Perusahaan',       perms: [true,  true,  true,  false] },
     ],
   },
   {
-    group: 'Sensor',
+    group: 'Manajemen Sumur (Admin Perusahaan)',
     items: [
-      { label: 'Lihat Sensor',    perms: [true,  true,  true,  true]  },
-      { label: 'Tambah Sensor',   perms: [true,  true,  false, false] },
-      { label: 'Edit Sensor',     perms: [true,  true,  false, false] },
-      { label: 'Hapus Sensor',    perms: [true,  false, false, false] },
-      { label: 'Input Pengukuran',perms: [true,  true,  false, true]  },
-      { label: 'Upload Foto',     perms: [true,  true,  false, true]  },
+      { label: 'Input Data Sumur',             perms: [false, true,  false, false] },
+      { label: 'Edit Data Sumur',              perms: [false, true,  false, false] },
+      { label: 'Hapus Data Sumur',             perms: [true,  false, false, false] },
+      { label: 'Ajukan Dokumen Legalitas',     perms: [false, true,  false, false] },
+      { label: 'Lihat Status Pengajuan',       perms: [true,  true,  false, false] },
+      { label: 'Kirim Data ke Surveyor',       perms: [false, true,  false, false] },
     ],
   },
   {
-    group: 'Perusahaan',
+    group: 'Pemetaan Sensor (Surveyor)',
     items: [
-      { label: 'Lihat Perusahaan',  perms: [true,  true,  true,  false] },
-      { label: 'Tambah Perusahaan', perms: [true,  false, false, false] },
-      { label: 'Edit Perusahaan',   perms: [true,  true,  false, false] },
-      { label: 'Hapus Perusahaan',  perms: [true,  false, false, false] },
+      { label: 'Lihat Sumur Ditugaskan',       perms: [true,  false, true,  false] },
+      { label: 'Input Pemetaan Sensor',        perms: [false, false, true,  false] },
+      { label: 'Edit Pemetaan Sensor',         perms: [false, false, true,  false] },
+      { label: 'Verifikasi Dokumen Legalitas', perms: [false, false, true,  false] },
+      { label: 'Kirim Laporan ke Super Admin', perms: [false, false, true,  false] },
     ],
   },
   {
-    group: 'Pengguna',
+    group: 'Verifikasi & Pengiriman (Super Admin)',
     items: [
-      { label: 'Lihat Pengguna',  perms: [true,  false, true,  false] },
-      { label: 'Tambah Pengguna', perms: [true,  false, false, false] },
-      { label: 'Edit Pengguna',   perms: [true,  false, false, false] },
-      { label: 'Hapus Pengguna',  perms: [true,  false, false, false] },
-      { label: 'Kelola Role',     perms: [true,  false, false, false] },
+      { label: 'Verifikasi Data Perusahaan',   perms: [true,  false, false, false] },
+      { label: 'Verifikasi Data Pemetaan',     perms: [true,  false, false, false] },
+      { label: 'Bandingkan Kesesuaian Data',   perms: [true,  false, false, false] },
+      { label: 'Kirim Laporan ke Kadis',       perms: [true,  false, false, false] },
     ],
   },
   {
-    group: 'Laporan',
+    group: 'Laporan & Persetujuan (Kadis)',
     items: [
-      { label: 'Lihat Laporan',  perms: [true,  true,  true,  true]  },
-      { label: 'Buat Laporan',   perms: [true,  true,  false, false] },
-      { label: 'Ekspor Data',    perms: [true,  true,  true,  false] },
-      { label: 'Setujui Izin',   perms: [true,  false, true,  false] },
+      { label: 'Terima Laporan Terverifikasi', perms: [true,  false, false, true]  },
+      { label: 'Review & Analitik Tren',       perms: [true,  false, false, true]  },
+      { label: 'Setujui / Tolak Izin Sumur',   perms: [false, false, false, true]  },
+      { label: 'Ekspor Laporan',               perms: [true,  true,  false, true]  },
     ],
   },
   {
-    group: 'Sistem',
+    group: 'Manajemen Sistem',
     items: [
-      { label: 'Konfigurasi Sistem', perms: [true, false, false, false] },
-      { label: 'Lihat Audit Log',    perms: [true, false, false, false] },
-      { label: 'Kelola Server',      perms: [true, false, false, false] },
-      { label: 'Backup Data',        perms: [true, false, false, false] },
+      { label: 'Kelola Pengguna & Role',       perms: [true,  false, false, false] },
+      { label: 'Kelola Data Perusahaan',       perms: [true,  false, false, false] },
+      { label: 'Konfigurasi Sistem',           perms: [true,  false, false, false] },
+      { label: 'Lihat Audit Log',              perms: [true,  false, false, false] },
+      { label: 'Kelola Server & API',          perms: [true,  false, false, false] },
     ],
   },
 ];
@@ -81,7 +83,7 @@ export default function RolesPage() {
       </div>
 
       {/* Role cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {ROLES.map(r => (
           <button key={r.key} onClick={() => setSelected(r.key)}
             className={cn(
@@ -101,73 +103,60 @@ export default function RolesPage() {
       <Card padding={false}>
         <SectionHeader title="Matriks Hak Akses" icon={<Shield size={13} />}
           subtitle={`SOROT: ${ROLES.find(r => r.key === selected)?.label.toUpperCase()}`} />
-
-        <div className="md:hidden px-4 py-3 space-y-3 border-b border-slate-100 bg-slate-50/40">
-          {PERMISSION_GROUPS.map(group => (
-            <div key={group.group} className="bg-white rounded-lg border border-slate-100 overflow-hidden">
-              <p className="px-3 py-2 text-[9px] font-mono font-semibold text-slate-500 uppercase tracking-widest bg-slate-50/70">
-                {group.group}
-              </p>
-              <div className="divide-y divide-slate-50">
-                {group.items.map(item => {
-                  const allowed = item.perms[selectedIdx];
-                  return (
-                    <div key={item.label} className="px-3 py-2.5 flex items-center justify-between gap-2">
-                      <span className="text-[11px] text-slate-600">{item.label}</span>
-                      {allowed
-                        ? <Check size={14} className="text-emerald-500 flex-shrink-0" />
-                        : <X size={14} className="text-slate-300 flex-shrink-0" />}
-                    </div>
-                  );
-                })}
+        <div className="overflow-x-auto">
+          <div className="inline-block min-w-full">
+            {/* Header Row */}
+            <div className="flex border-b border-slate-100 bg-slate-50/60">
+              <div className="text-[9px] font-mono text-slate-400 uppercase tracking-wider px-4 py-3 text-left font-semibold" style={{ width: '200px', flexShrink: 0 }}>
+                Hak Akses
               </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full" style={{ minWidth: '560px' }}>
-            <thead className="bg-slate-50/60 border-b border-slate-100">
-              <tr>
-                <th className="text-[9px] font-mono text-slate-400 uppercase tracking-wider px-4 py-3 text-left" style={{ width: '42%' }}>
-                  Hak Akses
-                </th>
-                {ROLES.map((r, i) => (
-                  <th key={r.key}
-                    className={cn(
-                      'text-[9px] font-mono uppercase tracking-wider px-4 py-3 text-center transition-all',
-                      selected === r.key ? 'text-cyan-700 bg-cyan-50/60' : 'text-slate-400',
-                    )}>
-                    {r.label.split(' ')[0]}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {PERMISSION_GROUPS.map(group => (
-                <tbody key={group.group}>
-                  <tr className="bg-slate-50/40">
-                    <td colSpan={5} className="px-4 py-1.5 text-[9px] font-mono font-semibold text-slate-500 uppercase tracking-widest">
-                      {group.group}
-                    </td>
-                  </tr>
-                  {group.items.map(item => (
-                    <tr key={item.label} className="border-b border-slate-50 hover:bg-slate-50/40 transition-colors">
-                      <td className="px-4 py-2 text-[11px] text-slate-600">{item.label}</td>
-                      {item.perms.map((allowed, i) => (
-                        <td key={i}
-                          className={cn('px-4 py-2 text-center transition-all', selected === ROLES[i].key ? 'bg-cyan-50/40' : '')}>
-                          {allowed
-                            ? <Check size={14} className="text-emerald-500 mx-auto" />
-                            : <X     size={14} className="text-slate-200 mx-auto" />}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
+              {ROLES.map((r, i) => (
+                <div key={r.key}
+                  className={cn(
+                    'text-[9px] font-mono uppercase tracking-wider px-3 py-3 text-center font-semibold transition-all',
+                    selected === r.key ? 'text-cyan-700 bg-cyan-50/60' : 'text-slate-400',
+                  )}
+                  style={{ width: '80px', flexShrink: 0 }}>
+                  {r.label.split(' ')[0]}
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Permission Groups */}
+            {PERMISSION_GROUPS.map(group => (
+              <div key={group.group}>
+                {/* Group Header */}
+                <div className="flex bg-slate-50/40 border-b border-slate-50">
+                  <div className="px-4 py-2 text-[9px] font-mono font-semibold text-slate-500 uppercase tracking-widest" style={{ width: '200px', flexShrink: 0 }}>
+                    {group.group}
+                  </div>
+                  <div className="flex flex-1"></div>
+                </div>
+
+                {/* Permission Items */}
+                {group.items.map(item => (
+                  <div key={item.label} className="flex border-b border-slate-50 hover:bg-slate-50/40 transition-colors">
+                    <div className="px-4 py-3 text-[11px] text-slate-600" style={{ width: '200px', flexShrink: 0 }}>
+                      {item.label}
+                    </div>
+                    {item.perms.map((allowed, i) => (
+                      <div key={i}
+                        className={cn(
+                          'px-3 py-3 flex items-center justify-center transition-all',
+                          allowed ? 'bg-emerald-50/60' : 'bg-slate-50/40',
+                          selected === ROLES[i].key ? 'ring-1 ring-inset ring-cyan-200' : ''
+                        )}
+                        style={{ width: '80px', flexShrink: 0 }}>
+                        {allowed
+                          ? <Check size={16} className="text-emerald-600 font-semibold" />
+                          : <X size={16} className="text-slate-300" />}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </Card>
 

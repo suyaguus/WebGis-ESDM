@@ -32,7 +32,7 @@ const DEFAULT_PAGE: Record<Role, string> = {
   superadmin: 'dashboard',
   admin:      'ap-dashboard',
   kadis:      'kadis-dashboard',
-  supervisor: 'dashboard',
+  surveyor: 'sv-dashboard',
 };
 
 export const useAppStore = create<AppState>((set) => ({

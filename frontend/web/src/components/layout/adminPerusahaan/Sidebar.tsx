@@ -1,8 +1,7 @@
-import RoleSwitcher from '../../ui/RoleSwitcher';
 import React from 'react';
 import {
-  LayoutDashboard, Map, Radio, Users, FileText,
-  CheckSquare, ClipboardList, Building2, ChevronRight, X,
+  LayoutDashboard, Map, Droplets, FileText,
+  FileBadge, ClipboardCheck, Building2, ChevronRight, X, SendHorizonal,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { useAppStore } from '../../../store';
@@ -17,19 +16,19 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: 'ap-dashboard', label: 'Dashboard',         icon: LayoutDashboard, section: 'overview' },
-  { key: 'ap-sumur',     label: 'Daftar Sumur',      icon: Radio,           badge: 2, badgeColor: 'red', section: 'overview' },
-  { key: 'ap-tim',       label: 'Tim Lapangan',      icon: Users,           section: 'operasional' },
-  { key: 'ap-verifikasi',label: 'Verifikasi Data',   icon: CheckSquare,     badge: 3, badgeColor: 'amber', section: 'operasional' },
-  { key: 'ap-histori',   label: 'Histori Pengukuran',icon: ClipboardList,   section: 'operasional' },
-  { key: 'ap-laporan',   label: 'Laporan & Ekspor',  icon: FileText,        section: 'laporan' },
-  { key: 'ap-peta',      label: 'Peta Sensor',       icon: Map,             section: 'overview' },
+  { key: 'ap-dashboard', label: 'Dashboard',          icon: LayoutDashboard, section: 'overview' },
+  { key: 'ap-peta',      label: 'Peta Sensor',        icon: Map,             section: 'overview' },
+  { key: 'ap-sumur',     label: 'Data Sumur',         icon: Droplets,        badge: 2, badgeColor: 'red', section: 'sumur' },
+  { key: 'ap-dokumen',   label: 'Pengajuan Dokumen',  icon: FileBadge,       badge: 1, badgeColor: 'amber', section: 'sumur' },
+  { key: 'ap-status',    label: 'Status Pengajuan',   icon: ClipboardCheck,  section: 'sumur' },
+  { key: 'ap-laporan',   label: 'Laporan & Ekspor',   icon: FileText,        section: 'laporan' },
+  { key: 'ap-kirim',     label: 'Kirim ke Surveyor',  icon: SendHorizonal,   section: 'laporan' },
 ];
 
 const SECTIONS = [
-  { key: 'overview',    label: 'Overview' },
-  { key: 'operasional', label: 'Operasional' },
-  { key: 'laporan',     label: 'Laporan' },
+  { key: 'overview', label: 'Overview' },
+  { key: 'sumur',    label: 'Manajemen Sumur' },
+  { key: 'laporan',  label: 'Laporan' },
 ];
 
 interface SidebarProps {
@@ -132,7 +131,6 @@ export default function AdminSidebar({ onClose }: SidebarProps) {
         </div>
         <p className="text-[8px] font-mono text-slate-400">174.000 / 200.000 m³</p>
       </div>
-      <RoleSwitcher />
     </aside>
   );
 }

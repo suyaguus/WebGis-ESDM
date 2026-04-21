@@ -1,7 +1,6 @@
 import React from 'react';
-import RoleSwitcher from '../../ui/RoleSwitcher';
 import {
-  LayoutDashboard, Map, BarChart3, FileText, ChevronRight, Building2, X,
+  LayoutDashboard, Map, BarChart3, FileText, ChevronRight, Building2, X, CheckSquare,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { useAppStore } from '../../../store';
@@ -16,17 +15,18 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: 'kadis-dashboard', label: 'Dashboard',       icon: LayoutDashboard, section: 'overview' },
-  { key: 'kadis-peta',      label: 'Peta Wilayah',    icon: Map,             section: 'overview' },
-  { key: 'kadis-perusahaan',label: 'Perusahaan',      icon: Building2,       badge: 1, badgeColor: 'red', section: 'analysis' },
-  { key: 'kadis-analitik',  label: 'Analitik Tren',   icon: BarChart3,       section: 'analysis' },
-  { key: 'kadis-laporan',   label: 'Laporan & Ekspor', icon: FileText,       section: 'reports' },
+  { key: 'kadis-dashboard',  label: 'Dashboard',             icon: LayoutDashboard, section: 'overview' },
+  { key: 'kadis-peta',       label: 'Peta Wilayah',          icon: Map,             section: 'overview' },
+  { key: 'kadis-perusahaan', label: 'Data Perusahaan',       icon: Building2,       section: 'pengawasan' },
+  { key: 'kadis-analitik',   label: 'Analitik Tren',         icon: BarChart3,       section: 'pengawasan' },
+  { key: 'kadis-laporan',    label: 'Laporan Terverifikasi', icon: FileText,        badge: 3, badgeColor: 'amber', section: 'laporan' },
+  { key: 'kadis-persetujuan',label: 'Persetujuan Izin',      icon: CheckSquare,     badge: 2, badgeColor: 'red',   section: 'laporan' },
 ];
 
 const SECTIONS = [
-  { key: 'overview',  label: 'Ikhtisar'  },
-  { key: 'analysis',  label: 'Analisis'  },
-  { key: 'reports',   label: 'Laporan'   },
+  { key: 'overview',     label: 'Ikhtisar'  },
+  { key: 'pengawasan',   label: 'Pengawasan' },
+  { key: 'laporan',      label: 'Laporan'   },
 ];
 
 interface SidebarProps {
@@ -126,7 +126,6 @@ export default function Sidebar({ onClose }: SidebarProps) {
         </div>
         <p className="text-[9px] font-mono text-slate-400 mt-0.5">Pengawasan Provinsi</p>
       </div>
-      <RoleSwitcher />
     </aside>
   );
 }

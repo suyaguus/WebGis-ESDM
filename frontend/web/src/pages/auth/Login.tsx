@@ -1,14 +1,24 @@
 import { useState, type FormEvent } from 'react';
 import { useLogin } from '@/hooks/useAuth';
-import { useAppStore } from '@/store';
+import { useAppStore, useAuthStore } from '@/store';
+import type { Role } from '@/types';
 
-export default function LoginPage() {
+interface LoginPageProps {
+  onBackToMap?: () => void;
+  onGoRegister?: () => void;
+  onSuccess?: () => void;
+}
+
+const ALLOWED_LOGIN_ROLES: Role[] = ['superadmin', 'kadis', 'surveyor', 'admin'];
+
+export default function LoginPage({ onBackToMap, onGoRegister, onSuccess }: LoginPageProps) {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [error, setError]       = useState('');
 
   const { mutate: login, isPending } = useLogin();
   const { setRole } = useAppStore();
+  const { clearAuth } = useAuthStore();
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -17,7 +27,14 @@ export default function LoginPage() {
       { email, password },
       {
         onSuccess: (data) => {
+          if (!ALLOWED_LOGIN_ROLES.includes(data.user.role)) {
+            clearAuth();
+            setError('Role akun tidak diizinkan untuk login ke sistem.');
+            return;
+          }
+
           setRole(data.user.role);
+          onSuccess?.();
         },
         onError: () => {
           setError('Email atau password salah.');
@@ -27,7 +44,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F0F4F8] flex">
+    <div className="min-h-screen bg-[#F0F4F8] flex animate-fade-in">
       {/* Left panel — branding */}
       <div className="hidden lg:flex flex-col justify-between w-[420px] shrink-0 bg-[var(--accent)] px-10 py-12">
         {/* Logo */}
@@ -61,6 +78,23 @@ export default function LoginPage() {
       {/* Right panel — form */}
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
+          <div className="flex items-center justify-between mb-6">
+            <button
+              onClick={onBackToMap}
+              type="button"
+              className="text-xs font-semibold text-slate-600 hover:text-slate-800 transition"
+            >
+              ← Kembali ke peta publik
+            </button>
+            <button
+              onClick={onGoRegister}
+              type="button"
+              className="text-xs font-semibold text-cyan-700 hover:text-cyan-800 transition"
+            >
+              Register Admin
+            </button>
+          </div>
+
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2 mb-8">
             <div className="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center">
@@ -73,7 +107,7 @@ export default function LoginPage() {
           </div>
 
           <h2 className="text-2xl font-bold text-slate-800">Selamat datang</h2>
-          <p className="text-sm text-slate-500 mt-1 mb-7">Masuk ke akun Anda untuk melanjutkan</p>
+          <p className="text-sm text-slate-500 mt-1 mb-7">Masuk untuk akses dashboard sesuai role</p>
 
           {/* Card */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
@@ -133,6 +167,12 @@ export default function LoginPage() {
             </form>
           </div>
 
+          <div className="mt-4 rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-3">
+            <p className="text-[10px] font-bold tracking-wide uppercase text-cyan-700">Role login</p>
+            <p className="mt-1 text-[11px] text-cyan-900">Super Admin, Kadis, Surveyor, dan Admin Perusahaan</p>
+            <p className="mt-1 text-[11px] text-cyan-700">Register tetap digunakan untuk pembuatan akun Admin Perusahaan baru.</p>
+          </div>
+
           {/* Dev hint */}
           {import.meta.env.DEV && (
             <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
@@ -142,6 +182,7 @@ export default function LoginPage() {
               <div className="space-y-1 text-[11px] text-amber-800 font-mono">
                 <p>admin@sigat.go.id — superadmin</p>
                 <p>kadis@dinas.go.id — kepala dinas</p>
+                <p>surveyor@lapangan.go.id — surveyor</p>
                 <p>admin@majujaya.co.id — admin perusahaan</p>
                 <p className="text-amber-600 mt-1">password: sigat123</p>
               </div>

@@ -64,7 +64,7 @@ export default function AdminHistoriPage() {
       </div>
 
       {/* Sensor sparkline cards */}
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {COMPANY_SENSORS.slice(0, 5).map(s => (
           <button key={s.id} onClick={() => setSelectedSensor(selectedSensor === s.code ? 'all' : s.code)}
             className={cn('bg-white rounded-xl border shadow-sm p-3 text-left transition-all hover:border-amber-300',
@@ -91,7 +91,7 @@ export default function AdminHistoriPage() {
           <table className="w-full" style={{ minWidth: '700px' }}>
             <thead className="bg-slate-50/60 border-b border-slate-100">
               <tr>
-                {['Tanggal/Waktu','Sensor','Lokasi','Supervisor','Subsidence','Muka Air','Nilai Vertikal','Status'].map(h => (
+                {['Tanggal/Waktu','Sensor','Lokasi','Surveyor','Subsidence','Muka Air','Nilai Vertikal','Status'].map(h => (
                   <th key={h} className="text-[9px] font-mono text-slate-400 uppercase tracking-wider px-4 py-2.5 text-left whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -104,8 +104,8 @@ export default function AdminHistoriPage() {
                   <td className="px-4 py-2.5 text-[11px] text-slate-600">{m.location}</td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-1.5">
-                      <div className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center text-[8px] font-bold text-amber-700 flex-shrink-0">{m.supervisorAvatar}</div>
-                      <span className="text-[11px] text-slate-700">{m.supervisorName}</span>
+                      <div className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center text-[8px] font-bold text-amber-700 flex-shrink-0">{m.surveyorAvatar}</div>
+                      <span className="text-[11px] text-slate-700">{m.surveyorName}</span>
                     </div>
                   </td>
                   <td className="px-4 py-2.5">

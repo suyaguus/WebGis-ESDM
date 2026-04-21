@@ -10,6 +10,13 @@
 import api from '@/lib/api';
 import type { LoginRequest, LoginResponse, AuthUser } from '@/types/api';
 
+interface RegisterAdminRequest {
+  name: string;
+  companyName: string;
+  email: string;
+  password: string;
+}
+
 /* ── Data mock untuk development ── */
 const MOCK_USERS: Record<string, { password: string; user: AuthUser }> = {
   'admin@sigat.go.id': {
@@ -23,6 +30,10 @@ const MOCK_USERS: Record<string, { password: string; user: AuthUser }> = {
   'admin@majujaya.co.id': {
     password: 'sigat123',
     user: { id: 'u2', name: 'Budi Santoso', email: 'admin@majujaya.co.id', role: 'admin', companyId: 'c1', avatar: 'BS' },
+  },
+  'surveyor@lapangan.go.id': {
+    password: 'sigat123',
+    user: { id: 'u5', name: 'Eka Prasetya', email: 'surveyor@lapangan.go.id', role: 'surveyor', companyId: 'c1', avatar: 'EP' },
   },
 };
 
@@ -48,6 +59,42 @@ export const authService = {
       return { token, expiresIn: 86400, user: match.user };
     }
     const { data } = await api.post<LoginResponse>('/auth/login', payload);
+    localStorage.setItem('sigat_token', data.token);
+    return data;
+  },
+
+  /**
+   * Registrasi admin perusahaan.
+   */
+  registerAdmin: async (payload: RegisterAdminRequest): Promise<LoginResponse> => {
+    if (USE_MOCK) {
+      await mockDelay();
+
+      if (MOCK_USERS[payload.email]) {
+        throw { response: { status: 409, data: { message: 'Email sudah terdaftar' } } };
+      }
+
+      const initials = payload.name
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() ?? '')
+        .join('') || 'AP';
+
+      const user: AuthUser = {
+        id: `u-${Date.now()}`,
+        name: payload.name,
+        email: payload.email,
+        role: 'admin',
+        avatar: initials,
+      };
+
+      const token = `mock_token_${Date.now()}`;
+      localStorage.setItem('sigat_token', token);
+      return { token, expiresIn: 86400, user };
+    }
+
+    const { data } = await api.post<LoginResponse>('/auth/register-admin', payload);
     localStorage.setItem('sigat_token', data.token);
     return data;
   },

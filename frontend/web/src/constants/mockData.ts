@@ -65,7 +65,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'super_admin' | 'admin_perusahaan' | 'kepala_instansi' | 'supervisor';
+  role: 'super_admin' | 'admin_perusahaan' | 'kepala_instansi' | 'surveyor';
   company: string;
   status: 'active' | 'inactive' | 'pending';
   lastLogin: string;
@@ -96,12 +96,12 @@ export const MOCK_USERS: User[] = [
   { id: 'u2', name: 'Budi Santoso', email: 'budi.s@majujaya.co.id', role: 'admin_perusahaan', company: 'PT Maju Jaya Tbk', status: 'active', lastLogin: '07:55 WIB', createdAt: '2024-02-14', avatar: 'BS' },
   { id: 'u3', name: 'Citra Dewi', email: 'citra.d@bumiraya.co.id', role: 'admin_perusahaan', company: 'PT Bumi Raya', status: 'active', lastLogin: '06:30 WIB', createdAt: '2024-03-01', avatar: 'CD' },
   { id: 'u4', name: 'Deni Kurniawan', email: 'deni.k@dinas.go.id', role: 'kepala_instansi', company: 'Dinas ESDM DKI', status: 'active', lastLogin: 'Kemarin', createdAt: '2024-01-20', avatar: 'DK' },
-  { id: 'u5', name: 'Eka Prasetya', email: 'eka.p@majujaya.co.id', role: 'supervisor', company: 'PT Maju Jaya Tbk', status: 'active', lastLogin: '08:01 WIB', createdAt: '2024-04-05', avatar: 'EP' },
+  { id: 'u5', name: 'Eka Prasetya', email: 'eka.p@majujaya.co.id', role: 'surveyor', company: 'PT Maju Jaya Tbk', status: 'active', lastLogin: '08:01 WIB', createdAt: '2024-04-05', avatar: 'EP' },
   { id: 'u6', name: 'Fitri Handayani', email: 'fitri.h@tirtamandiri.co.id', role: 'admin_perusahaan', company: 'PT Tirta Mandiri', status: 'inactive', lastLogin: '3 hari lalu', createdAt: '2024-02-28', avatar: 'FH' },
-  { id: 'u7', name: 'Gilang Ramadhan', email: 'gilang.r@sumberair.co.id', role: 'supervisor', company: 'PT Sumber Air', status: 'active', lastLogin: '07:40 WIB', createdAt: '2024-05-12', avatar: 'GR' },
-  { id: 'u8', name: 'Hana Wijaya', email: 'hana.w@karyamakmur.co.id', role: 'supervisor', company: 'PT Karya Makmur', status: 'pending', lastLogin: '-', createdAt: '2026-04-14', avatar: 'HW' },
-  { id: 'u9', name: 'Indra Setiawan', email: 'indra.s@karyamakmur.co.id', role: 'supervisor', company: 'PT Karya Makmur', status: 'pending', lastLogin: '-', createdAt: '2026-04-14', avatar: 'IS' },
-  { id: 'u10', name: 'Joko Widodo', email: 'joko.w@bumiraya.co.id', role: 'supervisor', company: 'PT Bumi Raya', status: 'active', lastLogin: '07:20 WIB', createdAt: '2024-06-01', avatar: 'JW' },
+  { id: 'u7', name: 'Gilang Ramadhan', email: 'gilang.r@sumberair.co.id', role: 'surveyor', company: 'PT Sumber Air', status: 'active', lastLogin: '07:40 WIB', createdAt: '2024-05-12', avatar: 'GR' },
+  { id: 'u8', name: 'Hana Wijaya', email: 'hana.w@karyamakmur.co.id', role: 'surveyor', company: 'PT Karya Makmur', status: 'pending', lastLogin: '-', createdAt: '2026-04-14', avatar: 'HW' },
+  { id: 'u9', name: 'Indra Setiawan', email: 'indra.s@karyamakmur.co.id', role: 'surveyor', company: 'PT Karya Makmur', status: 'pending', lastLogin: '-', createdAt: '2026-04-14', avatar: 'IS' },
+  { id: 'u10', name: 'Joko Widodo', email: 'joko.w@bumiraya.co.id', role: 'surveyor', company: 'PT Bumi Raya', status: 'active', lastLogin: '07:20 WIB', createdAt: '2024-06-01', avatar: 'JW' },
 ];
 
 export const MOCK_AUDIT_LOGS: AuditLog[] = [
@@ -151,8 +151,8 @@ export interface Measurement {
   id: string;
   sensorCode: string;
   sensorId: string;
-  supervisorName: string;
-  supervisorAvatar: string;
+  surveyorName: string;
+  surveyorAvatar: string;
   waterLevel: number;
   subsidence: number;
   verticalValue: number;
@@ -165,11 +165,11 @@ export interface Measurement {
   location: string;
 }
 
-export interface SupervisorTask {
+export interface SurveyorTask {
   id: string;
-  supervisorId: string;
-  supervisorName: string;
-  supervisorAvatar: string;
+  surveyorId: string;
+  surveyorName: string;
+  surveyorAvatar: string;
   phone: string;
   status: 'online' | 'offline' | 'measuring';
   assignedSensors: string[];
@@ -203,20 +203,20 @@ export const COMPANY_SENSORS: (typeof MOCK_SENSORS[0])[] = [
 ];
 
 export const COMPANY_MEASUREMENTS: Measurement[] = [
-  { id: 'm1', sensorCode: 'SW-007', sensorId: 's1',  supervisorName: 'Eka Prasetya', supervisorAvatar: 'EP', waterLevel: -38.2, subsidence: -4.82, verticalValue: 18.431, kondisiFisik: 'baik', catatan: 'Sensor berfungsi normal, nilai subsidence tinggi perlu monitoring ketat', fotoCount: 4, submittedAt: '08:14 WIB', status: 'pending',  location: 'Cengkareng' },
-  { id: 'm2', sensorCode: 'GN-022', sensorId: 's2',  supervisorName: 'Rudi Hermawan',  supervisorAvatar: 'RH', waterLevel: 0,     subsidence: -4.10, verticalValue: 22.14, kondisiFisik: 'baik', catatan: 'GNSS signal stabil, data konsisten', fotoCount: 3, submittedAt: '08:20 WIB', status: 'verified', verifiedAt: '08:45 WIB', location: 'Penjaringan' },
-  { id: 'm3', sensorCode: 'SW-014', sensorId: 's11', supervisorName: 'Sinta Wulandari', supervisorAvatar: 'SW', waterLevel: -28.4, subsidence: -2.18, verticalValue: 14.80, kondisiFisik: 'baik', catatan: 'Normal, tidak ada anomali', fotoCount: 4, submittedAt: '08:05 WIB', status: 'verified', verifiedAt: '08:30 WIB', location: 'Kamal Muara' },
-  { id: 'm4', sensorCode: 'SW-021', sensorId: 's12', supervisorName: 'Eka Prasetya', supervisorAvatar: 'EP', waterLevel: -25.0, subsidence: -1.94, verticalValue: 12.10, kondisiFisik: 'rusak_ringan', catatan: 'Ada sedikit karat pada casing, perlu pengecekan lanjut bulan depan', fotoCount: 4, submittedAt: '07:58 WIB', status: 'pending',  location: 'Pluit' },
-  { id: 'm5', sensorCode: 'SW-033', sensorId: 's14', supervisorName: 'Rudi Hermawan', supervisorAvatar: 'RH', waterLevel: -31.6, subsidence: -2.55, verticalValue: 16.22, kondisiFisik: 'baik', catatan: 'OK', fotoCount: 4, submittedAt: '07:50 WIB', status: 'verified', verifiedAt: '08:20 WIB', location: 'Pademangan' },
-  { id: 'm6', sensorCode: 'SW-048', sensorId: 's16', supervisorName: 'Sinta Wulandari', supervisorAvatar: 'SW', waterLevel: -22.8, subsidence: -1.25, verticalValue: 10.34, kondisiFisik: 'baik', catatan: 'Hasil pengukuran normal', fotoCount: 4, submittedAt: '08:10 WIB', status: 'rejected', location: 'Tanjung Priok' },
-  { id: 'm7', sensorCode: 'GN-055', sensorId: 's17', supervisorName: 'Eka Prasetya', supervisorAvatar: 'EP', waterLevel: 0, subsidence: -2.01, verticalValue: 13.56, kondisiFisik: 'baik', catatan: 'GNSS stabil', fotoCount: 3, submittedAt: '08:08 WIB', status: 'pending', location: 'Koja' },
+  { id: 'm1', sensorCode: 'SW-007', sensorId: 's1',  surveyorName: 'Eka Prasetya', surveyorAvatar: 'EP', waterLevel: -38.2, subsidence: -4.82, verticalValue: 18.431, kondisiFisik: 'baik', catatan: 'Sensor berfungsi normal, nilai subsidence tinggi perlu monitoring ketat', fotoCount: 4, submittedAt: '08:14 WIB', status: 'pending',  location: 'Cengkareng' },
+  { id: 'm2', sensorCode: 'GN-022', sensorId: 's2',  surveyorName: 'Rudi Hermawan',  surveyorAvatar: 'RH', waterLevel: 0,     subsidence: -4.10, verticalValue: 22.14, kondisiFisik: 'baik', catatan: 'GNSS signal stabil, data konsisten', fotoCount: 3, submittedAt: '08:20 WIB', status: 'verified', verifiedAt: '08:45 WIB', location: 'Penjaringan' },
+  { id: 'm3', sensorCode: 'SW-014', sensorId: 's11', surveyorName: 'Sinta Wulandari', surveyorAvatar: 'SW', waterLevel: -28.4, subsidence: -2.18, verticalValue: 14.80, kondisiFisik: 'baik', catatan: 'Normal, tidak ada anomali', fotoCount: 4, submittedAt: '08:05 WIB', status: 'verified', verifiedAt: '08:30 WIB', location: 'Kamal Muara' },
+  { id: 'm4', sensorCode: 'SW-021', sensorId: 's12', surveyorName: 'Eka Prasetya', surveyorAvatar: 'EP', waterLevel: -25.0, subsidence: -1.94, verticalValue: 12.10, kondisiFisik: 'rusak_ringan', catatan: 'Ada sedikit karat pada casing, perlu pengecekan lanjut bulan depan', fotoCount: 4, submittedAt: '07:58 WIB', status: 'pending',  location: 'Pluit' },
+  { id: 'm5', sensorCode: 'SW-033', sensorId: 's14', surveyorName: 'Rudi Hermawan', surveyorAvatar: 'RH', waterLevel: -31.6, subsidence: -2.55, verticalValue: 16.22, kondisiFisik: 'baik', catatan: 'OK', fotoCount: 4, submittedAt: '07:50 WIB', status: 'verified', verifiedAt: '08:20 WIB', location: 'Pademangan' },
+  { id: 'm6', sensorCode: 'SW-048', sensorId: 's16', surveyorName: 'Sinta Wulandari', surveyorAvatar: 'SW', waterLevel: -22.8, subsidence: -1.25, verticalValue: 10.34, kondisiFisik: 'baik', catatan: 'Hasil pengukuran normal', fotoCount: 4, submittedAt: '08:10 WIB', status: 'rejected', location: 'Tanjung Priok' },
+  { id: 'm7', sensorCode: 'GN-055', sensorId: 's17', surveyorName: 'Eka Prasetya', surveyorAvatar: 'EP', waterLevel: 0, subsidence: -2.01, verticalValue: 13.56, kondisiFisik: 'baik', catatan: 'GNSS stabil', fotoCount: 3, submittedAt: '08:08 WIB', status: 'pending', location: 'Koja' },
 ];
 
-export const SUPERVISOR_TASKS: SupervisorTask[] = [
-  { id: 'st1', supervisorId: 'u5', supervisorName: 'Eka Prasetya',   supervisorAvatar: 'EP', phone: '0812-3456-7890', status: 'measuring', assignedSensors: ['SW-007','SW-021','GN-055'], completedToday: 2, totalToday: 3, lastActivity: '08:14 WIB',  location: 'Cengkareng' },
-  { id: 'st2', supervisorId: 'u11',supervisorName: 'Rudi Hermawan',  supervisorAvatar: 'RH', phone: '0813-5678-9012', status: 'online',    assignedSensors: ['GN-022','SW-033'],          completedToday: 2, totalToday: 2, lastActivity: '08:20 WIB',  location: 'Penjaringan' },
-  { id: 'st3', supervisorId: 'u12',supervisorName: 'Sinta Wulandari',supervisorAvatar: 'SW', phone: '0857-9012-3456', status: 'online',    assignedSensors: ['SW-014','SW-048'],          completedToday: 2, totalToday: 2, lastActivity: '08:10 WIB',  location: 'Kamal Muara' },
-  { id: 'st4', supervisorId: 'u13',supervisorName: 'Dian Permata',   supervisorAvatar: 'DP', phone: '0821-2345-6789', status: 'offline',   assignedSensors: ['GN-031','GN-044','SW-062'], completedToday: 0, totalToday: 3, lastActivity: 'Kemarin',    location: '-' },
+export const SURVEYOR_TASKS: SurveyorTask[] = [
+  { id: 'st1', surveyorId: 'u5', surveyorName: 'Eka Prasetya',   surveyorAvatar: 'EP', phone: '0812-3456-7890', status: 'measuring', assignedSensors: ['SW-007','SW-021','GN-055'], completedToday: 2, totalToday: 3, lastActivity: '08:14 WIB',  location: 'Cengkareng' },
+  { id: 'st2', surveyorId: 'u11',surveyorName: 'Rudi Hermawan',  surveyorAvatar: 'RH', phone: '0813-5678-9012', status: 'online',    assignedSensors: ['GN-022','SW-033'],          completedToday: 2, totalToday: 2, lastActivity: '08:20 WIB',  location: 'Penjaringan' },
+  { id: 'st3', surveyorId: 'u12',surveyorName: 'Sinta Wulandari',surveyorAvatar: 'SW', phone: '0857-9012-3456', status: 'online',    assignedSensors: ['SW-014','SW-048'],          completedToday: 2, totalToday: 2, lastActivity: '08:10 WIB',  location: 'Kamal Muara' },
+  { id: 'st4', surveyorId: 'u13',surveyorName: 'Dian Permata',   surveyorAvatar: 'DP', phone: '0821-2345-6789', status: 'offline',   assignedSensors: ['GN-031','GN-044','SW-062'], completedToday: 0, totalToday: 3, lastActivity: 'Kemarin',    location: '-' },
 ];
 
 export const COMPANY_ACTIVITY: ActivityItem[] = [
