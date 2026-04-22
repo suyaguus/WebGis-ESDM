@@ -1,10 +1,11 @@
 import React from 'react';
 import {
   LayoutDashboard, Map, Droplets, FileText,
-  ScanLine, FileBadge, User, X, ChevronRight, Send, Radio,
+  ScanLine, FileBadge, User, X, ChevronRight, Send, Radio, LogOut,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { useAppStore } from '../../../store';
+import { useAuthStore } from '../../../store';
 import { SURVEYOR_PROFILE, TODAY_TASKS } from '../../../constants/surveyorData';
 
 interface NavItem {
@@ -40,6 +41,7 @@ interface SidebarProps {
 
 export default function SurveyorSidebar({ onClose }: SidebarProps) {
   const { activePage, setActivePage } = useAppStore();
+  const { clearAuth } = useAuthStore();
 
   const completedToday = TODAY_TASKS.filter(t => t.status === 'selesai').length;
   const totalToday     = TODAY_TASKS.length;
@@ -126,7 +128,7 @@ export default function SurveyorSidebar({ onClose }: SidebarProps) {
       </nav>
 
       {/* Task progress footer */}
-      <div className="px-4 py-3 border-t border-slate-100 bg-blue-50/40 flex-shrink-0">
+      <div className="px-4 py-3 border-t border-slate-100 bg-blue-50/40 flex-shrink-0 space-y-2">
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-[9px] font-mono text-slate-500">Tugas Hari Ini</span>
           <span className="text-[9px] font-mono font-semibold text-blue-700">{completedToday}/{totalToday}</span>
@@ -135,6 +137,13 @@ export default function SurveyorSidebar({ onClose }: SidebarProps) {
           <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
         </div>
         <p className="text-[8px] font-mono text-slate-400">{pct}% selesai · {pendingCount} belum dikerjakan</p>
+        <button
+          onClick={() => clearAuth()}
+          className="w-full flex items-center gap-2 px-3 py-2 text-[11px] font-medium text-red-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors border border-transparent hover:border-red-100"
+        >
+          <LogOut size={13} />
+          <span>Keluar</span>
+        </button>
       </div>
     </aside>
   );

@@ -1,10 +1,11 @@
 import React from 'react';
 import {
   LayoutDashboard, Map, Droplets, FileText,
-  FileBadge, ClipboardCheck, Building2, ChevronRight, X, SendHorizonal,
+  FileBadge, ClipboardCheck, Building2, ChevronRight, X, SendHorizonal, LogOut,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { useAppStore } from '../../../store';
+import { useAuthStore } from '../../../store';
 
 interface NavItem {
   key: string;
@@ -37,6 +38,7 @@ interface SidebarProps {
 
 export default function AdminSidebar({ onClose }: SidebarProps) {
   const { activePage, setActivePage } = useAppStore();
+  const { clearAuth } = useAuthStore();
 
   return (
     <aside className="w-56 flex-shrink-0 bg-white border-r border-slate-100 flex flex-col h-full shadow-sm overflow-hidden">
@@ -121,7 +123,7 @@ export default function AdminSidebar({ onClose }: SidebarProps) {
       </nav>
 
       {/* Quota footer */}
-      <div className="px-4 py-3 border-t border-slate-100 bg-amber-50/40 flex-shrink-0">
+      <div className="px-4 py-3 border-t border-slate-100 bg-amber-50/40 flex-shrink-0 space-y-2">
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-[9px] font-mono text-slate-500">Kuota Air Tanah</span>
           <span className="text-[9px] font-mono font-semibold text-amber-700">87%</span>
@@ -130,6 +132,13 @@ export default function AdminSidebar({ onClose }: SidebarProps) {
           <div className="h-full bg-amber-500 rounded-full" style={{ width: '87%' }} />
         </div>
         <p className="text-[8px] font-mono text-slate-400">174.000 / 200.000 m³</p>
+        <button
+          onClick={() => clearAuth()}
+          className="w-full flex items-center gap-2 px-3 py-2 text-[11px] font-medium text-red-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors border border-transparent hover:border-red-100"
+        >
+          <LogOut size={13} />
+          <span>Keluar</span>
+        </button>
       </div>
     </aside>
   );

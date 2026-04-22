@@ -1,9 +1,10 @@
 import React from 'react';
 import {
-  LayoutDashboard, Map, BarChart3, FileText, ChevronRight, Building2, X, CheckSquare,
+  LayoutDashboard, Map, BarChart3, FileText, ChevronRight, Building2, X, CheckSquare, LogOut,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { useAppStore } from '../../../store';
+import { useAuthStore } from '../../../store';
 
 interface NavItem {
   key: string;
@@ -35,6 +36,7 @@ interface SidebarProps {
 
 export default function Sidebar({ onClose }: SidebarProps) {
   const { activePage, setActivePage } = useAppStore();
+  const { clearAuth } = useAuthStore();
 
   return (
     <aside className="w-56 flex-shrink-0 bg-white border-r border-slate-100 flex flex-col h-full shadow-sm overflow-hidden">
@@ -119,12 +121,19 @@ export default function Sidebar({ onClose }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/60 flex-shrink-0">
+      <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/60 flex-shrink-0 space-y-2">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 pulse-dot flex-shrink-0" />
           <span className="text-[9px] font-mono text-slate-500">DINAS ESDM LAMPUNG</span>
         </div>
-        <p className="text-[9px] font-mono text-slate-400 mt-0.5">Pengawasan Provinsi</p>
+        <p className="text-[9px] font-mono text-slate-400">Pengawasan Provinsi</p>
+        <button
+          onClick={() => clearAuth()}
+          className="w-full flex items-center gap-2 px-3 py-2 text-[11px] font-medium text-red-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors border border-transparent hover:border-red-100"
+        >
+          <LogOut size={13} />
+          <span>Keluar</span>
+        </button>
       </div>
     </aside>
   );
