@@ -1,65 +1,330 @@
-import { useState, useMemo } from 'react';
-import { Users, Search, Plus, MoreHorizontal, CheckCircle, Clock, XCircle, ArrowUpDown } from 'lucide-react';
-import { Card, SectionHeader } from '../../../components/ui';
-import { MOCK_USERS } from '../../../constants/mockData';
-import { cn } from '../../../lib/utils';
-import type { User } from '../../../constants/mockData';
+import { useState, useMemo } from "react";
+import {
+  Search,
+  Plus,
+  MoreHorizontal,
+  CheckCircle,
+  Clock,
+  XCircle,
+  ArrowUpDown,
+  X,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import { Card } from "../../../components/ui";
+import {
+  useUsers,
+  useActivateUser,
+  useDeactivateUser,
+  useCreateUser,
+  useUpdateUser,
+} from "../../../hooks";
+import { useCompanies } from "../../../hooks";
+import { cn } from "../../../lib/utils";
+import type { User } from "../../../services/user.service";
+import type { CreateUserRequest, UpdateUserRequest, BackendRole } from "../../../types/api";
 
-const ROLE_LABELS: Record<User['role'], string> = {
-  super_admin:      'Super Admin',
-  admin_perusahaan: 'Admin Perusahaan',
-  kepala_instansi:  'Kepala Instansi',
-  surveyor:       'Surveyor',
+const ROLE_LABELS: Record<string, string> = {
+  super_admin: "Super Admin",
+  admin_perusahaan: "Admin Perusahaan",
+  kepala_instansi: "Kepala Instansi",
+  supervisor: "Surveyor",
 };
 
-const ROLE_COLORS: Record<User['role'], string> = {
-  super_admin:      'bg-purple-50 text-purple-700 border-purple-200',
-  admin_perusahaan: 'bg-amber-50 text-amber-700 border-amber-200',
-  kepala_instansi:  'bg-teal-50 text-teal-700 border-teal-200',
-  surveyor:       'bg-blue-50 text-blue-700 border-blue-200',
+const ROLE_COLORS: Record<string, string> = {
+  super_admin: "bg-purple-50 text-purple-700 border-purple-200",
+  admin_perusahaan: "bg-amber-50 text-amber-700 border-amber-200",
+  kepala_instansi: "bg-teal-50 text-teal-700 border-teal-200",
+  supervisor: "bg-blue-50 text-blue-700 border-blue-200",
 };
 
 const STATUS_ICON = {
-  active:   <CheckCircle size={12} className="text-emerald-500" />,
-  inactive: <XCircle    size={12} className="text-slate-400"  />,
-  pending:  <Clock      size={12} className="text-amber-500"  />,
+  active: <CheckCircle size={12} className="text-emerald-500" />,
+  inactive: <XCircle size={12} className="text-slate-400" />,
+  pending: <Clock size={12} className="text-amber-500" />,
 };
 
+interface UserFormProps {
+  mode: "create" | "edit";
+  initial?: User;
+  companies: { id: string; name: string }[];
+  onClose: () => void;
+  onSubmit: (data: CreateUserRequest | UpdateUserRequest) => void;
+  isPending: boolean;
+}
+
+function UserFormModal({ mode, initial, companies, onClose, onSubmit, isPending }: UserFormProps) {
+  const [form, setForm] = useState({
+    name: initial?.name ?? "",
+    email: initial?.email ?? "",
+    phone: initial?.phone ?? "",
+    role: (initial?.role ?? "admin_perusahaan") as BackendRole,
+    companyId: initial?.companyId ?? "",
+    password: "",
+  });
+  const [showPwd, setShowPwd] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const set = (k: string, v: string) => {
+    setForm((p) => ({ ...p, [k]: v }));
+    setErrors((p) => { const n = { ...p }; delete n[k]; return n; });
+  };
+
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!form.name.trim()) e.name = "Nama wajib diisi";
+    if (!form.email.trim()) e.email = "Email wajib diisi";
+    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Format email tidak valid";
+    if (mode === "create" && !form.password) e.password = "Password wajib diisi";
+    if (mode === "create" && form.password.length < 8) e.password = "Password minimal 8 karakter";
+    return e;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+
+    if (mode === "create") {
+      const payload: CreateUserRequest = {
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        role: form.role,
+        phone: form.phone || undefined,
+        companyId: form.companyId || undefined,
+      };
+      onSubmit(payload);
+    } else {
+      const payload: UpdateUserRequest = {
+        name: form.name,
+        email: form.email,
+        phone: form.phone || undefined,
+        role: form.role,
+        companyId: form.companyId || undefined,
+      };
+      onSubmit(payload);
+    }
+  };
+
+  const F = ({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) => (
+    <div>
+      <label className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">{label}</label>
+      {children}
+      {error && <p className="text-[10px] text-red-500 mt-1">{error}</p>}
+    </div>
+  );
+
+  const inputCls = (err?: string) =>
+    cn(
+      "w-full px-3 py-2 text-[12px] font-mono border rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1",
+      err ? "border-red-300 focus:ring-red-300" : "border-slate-200 focus:ring-cyan-400 focus:border-cyan-400",
+    );
+
+  const needsCompany = ["admin_perusahaan", "supervisor"].includes(form.role);
+
+  return (
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <div>
+            <p className="text-[15px] font-bold text-slate-800">
+              {mode === "create" ? "Tambah Pengguna" : "Edit Pengguna"}
+            </p>
+            <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+              {mode === "create" ? "Buat akun pengguna baru" : `Edit data ${initial?.name}`}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors"
+          >
+            <X size={14} className="text-slate-500" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+          <F label="Nama Lengkap" error={errors.name}>
+            <input
+              value={form.name}
+              onChange={(e) => set("name", e.target.value)}
+              placeholder="Ahmad Fauzi"
+              className={inputCls(errors.name)}
+            />
+          </F>
+
+          <F label="Email" error={errors.email}>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => set("email", e.target.value)}
+              placeholder="user@sigat.go.id"
+              className={inputCls(errors.email)}
+            />
+          </F>
+
+          <F label="Nomor HP (opsional)">
+            <input
+              value={form.phone}
+              onChange={(e) => set("phone", e.target.value)}
+              placeholder="08xxxxxxxxxx"
+              className={inputCls()}
+            />
+          </F>
+
+          {mode === "create" && (
+            <F label="Password" error={errors.password}>
+              <div className="relative">
+                <input
+                  type={showPwd ? "text" : "password"}
+                  value={form.password}
+                  onChange={(e) => set("password", e.target.value)}
+                  placeholder="Min. 8 karakter"
+                  className={cn(inputCls(errors.password), "pr-9")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPwd((p) => !p)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showPwd ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
+            </F>
+          )}
+
+          <F label="Role">
+            <select
+              value={form.role}
+              onChange={(e) => set("role", e.target.value)}
+              className={inputCls()}
+            >
+              <option value="super_admin">Super Admin</option>
+              <option value="admin_perusahaan">Admin Perusahaan</option>
+              <option value="kepala_instansi">Kepala Instansi</option>
+              <option value="supervisor">Surveyor</option>
+            </select>
+          </F>
+
+          {needsCompany && (
+            <F label="Perusahaan">
+              <select
+                value={form.companyId}
+                onChange={(e) => set("companyId", e.target.value)}
+                className={inputCls()}
+              >
+                <option value="">— Pilih Perusahaan —</option>
+                {companies.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </F>
+          )}
+
+          <div className="flex gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-xl hover:bg-slate-200 transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="flex-1 px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors disabled:opacity-50"
+            >
+              {isPending ? "Menyimpan..." : mode === "create" ? "Buat Pengguna" : "Simpan Perubahan"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function UsersPage() {
-  const [search, setSearch]   = useState('');
-  const [roleF,  setRoleF]    = useState<User['role'] | 'all'>('all');
-  const [statusF, setStatusF] = useState<User['status'] | 'all'>('all');
-  const [sortKey, setSortKey] = useState<keyof User>('name');
+  const { data: allUsers = [], isLoading } = useUsers();
+  const { data: companies = [] } = useCompanies();
+  const activate = useActivateUser();
+  const deactivate = useDeactivateUser();
+  const createUser = useCreateUser();
+  const updateUser = useUpdateUser();
+
+  const [search, setSearch] = useState("");
+  const [roleF, setRoleF] = useState<string>("all");
+  const [statusF, setStatusF] = useState<User["status"] | "all">("all");
+  const [sortKey, setSortKey] = useState<keyof User>("name");
   const [sortAsc, setSortAsc] = useState(true);
-  const [menuId, setMenuId]   = useState<string | null>(null);
+  const [menuId, setMenuId] = useState<string | null>(null);
+  const [formMode, setFormMode] = useState<"create" | "edit" | null>(null);
+  const [editTarget, setEditTarget] = useState<User | null>(null);
 
   const data = useMemo(() => {
-    let d = [...MOCK_USERS];
-    if (roleF   !== 'all') d = d.filter(u => u.role === roleF);
-    if (statusF !== 'all') d = d.filter(u => u.status === statusF);
-    if (search) d = d.filter(u =>
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase()) ||
-      u.company.toLowerCase().includes(search.toLowerCase()));
+    let d = [...allUsers];
+    if (roleF !== "all") d = d.filter((u) => u.role === roleF);
+    if (statusF !== "all") d = d.filter((u) => u.status === statusF);
+    if (search)
+      d = d.filter(
+        (u) =>
+          u.name.toLowerCase().includes(search.toLowerCase()) ||
+          u.email.toLowerCase().includes(search.toLowerCase()) ||
+          u.company.toLowerCase().includes(search.toLowerCase()),
+      );
     d.sort((a, b) => {
-      const av = String(a[sortKey]), bv = String(b[sortKey]);
+      const av = String(a[sortKey]),
+        bv = String(b[sortKey]);
       return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
     });
     return d;
-  }, [search, roleF, statusF, sortKey, sortAsc]);
+  }, [allUsers, search, roleF, statusF, sortKey, sortAsc]);
 
-  const sort = (k: keyof User) => { setSortKey(k); if (sortKey === k) setSortAsc(p => !p); else setSortAsc(true); };
+  const sort = (k: keyof User) => {
+    setSortKey(k);
+    if (sortKey === k) setSortAsc((p) => !p);
+    else setSortAsc(true);
+  };
   const Th = ({ label, k }: { label: string; k: keyof User }) => (
-    <th onClick={() => sort(k)} className="text-[9px] font-mono text-slate-400 uppercase tracking-wider px-4 py-3 text-left cursor-pointer hover:text-slate-600 whitespace-nowrap select-none">
-      <span className="flex items-center gap-1">{label}<ArrowUpDown size={9} className={sortKey === k ? 'text-cyan-500' : 'text-slate-300'} /></span>
+    <th
+      onClick={() => sort(k)}
+      className="text-[9px] font-mono text-slate-400 uppercase tracking-wider px-4 py-3 text-left cursor-pointer hover:text-slate-600 whitespace-nowrap select-none"
+    >
+      <span className="flex items-center gap-1">
+        {label}
+        <ArrowUpDown size={9} className={sortKey === k ? "text-cyan-500" : "text-slate-300"} />
+      </span>
     </th>
   );
 
   const summary = {
-    total:    MOCK_USERS.length,
-    active:   MOCK_USERS.filter(u => u.status === 'active').length,
-    pending:  MOCK_USERS.filter(u => u.status === 'pending').length,
-    inactive: MOCK_USERS.filter(u => u.status === 'inactive').length,
+    total: allUsers.length,
+    active: allUsers.filter((u) => u.status === "active").length,
+    pending: allUsers.filter((u) => u.status === "pending").length,
+    inactive: allUsers.filter((u) => u.status === "inactive").length,
+  };
+
+  const companyOptions = companies.map((c) => ({ id: c.id, name: c.name }));
+
+  const handleFormSubmit = (payload: CreateUserRequest | UpdateUserRequest) => {
+    if (formMode === "create") {
+      createUser.mutate(payload as CreateUserRequest, {
+        onSuccess: () => setFormMode(null),
+      });
+    } else if (formMode === "edit" && editTarget) {
+      updateUser.mutate(
+        { id: editTarget.id, payload: payload as UpdateUserRequest },
+        { onSuccess: () => { setFormMode(null); setEditTarget(null); } },
+      );
+    }
+  };
+
+  const openEdit = (u: User) => {
+    setEditTarget(u);
+    setFormMode("edit");
+    setMenuId(null);
   };
 
   return (
@@ -70,20 +335,24 @@ export default function UsersPage() {
           <h1 className="text-[18px] font-semibold text-slate-800">Pengguna</h1>
           <p className="text-[11px] text-slate-400 font-mono mt-0.5">Kelola akses pengguna dan role</p>
         </div>
-        <button className="px-3 sm:px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors flex items-center gap-2 whitespace-nowrap flex-shrink-0">
-          <Plus size={13} /><span className="hidden sm:inline">Tambah Pengguna</span>
+        <button
+          onClick={() => setFormMode("create")}
+          className="px-3 sm:px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors flex items-center gap-2 whitespace-nowrap flex-shrink-0"
+        >
+          <Plus size={13} />
+          <span className="hidden sm:inline">Tambah Pengguna</span>
         </button>
       </div>
 
       {/* Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Total Pengguna', value: summary.total, color: '#0891B2', bg: 'bg-cyan-50', border: 'border-cyan-200' },
-          { label: 'Aktif', value: summary.active, color: '#22C55E', bg: 'bg-emerald-50', border: 'border-emerald-200' },
-          { label: 'Menunggu Verifikasi', value: summary.pending, color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-200' },
-          { label: 'Nonaktif', value: summary.inactive, color: '#94A3B8', bg: 'bg-slate-50', border: 'border-slate-200' },
+          { label: "Total Pengguna", value: summary.total, color: "#0891B2", bg: "bg-cyan-50", border: "border-cyan-200" },
+          { label: "Aktif", value: summary.active, color: "#22C55E", bg: "bg-emerald-50", border: "border-emerald-200" },
+          { label: "Menunggu Verifikasi", value: summary.pending, color: "#F59E0B", bg: "bg-amber-50", border: "border-amber-200" },
+          { label: "Nonaktif", value: summary.inactive, color: "#94A3B8", bg: "bg-slate-50", border: "border-slate-200" },
         ].map(({ label, value, color, bg, border }) => (
-          <div key={label} className={cn('rounded-xl border px-4 py-3', bg, border)}>
+          <div key={label} className={cn("rounded-xl border px-4 py-3", bg, border)}>
             <p className="text-[9px] font-mono text-slate-400 uppercase mb-1">{label}</p>
             <p className="text-[22px] font-bold font-mono" style={{ color }}>{value}</p>
           </div>
@@ -92,113 +361,179 @@ export default function UsersPage() {
 
       {/* Pending verifikasi banner */}
       {summary.pending > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <Clock size={16} className="text-amber-600 flex-shrink-0" />
-            <div className="min-w-0">
-              <p className="text-[12px] font-semibold text-amber-800">{summary.pending} pengguna menunggu verifikasi</p>
-              <p className="text-[11px] text-amber-600">Setujui atau tolak akses akun baru</p>
-            </div>
-          </div>
-          <div className="flex gap-2 flex-shrink-0">
-            <button className="px-3 py-1.5 bg-emerald-600 text-white text-[11px] font-semibold rounded-lg hover:bg-emerald-700 transition-colors whitespace-nowrap">Setujui Semua</button>
-            <button className="px-3 py-1.5 bg-white border border-amber-200 text-amber-700 text-[11px] font-semibold rounded-lg hover:bg-amber-50 transition-colors whitespace-nowrap hidden sm:block">Tinjau Satu per Satu</button>
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3">
+          <Clock size={16} className="text-amber-600 flex-shrink-0" />
+          <div>
+            <p className="text-[12px] font-semibold text-amber-800">
+              {summary.pending} pengguna menunggu verifikasi
+            </p>
+            <p className="text-[11px] text-amber-600">
+              Gunakan menu ··· di baris pengguna untuk mengaktifkan akun
+            </p>
           </div>
         </div>
       )}
 
       {/* Table */}
       <Card padding={false}>
-        {/* Controls */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-3 border-b border-slate-100">
           <div className="relative flex-1 sm:flex-none">
             <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input value={search} onChange={e => setSearch(e.target.value)}
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Nama / email / perusahaan..."
-              className="w-full sm:w-48 pl-8 pr-3 py-1.5 text-[11px] font-mono border border-slate-200 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:border-cyan-400" />
+              className="w-full sm:w-48 pl-8 pr-3 py-1.5 text-[11px] font-mono border border-slate-200 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:border-cyan-400"
+            />
           </div>
           <div className="flex flex-wrap gap-1">
-            {(['all','active','pending','inactive'] as const).map(s => (
-              <button key={s} onClick={() => setStatusF(s)}
-                className={cn('text-[9px] font-mono px-2.5 py-1 rounded-full border transition-all whitespace-nowrap',
-                  statusF === s ? 'bg-cyan-50 text-cyan-700 border-cyan-200' : 'text-slate-400 border-transparent hover:bg-slate-50')}>
-                {s === 'all' ? 'Semua' : s.charAt(0).toUpperCase() + s.slice(1)}
+            {(["all", "active", "pending", "inactive"] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => setStatusF(s)}
+                className={cn(
+                  "text-[9px] font-mono px-2.5 py-1 rounded-full border transition-all whitespace-nowrap",
+                  statusF === s
+                    ? "bg-cyan-50 text-cyan-700 border-cyan-200"
+                    : "text-slate-400 border-transparent hover:bg-slate-50",
+                )}
+              >
+                {s === "all" ? "Semua" : s === "active" ? "Active" : s === "pending" ? "Pending" : "Inactive"}
               </button>
             ))}
           </div>
-          <select value={roleF} onChange={e => setRoleF(e.target.value as User['role'] | 'all')}
-            className="text-[10px] font-mono border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 text-slate-600 focus:outline-none focus:border-cyan-400">
+          <select
+            value={roleF}
+            onChange={(e) => setRoleF(e.target.value)}
+            className="text-[10px] font-mono border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 text-slate-600 focus:outline-none focus:border-cyan-400"
+          >
             <option value="all">Semua Role</option>
             <option value="super_admin">Super Admin</option>
             <option value="admin_perusahaan">Admin Perusahaan</option>
             <option value="kepala_instansi">Kepala Instansi</option>
-            <option value="surveyor">Surveyor</option>
+            <option value="supervisor">Surveyor</option>
           </select>
           <span className="sm:ml-auto text-[10px] text-slate-400 font-mono">{data.length} pengguna</span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full" style={{ minWidth: '680px' }}>
-            <thead className="bg-slate-50/60 border-b border-slate-100">
-              <tr>
-                <Th label="Nama" k="name" />
-                <Th label="Email" k="email" />
-                <Th label="Role" k="role" />
-                <Th label="Perusahaan" k="company" />
-                <Th label="Status" k="status" />
-                <Th label="Login Terakhir" k="lastLogin" />
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {data.map(u => (
-                <tr key={u.id} className="hover:bg-slate-50/40 transition-colors">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">{u.avatar}</div>
-                      <span className="text-[12px] font-semibold text-slate-800">{u.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-[11px] text-slate-500 font-mono">{u.email}</td>
-                  <td className="px-4 py-3">
-                    <span className={cn('text-[9px] font-mono font-medium px-2 py-0.5 rounded-full border', ROLE_COLORS[u.role])}>
-                      {ROLE_LABELS[u.role]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-[11px] text-slate-600">{u.company}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1.5">
-                      {STATUS_ICON[u.status]}
-                      <span className={cn('text-[10px] font-mono',
-                        u.status === 'active' ? 'text-emerald-600' : u.status === 'pending' ? 'text-amber-600' : 'text-slate-400')}>
-                        {u.status === 'active' ? 'Aktif' : u.status === 'pending' ? 'Menunggu' : 'Nonaktif'}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-[10px] text-slate-400 font-mono">{u.lastLogin}</td>
-                  <td className="px-4 py-3 relative">
-                    <button onClick={() => setMenuId(menuId === u.id ? null : u.id)}
-                      className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors">
-                      <MoreHorizontal size={14} className="text-slate-400" />
-                    </button>
-                    {menuId === u.id && (
-                      <div className="absolute right-4 top-10 bg-white border border-slate-100 rounded-xl shadow-lg z-10 overflow-hidden min-w-[140px]">
-                        {['Edit Pengguna','Reset Password','Ubah Role',u.status === 'active' ? 'Nonaktifkan' : 'Aktifkan'].map((action, i) => (
-                          <button key={action} onClick={() => setMenuId(null)}
-                            className={cn('w-full text-left px-3 py-2 text-[11px] hover:bg-slate-50 transition-colors',
-                              i === 3 ? 'text-red-600' : 'text-slate-700')}>
-                            {action}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </td>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16 text-[11px] text-slate-400 font-mono">
+            Memuat data pengguna...
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full" style={{ minWidth: "680px" }}>
+              <thead className="bg-slate-50/60 border-b border-slate-100">
+                <tr>
+                  <Th label="Nama" k="name" />
+                  <Th label="Email" k="email" />
+                  <Th label="Role" k="role" />
+                  <Th label="Perusahaan" k="company" />
+                  <Th label="Status" k="status" />
+                  <Th label="Dibuat" k="createdAt" />
+                  <th className="px-4 py-3" />
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {data.map((u) => (
+                  <tr key={u.id} className="hover:bg-slate-50/40 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
+                          {u.avatar}
+                        </div>
+                        <span className="text-[12px] font-semibold text-slate-800">{u.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-[11px] text-slate-500 font-mono">{u.email}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={cn(
+                          "text-[9px] font-mono font-medium px-2 py-0.5 rounded-full border",
+                          ROLE_COLORS[u.role] ?? "bg-slate-50 text-slate-600 border-slate-200",
+                        )}
+                      >
+                        {ROLE_LABELS[u.role] ?? u.role}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-[11px] text-slate-600">{u.company}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        {STATUS_ICON[u.status]}
+                        <span
+                          className={cn(
+                            "text-[10px] font-mono",
+                            u.status === "active"
+                              ? "text-emerald-600"
+                              : u.status === "pending"
+                              ? "text-amber-600"
+                              : "text-slate-400",
+                          )}
+                        >
+                          {u.status === "active" ? "Aktif" : u.status === "pending" ? "Menunggu" : "Nonaktif"}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-[10px] text-slate-400 font-mono">{u.createdAt}</td>
+                    <td className="px-4 py-3 relative">
+                      <button
+                        onClick={() => setMenuId(menuId === u.id ? null : u.id)}
+                        className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors"
+                      >
+                        <MoreHorizontal size={14} className="text-slate-400" />
+                      </button>
+                      {menuId === u.id && (
+                        <div className="absolute right-4 top-10 bg-white border border-slate-100 rounded-xl shadow-lg z-10 overflow-hidden min-w-[150px]">
+                          <button
+                            onClick={() => openEdit(u)}
+                            className="w-full text-left px-3 py-2 text-[11px] hover:bg-slate-50 transition-colors text-slate-700"
+                          >
+                            Edit Pengguna
+                          </button>
+                          {u.status === "active" ? (
+                            <button
+                              onClick={() => { deactivate.mutate(u.id); setMenuId(null); }}
+                              className="w-full text-left px-3 py-2 text-[11px] hover:bg-red-50 transition-colors text-red-600"
+                            >
+                              Nonaktifkan
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => { activate.mutate(u.id); setMenuId(null); }}
+                              className="w-full text-left px-3 py-2 text-[11px] hover:bg-emerald-50 transition-colors text-emerald-600"
+                            >
+                              Aktifkan
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {data.length === 0 && !isLoading && (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-12 text-center text-[11px] text-slate-400 font-mono">
+                      Tidak ada pengguna ditemukan
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
+
+      {/* Create / Edit Modal */}
+      {formMode && (
+        <UserFormModal
+          mode={formMode}
+          initial={editTarget ?? undefined}
+          companies={companyOptions}
+          onClose={() => { setFormMode(null); setEditTarget(null); }}
+          onSubmit={handleFormSubmit}
+          isPending={createUser.isPending || updateUser.isPending}
+        />
+      )}
     </div>
   );
 }

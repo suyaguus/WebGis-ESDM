@@ -1,25 +1,34 @@
-import { useState } from 'react';
-import { Building2, ArrowUpDown } from 'lucide-react';
-import { SectionHeader, StatusPill } from '@/components/ui';
-import { MOCK_COMPANIES } from '@/constants/mockData';
-import { cn, getSubsidenceColor, getQuotaPercent } from '@/lib/utils';
+import { useState } from "react";
+import { Building2, ArrowUpDown } from "lucide-react";
+import { SectionHeader, StatusPill } from "@/components/ui";
+import { useCompanies } from "@/hooks/useCompanies";
+import { cn, getSubsidenceColor, getQuotaPercent } from "@/lib/utils";
 
-type SortKey = 'name' | 'sensorCount' | 'avgSubsidence' | 'quotaUsed';
+type SortKey = "name" | "sensorCount" | "avgSubsidence" | "quotaUsed";
 
 export default function CompanyTable() {
-  const [sortKey, setSortKey] = useState<SortKey>('name');
+  const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortAsc, setSortAsc] = useState(true);
+  const { data: companies = [], isLoading } = useCompanies();
 
   function handleSort(key: SortKey) {
     if (sortKey === key) setSortAsc((p) => !p);
-    else { setSortKey(key); setSortAsc(true); }
+    else {
+      setSortKey(key);
+      setSortAsc(true);
+    }
   }
 
-  const sorted = [...MOCK_COMPANIES].sort((a, b) => {
+  const sorted = [...companies].sort((a, b) => {
     const av = a[sortKey];
     const bv = b[sortKey];
-    if (typeof av === 'string') return sortAsc ? av.localeCompare(bv as string) : (bv as string).localeCompare(av);
-    return sortAsc ? (av as number) - (bv as number) : (bv as number) - (av as number);
+    if (typeof av === "string")
+      return sortAsc
+        ? av.localeCompare(bv as string)
+        : (bv as string).localeCompare(av);
+    return sortAsc
+      ? (av as number) - (bv as number)
+      : (bv as number) - (av as number);
   });
 
   const HeadCell = ({ label, sk }: { label: string; sk: SortKey }) => (
@@ -29,7 +38,10 @@ export default function CompanyTable() {
     >
       <span className="flex items-center gap-1">
         {label}
-        <ArrowUpDown size={9} className={sortKey === sk ? 'text-cyan-500' : 'text-slate-300'} />
+        <ArrowUpDown
+          size={9}
+          className={sortKey === sk ? "text-cyan-500" : "text-slate-300"}
+        />
       </span>
     </th>
   );
@@ -46,38 +58,74 @@ export default function CompanyTable() {
         }
       />
 
+      {isLoading && (
+        <div className="flex items-center justify-center py-10 text-[11px] text-slate-400 font-mono">
+          Memuat data perusahaan…
+        </div>
+      )}
+
+      {!isLoading && sorted.length === 0 && (
+        <div className="flex items-center justify-center py-10 text-[11px] text-slate-400 font-mono">
+          Belum ada data perusahaan.
+        </div>
+      )}
+
       {/* ── Mobile: card list (hidden on md+) ── */}
       <div className="md:hidden divide-y divide-slate-50">
         {sorted.map((company) => {
           const pct = getQuotaPercent(company.quotaUsed, company.quota);
-          const pctColor = pct >= 100 ? '#EF4444' : pct >= 85 ? '#F59E0B' : '#22C55E';
+          const pctColor =
+            pct >= 100 ? "#EF4444" : pct >= 85 ? "#F59E0B" : "#22C55E";
           return (
-            <div key={company.id} className="px-4 py-3 hover:bg-slate-50/60 transition-colors">
+            <div
+              key={company.id}
+              className="px-4 py-3 hover:bg-slate-50/60 transition-colors"
+            >
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[12px] font-semibold text-slate-800 truncate flex-1 min-w-0 mr-2">
                   {company.name}
                 </span>
                 <StatusPill status={company.status} />
               </div>
-              <p className="text-[10px] text-slate-400 font-mono mb-2">{company.region}</p>
+              <p className="text-[10px] text-slate-400 font-mono mb-2">
+                {company.region}
+              </p>
               <div className="grid grid-cols-3 gap-2 text-center mb-2">
                 <div>
-                  <p className="text-[11px] font-mono font-semibold text-slate-700">{company.sensorCount}</p>
+                  <p className="text-[11px] font-mono font-semibold text-slate-700">
+                    {company.sensorCount}
+                  </p>
                   <p className="text-[9px] text-slate-400 font-mono">Sensor</p>
                 </div>
                 <div>
-                  <p className={cn('text-[11px] font-mono font-semibold', getSubsidenceColor(company.avgSubsidence))}>
+                  <p
+                    className={cn(
+                      "text-[11px] font-mono font-semibold",
+                      getSubsidenceColor(company.avgSubsidence),
+                    )}
+                  >
                     {company.avgSubsidence.toFixed(2)}
                   </p>
                   <p className="text-[9px] text-slate-400 font-mono">cm/thn</p>
                 </div>
                 <div>
-                  <p className="text-[11px] font-mono font-semibold" style={{ color: pctColor }}>{pct}%</p>
+                  <p
+                    className="text-[11px] font-mono font-semibold"
+                    style={{ color: pctColor }}
+                  >
+                    {pct}%
+                  </p>
                   <p className="text-[9px] text-slate-400 font-mono">Kuota</p>
                 </div>
               </div>
               <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pctColor }} />
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${Math.min(pct, 100)}%`,
+                    background: pctColor,
+                  }}
+                />
               </div>
             </div>
           );
@@ -86,52 +134,90 @@ export default function CompanyTable() {
 
       {/* ── Desktop: table (hidden on mobile) ── */}
       <div className="hidden md:block overflow-x-auto flex-1">
-        <table className="w-full" style={{ tableLayout: 'fixed', minWidth: '480px' }}>
+        <table
+          className="w-full"
+          style={{ tableLayout: "fixed", minWidth: "480px" }}
+        >
           <colgroup>
-            <col style={{ width: '30%' }} />
-            <col style={{ width: '18%' }} />
-            <col style={{ width: '10%' }} />
-            <col style={{ width: '14%' }} />
-            <col style={{ width: '16%' }} />
-            <col style={{ width: '12%' }} />
+            <col style={{ width: "30%" }} />
+            <col style={{ width: "18%" }} />
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "14%" }} />
+            <col style={{ width: "16%" }} />
+            <col style={{ width: "12%" }} />
           </colgroup>
           <thead className="bg-slate-50/70 border-b border-slate-100">
             <tr>
               <HeadCell label="Perusahaan" sk="name" />
-              <th className="text-[9px] font-mono font-medium text-slate-400 uppercase tracking-wider px-3 py-2.5 text-left whitespace-nowrap">Wilayah</th>
+              <th className="text-[9px] font-mono font-medium text-slate-400 uppercase tracking-wider px-3 py-2.5 text-left whitespace-nowrap">
+                Wilayah
+              </th>
               <HeadCell label="Sensor" sk="sensorCount" />
               <HeadCell label="Subsidence" sk="avgSubsidence" />
               <HeadCell label="Kuota" sk="quotaUsed" />
-              <th className="text-[9px] font-mono font-medium text-slate-400 uppercase tracking-wider px-3 py-2.5 text-left">Status</th>
+              <th className="text-[9px] font-mono font-medium text-slate-400 uppercase tracking-wider px-3 py-2.5 text-left">
+                Status
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
             {sorted.map((company) => {
               const pct = getQuotaPercent(company.quotaUsed, company.quota);
-              const pctColor = pct >= 100 ? '#EF4444' : pct >= 85 ? '#F59E0B' : '#22C55E';
+              const pctColor =
+                pct >= 100 ? "#EF4444" : pct >= 85 ? "#F59E0B" : "#22C55E";
               return (
-                <tr key={company.id} className="hover:bg-slate-50/60 transition-colors cursor-pointer">
+                <tr
+                  key={company.id}
+                  className="hover:bg-slate-50/60 transition-colors cursor-pointer"
+                >
                   <td className="px-3 py-2.5">
-                    <span className="text-[12px] font-semibold text-slate-800 truncate block">{company.name}</span>
+                    <span className="text-[12px] font-semibold text-slate-800 truncate block">
+                      {company.name}
+                    </span>
                   </td>
                   <td className="px-3 py-2.5">
-                    <span className="text-[11px] text-slate-500 truncate block">{company.region}</span>
+                    <span className="text-[11px] text-slate-500 truncate block">
+                      {company.region}
+                    </span>
                   </td>
                   <td className="px-3 py-2.5">
-                    <span className="text-[11px] font-mono font-medium text-slate-700">{company.sensorCount}</span>
+                    <span className="text-[11px] font-mono font-medium text-slate-700">
+                      {company.sensorCount}
+                    </span>
                   </td>
                   <td className="px-3 py-2.5">
-                    <span className={cn('text-[11px] font-mono font-semibold', getSubsidenceColor(company.avgSubsidence))}>
+                    <span
+                      className={cn(
+                        "text-[11px] font-mono font-semibold",
+                        getSubsidenceColor(company.avgSubsidence),
+                      )}
+                    >
                       {company.avgSubsidence.toFixed(2)}
                     </span>
-                    <span className="text-[9px] text-slate-400 font-mono ml-0.5">cm/thn</span>
+                    <span className="text-[9px] text-slate-400 font-mono ml-0.5">
+                      cm/thn
+                    </span>
                   </td>
                   <td className="px-3 py-2.5">
                     <div className="flex items-center gap-1.5">
-                      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden" style={{ minWidth: '36px' }}>
-                        <div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pctColor }} />
+                      <div
+                        className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"
+                        style={{ minWidth: "36px" }}
+                      >
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${Math.min(pct, 100)}%`,
+                            background: pctColor,
+                          }}
+                        />
                       </div>
-                      <span className="text-[10px] font-mono flex-shrink-0" style={{ color: pctColor }}>{pct}%</span>
+                      <span
+                        className="text-[10px] font-mono flex-shrink-0"
+                        style={{ color: pctColor }}
+                      >
+                        {pct}%
+                      </span>
                     </div>
                   </td>
                   <td className="px-3 py-2.5">
