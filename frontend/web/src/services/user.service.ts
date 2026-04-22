@@ -1,47 +1,71 @@
 /**
  * USER SERVICE
  *
- * Endpoint yang dibutuhkan backend:
- *   GET    /users         → User[]    (superadmin only)
- *   GET    /users/:id     → User
- *   POST   /users         → User      (superadmin only)
- *   PUT    /users/:id     → User      (superadmin only)
- *   DELETE /users/:id     → { success: true }  (superadmin only)
+ * Endpoint backend:
+ *   GET    /users         -> BackendUser[]   (semua role)
+ *   GET    /users/:id     -> BackendUser
+ *   POST   /users         -> BackendUser     (super_admin only)
+ *   PATCH  /users/:id     -> BackendUser
+ *   DELETE /users/:id     -> void            (super_admin only)
  */
 import api from '@/lib/api';
-import { MOCK_USERS } from '@/constants/mockData';
-import type { User as MockUser } from '@/constants/mockData';
-import type { CreateUserRequest, UpdateUserRequest } from '@/types/api';
+import type { BackendUser, CreateUserRequest, UpdateUserRequest } from '@/types/api';
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
-const mockDelay = () => new Promise(r => setTimeout(r, 300));
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  role: string;
+  company: string;
+  companyId: string | null;
+  status: 'active' | 'inactive' | 'pending';
+  createdAt: string;
+  avatar: string;
+}
+
+function mapUser(u: BackendUser): User {
+  return {
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    phone: u.phone,
+    role: u.role,
+    company: u.company?.name ?? '-',
+    companyId: u.companyId,
+    status: !u.isActive ? 'inactive' : !u.isVerified ? 'pending' : 'active',
+    createdAt: new Date(u.createdAt).toLocaleDateString('id-ID'),
+    avatar: u.name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase(),
+  };
+}
 
 export const userService = {
-  getAll: async (): Promise<MockUser[]> => {
-    if (USE_MOCK) { await mockDelay(); return MOCK_USERS; }
-    const { data } = await api.get<MockUser[]>('/users');
-    return data;
+  getAll: async (): Promise<User[]> => {
+    const { data } = await api.get<{ data: BackendUser[] }>('/users');
+    return data.data.map(mapUser);
   },
 
-  getById: async (id: string): Promise<MockUser> => {
-    if (USE_MOCK) {
-      await mockDelay();
-      const u = MOCK_USERS.find(u => u.id === id);
-      if (!u) throw new Error(`User ${id} tidak ditemukan`);
-      return u;
-    }
-    const { data } = await api.get<MockUser>(`/users/${id}`);
-    return data;
+  getById: async (id: string): Promise<User> => {
+    const { data } = await api.get<{ data: BackendUser }>(`/users/${id}`);
+    return mapUser(data.data);
   },
 
-  create: async (payload: CreateUserRequest): Promise<MockUser> => {
-    const { data } = await api.post<MockUser>('/users', payload);
-    return data;
+  create: async (payload: CreateUserRequest): Promise<User> => {
+    const { data } = await api.post<{ data: BackendUser }>('/users', payload);
+    return mapUser(data.data);
   },
 
-  update: async (id: string, payload: UpdateUserRequest): Promise<MockUser> => {
-    const { data } = await api.put<MockUser>(`/users/${id}`, payload);
-    return data;
+  update: async (id: string, payload: UpdateUserRequest): Promise<User> => {
+    const { data } = await api.patch<{ data: BackendUser }>(`/users/${id}`, payload);
+    return mapUser(data.data);
+  },
+
+  deactivate: async (id: string): Promise<void> => {
+    await api.patch(`/users/${id}/deactivate`);
+  },
+
+  activate: async (id: string): Promise<void> => {
+    await api.patch(`/users/${id}/activate`);
   },
 
   delete: async (id: string): Promise<void> => {
