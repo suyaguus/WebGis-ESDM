@@ -44,6 +44,10 @@ model Company {
   isVerified Boolean @default(false)
   isActive   Boolean @default(true)
 
+  // Kuota pengambilan air tahunan (m³)
+  quota     Float @default(0)
+  quotaUsed Float @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -86,6 +90,10 @@ model Well {
   pumpCapacity   Float?
   pumpDepth      Float?
   pipeDiameter   Float?
+
+  // Pengukuran geodetik
+  subsidenceRate Float? // laju penurunan tanah (cm/tahun)
+  verticalValue  Float? // nilai vertikal GNSS (m)
 
   createdBy String?
   createdAt DateTime @default(now())
@@ -178,9 +186,9 @@ enum ReportStatus {
 }
 
 enum WaterQuality {
-  GOOD
-  MEDIUM
-  BAD
+  BAIK
+  SEDANG
+  BURUK
 }
 
 enum PermitStatus {

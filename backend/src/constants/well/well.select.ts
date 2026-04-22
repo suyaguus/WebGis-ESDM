@@ -15,6 +15,9 @@ export const WELL_SELECT: Prisma.WellSelect = {
   pumpDepth: true,
   pipeDiameter: true,
 
+  subsidenceRate: true,
+  verticalValue: true,
+
   createdAt: true,
   updatedAt: true,
   isActive: true,
