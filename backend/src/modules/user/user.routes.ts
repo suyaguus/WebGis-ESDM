@@ -19,12 +19,16 @@ router.post(
   userController.create,
 );
 
-// route untuk update data user berdasarkan id
-router.patch(
-  "/:id",
+// route khusus untuk membuat admin_perusahaan + perusahaan sekaligus
+router.post(
+  "/admin-perusahaan",
   authMiddleware,
-  userController.update
+  roleMiddleware("super_admin"),
+  userController.createAdminPerusahaan,
 );
+
+// route untuk update data user berdasarkan id
+router.patch("/:id", authMiddleware, userController.update);
 
 // route untuk menonaktifkan account user berdasarkan id
 router.patch(
@@ -39,7 +43,7 @@ router.patch(
   "/:id/activate",
   authMiddleware,
   roleMiddleware("admin_perusahaan", "super_admin"),
-  userController.activate
+  userController.activate,
 );
 
 // route untuk menghapus data user berdasarkan id
