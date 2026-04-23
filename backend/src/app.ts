@@ -6,6 +6,7 @@ import reportRoutes from "./modules/report/report.routes";
 import wellRourtes from "./modules/well/well.routes";
 import companyRoutes from "./modules/company/company.routes";
 import businessRoutes from "./modules/business/business.routes";
+import auditRoutes from "./modules/audit/audit.routes";
 import { requestLogger } from "./utils/logger";
 
 const app = express();
@@ -29,6 +30,7 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/wells", wellRourtes);
 app.use("/api/companies", companyRoutes);
 app.use("/api/businesses", businessRoutes);
+app.use("/api/audit", auditRoutes);
 
 app.get("/api", (req, res) => {
   res.json({ message: "Welcome to the Web GIS API" });

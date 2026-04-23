@@ -6,14 +6,11 @@ import { CreateReportInput } from "./report.type";
 export const createReport = async (data: CreateReportInput, user: any) => {
   const well = await prisma.well.findUnique({
     where: { id: data.wellId },
-    include: {
-      company: true,
-    },
   });
 
   if (!well) throw new Error(REPORT_MESSAGES.WELL_NOT_FOUND);
 
-  if (user.role !== "super_admin" && well.company.createdBy !== user.id) {
+  if (user.role !== "super_admin" && well.companyId !== user.companyId) {
     throw new Error(REPORT_MESSAGES.FORBIDDEN);
   }
 

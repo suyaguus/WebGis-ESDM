@@ -28,6 +28,7 @@ model User {
   createdCompanies Company[]         @relation("CompanyCreator")
   createdWells     Well[]            @relation("WellCreator")
   approvedReports  Report[]          @relation("ReportApprover")
+  auditLogs        AuditLog[]
 
   @@index([companyId])
 }
@@ -201,4 +202,21 @@ enum WellType {
   perusahaan
   non_perusahaan
   rumah_tangga
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  userName  String
+  action    String
+  target    String
+  ip        String?
+  severity  String   @default("info")
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([severity])
 }

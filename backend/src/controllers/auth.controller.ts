@@ -1,14 +1,19 @@
 import { Request, Response } from "express";
 import * as authService from "../services/auth.service";
-import { Role } from "@prisma/client";
 import prisma from "../config/prisma";
 import { USER_SELECT } from "../constants/user.select";
+import { saveAuditLog } from "../utils/audit";
 
 type RegisterBody = {
   name: string;
   email: string;
   password: string;
-  role: Role;
+  phone?: string;
+  companyName: string;
+  companyAddress?: string;
+  companyEmail?: string;
+  companyPhone?: string;
+  companyType?: string;
 };
 
 type LoginBody = {
@@ -35,11 +40,23 @@ export const register = async (
 };
 
 export const login = async (req: Request<{}, {}, LoginBody>, res: Response) => {
+  const ip =
+    (req.headers["x-forwarded-for"] as string)?.split(",")[0].trim() ??
+    req.socket.remoteAddress ??
+    "unknown";
   try {
     const result = await authService.loginUser(
       req.body.email,
       req.body.password,
     );
+
+    await saveAuditLog({
+      userId: result.user.id,
+      userName: result.user.name,
+      action: "LOGIN",
+      target: "Sistem",
+      ip,
+    });
 
     return res.json({
       token: result.token,
@@ -47,10 +64,41 @@ export const login = async (req: Request<{}, {}, LoginBody>, res: Response) => {
       user: result.user,
     });
   } catch (err) {
-    return res.status(400).json({
+    await saveAuditLog({
+      userName: req.body.email,
+      action: "LOGIN_FAILED",
+      target: "Sistem",
+      ip,
+    });
+    return res.status(404).json({
       message: err instanceof Error ? err.message : "Unknown error",
     });
   }
+};
+
+export const logout = async (req: Request, res: Response) => {
+  const user = (req as any).user;
+  const ip =
+    (req.headers["x-forwarded-for"] as string)?.split(",")[0].trim() ??
+    req.socket.remoteAddress ??
+    "unknown";
+  if (user?.id) {
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { name: true },
+    });
+    await saveAuditLog({
+      userId: user.id,
+      userName: dbUser?.name ?? user.id,
+      action: "LOGOUT",
+      target: "Sistem",
+      ip,
+    });
+  }
+  return res.json({
+    success: true,
+    message: "Logout berhasil",
+  });
 };
 
 export const getMe = async (req: Request, res: Response) => {

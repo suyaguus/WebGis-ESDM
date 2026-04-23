@@ -12,7 +12,13 @@ type RegisterInput = {
   name: string;
   email: string;
   password: string;
-  role: Role;
+  phone?: string;
+  // Data perusahaan
+  companyName: string;
+  companyAddress?: string;
+  companyEmail?: string;
+  companyPhone?: string;
+  companyType?: string;
 };
 
 export const registerUser = async (data: RegisterInput) => {
@@ -26,16 +32,35 @@ export const registerUser = async (data: RegisterInput) => {
 
   const hashedPassword = await bcrypt.hash(data.password, 10);
 
-  const user = await prisma.user.create({
-    data: {
-      ...data,
-      password: hashedPassword,
-    },
+  return prisma.$transaction(async (tx) => {
+    const company = await tx.company.create({
+      data: {
+        name: data.companyName,
+        address: data.companyAddress,
+        email: data.companyEmail,
+        phone: data.companyPhone,
+        type: data.companyType,
+        isVerified: false,
+        isActive: true,
+      },
+    });
+
+    const user = await tx.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        password: hashedPassword,
+        phone: data.phone,
+        role: "admin_perusahaan",
+        companyId: company.id,
+        isVerified: false,
+        isActive: true,
+      },
+    });
+
+    const { password, ...safeUser } = user;
+    return { user: safeUser, company };
   });
-
-  const { password, ...safeUser } = user;
-
-  return safeUser;
 };
 
 export const loginUser = async (email: string, password: string) => {

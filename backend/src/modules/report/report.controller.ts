@@ -6,7 +6,23 @@ type Params = { id: string };
 
 export const create = async (req: Request, res: Response) => {
   try {
-    const data = await reportService.createReport(req.body, req.user);
+    const {
+      wellId,
+      waterDepth,
+      waterUsage,
+      waterQuality,
+      description,
+      photos,
+    } = req.body ?? {};
+
+    if (!wellId || waterDepth === undefined || waterDepth === null) {
+      return errorResponse(res, "wellId dan waterDepth wajib diisi", 400);
+    }
+
+    const data = await reportService.createReport(
+      { wellId, waterDepth, waterUsage, waterQuality, description, photos },
+      req.user,
+    );
 
     return successResponse(res, data, "Report dibuat", req.user);
   } catch (err) {
@@ -32,10 +48,7 @@ export const findOne = async (req: Request<Params>, res: Response) => {
 
 export const approve = async (req: Request<{ id: string }>, res: Response) => {
   try {
-    const data = await reportService.approveReport(
-      req.params.id,
-      req.user
-    );
+    const data = await reportService.approveReport(req.params.id, req.user);
 
     return successResponse(res, data, "Report disetujui", req.user);
   } catch (err) {
@@ -50,7 +63,7 @@ export const reject = async (req: Request<{ id: string }>, res: Response) => {
     const data = await reportService.rejectReport(
       req.params.id,
       reason,
-      req.user
+      req.user,
     );
 
     return successResponse(res, data, "Report ditolak", req.user);
