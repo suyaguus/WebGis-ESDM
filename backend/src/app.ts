@@ -11,6 +11,18 @@ import { requestLogger } from "./utils/logger";
 
 const app = express();
 
+// // Tambahkan ini sebelum semua app.use() lainnya
+// app.options("*", cors({
+//   origin: [
+//     "http://localhost:5173",
+//     "http://localhost:4173",
+//     "https://web-gis-esdm-w192.vercel.app",
+//     "https://web-gis-esdm-gamma.vercel.app",
+//   ],
+//   credentials: true,
+// }));
+
+
 app.use(
   cors({
     origin: [
