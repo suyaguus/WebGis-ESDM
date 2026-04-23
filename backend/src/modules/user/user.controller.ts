@@ -3,6 +3,7 @@ import * as userService from "./user.service";
 import {
   CreateAdminPerusahaanInput,
   CreateUserInput,
+  UpdateMeInput,
   UpdateUserInput,
 } from "./user.type";
 import {
@@ -115,4 +116,20 @@ export const activate = async (req: Request<Params>, res: Response) => {
   const user = await userService.activateUser(req.params.id);
 
   return successResponse(res, user, MESSAGES.SUCCESS.ACTIVATE);
+};
+
+// controller untuk user update data dirinya sendiri
+export const updateMe = async (
+  req: Request<{}, {}, UpdateMeInput>,
+  res: Response,
+) => {
+  try {
+    const user = await userService.updateMe(req.user!.id, req.body);
+    return successResponse(res, user, "Profil berhasil diperbarui");
+  } catch (err) {
+    return errorResponse(
+      res,
+      err instanceof Error ? err.message : MESSAGES.ERROR.DEFAULT,
+    );
+  }
 };

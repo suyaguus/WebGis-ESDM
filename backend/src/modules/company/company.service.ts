@@ -21,11 +21,29 @@ export const createCompany = async (
 
 // GET ALL (ONLY ACTIVE)
 export const getCompanies = async (user: any) => {
-  const where =
-    user.role === "super_admin" ? {} : { isActive: true, createdBy: user.id };
+  if (user.role === "super_admin") {
+    return prisma.company.findMany({
+      where: {},
+      select: COMPANY_SELECT,
+    });
+  }
 
+  if (user.role === "admin_perusahaan") {
+    // Ambil companyId dari data user
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { companyId: true },
+    });
+    if (!dbUser?.companyId) return [];
+    return prisma.company.findMany({
+      where: { id: dbUser.companyId, isActive: true },
+      select: COMPANY_SELECT,
+    });
+  }
+
+  // role lain: hanya tampilkan company aktif yang terkait
   return prisma.company.findMany({
-    where,
+    where: { isActive: true },
     select: COMPANY_SELECT,
   });
 };
@@ -39,8 +57,15 @@ export const getCompanyById = async (id: string, user: any) => {
 
   if (!company) throw new Error(COMPANY_MESSAGES.NOT_FOUND);
 
-  if (user.role !== "super_admin" && company.creator?.id !== user.id) {
-    throw new Error(COMPANY_MESSAGES.FORBIDDEN.VIEW);
+  if (user.role !== "super_admin") {
+    // admin_perusahaan hanya boleh akses company miliknya
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { companyId: true },
+    });
+    if (dbUser?.companyId !== id) {
+      throw new Error(COMPANY_MESSAGES.FORBIDDEN.VIEW);
+    }
   }
   return company;
 };
@@ -57,8 +82,14 @@ export const updateCompany = async (
 
   if (!company) throw new Error(COMPANY_MESSAGES.NOT_FOUND);
 
-  if (user.role !== "super_admin" && company.createdBy !== user.id) {
-    throw new Error(COMPANY_MESSAGES.FORBIDDEN.UPDATE);
+  if (user.role !== "super_admin") {
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { companyId: true },
+    });
+    if (dbUser?.companyId !== id) {
+      throw new Error(COMPANY_MESSAGES.FORBIDDEN.UPDATE);
+    }
   }
 
   return prisma.company.update({
@@ -101,4 +132,4 @@ export const activateCompany = async (id: string) => {
     where: { id },
     data: { isActive: true },
   });
-};  
+};

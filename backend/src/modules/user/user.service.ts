@@ -3,6 +3,7 @@ import prisma from "../../config/prisma";
 import {
   CreateAdminPerusahaanInput,
   CreateUserInput,
+  UpdateMeInput,
   UpdateUserInput,
 } from "./user.type";
 import { USER_ACTIVATE_SELECT, USER_SELECT } from "../../constants/user.select";
@@ -133,5 +134,32 @@ export const createAdminPerusahaan = async (
     });
 
     return { user, company };
+  });
+};
+
+// service untuk user update data dirinya sendiri (termasuk password)
+export const updateMe = async (id: string, data: UpdateMeInput) => {
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) throw new Error("User tidak ditemukan");
+
+  // Jika ingin ganti password, validasi currentPassword dulu
+  if (data.newPassword) {
+    if (!data.currentPassword) throw new Error("Password lama wajib diisi");
+    const match = await bcrypt.compare(data.currentPassword, user.password);
+    if (!match) throw new Error("Password lama tidak sesuai");
+    if (data.newPassword.length < 8)
+      throw new Error("Password baru minimal 8 karakter");
+  }
+
+  const updateData: Record<string, any> = {};
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.phone !== undefined) updateData.phone = data.phone;
+  if (data.newPassword)
+    updateData.password = await bcrypt.hash(data.newPassword, 10);
+
+  return prisma.user.update({
+    where: { id },
+    data: updateData,
+    select: USER_SELECT,
   });
 };
