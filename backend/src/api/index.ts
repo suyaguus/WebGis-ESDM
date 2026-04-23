@@ -1,8 +1,6 @@
-// src/index.ts
 import "dotenv/config";
-import app from "../app";
+import app from "../app"; // sesuaikan path relatif
 
-// Hanya jalan saat local development
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
@@ -10,4 +8,4 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
-export default app;
+export default app; 
