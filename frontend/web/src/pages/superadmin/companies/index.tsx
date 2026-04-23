@@ -1,17 +1,231 @@
 import { useState, useMemo } from "react";
-import { Building2, Plus, Search, MoreHorizontal, X } from "lucide-react";
+import { Building2, Plus, Search, MoreHorizontal, X, Eye, EyeOff, Trash2 } from "lucide-react";
 import { StatusPill } from "../../../components/ui";
-import { useCompanies, useSensors } from "../../../hooks";
+import {
+  useCompanies,
+  useCreateCompany,
+  useUpdateCompany,
+  useDeleteCompany,
+  useSensors,
+} from "../../../hooks";
 import { cn, getSubsidenceColor, getQuotaPercent } from "../../../lib/utils";
 import type { Company } from "../../../services/company.service";
+import type { CreateCompanyRequest } from "../../../types/api";
 
+/* ── Form Modal ── */
+interface CompanyFormProps {
+  mode: "create" | "edit";
+  initial?: Company & { address?: string; email?: string; phone?: string; type?: string };
+  onClose: () => void;
+  onSubmit: (data: CreateCompanyRequest) => void;
+  isPending: boolean;
+}
+
+function CompanyFormModal({ mode, initial, onClose, onSubmit, isPending }: CompanyFormProps) {
+  const [form, setForm] = useState({
+    name: initial?.name ?? "",
+    address: initial?.region !== "-" ? (initial?.region ?? "") : "",
+    email: initial?.email ?? "",
+    phone: initial?.phone ?? "",
+    type: initial?.type ?? "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const set = (k: string, v: string) => {
+    setForm((p) => ({ ...p, [k]: v }));
+    setErrors((p) => { const n = { ...p }; delete n[k]; return n; });
+  };
+
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!form.name.trim()) e.name = "Nama perusahaan wajib diisi";
+    if (form.email && !/\S+@\S+\.\S+/.test(form.email)) e.email = "Format email tidak valid";
+    return e;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+
+    const payload: CreateCompanyRequest = {
+      name: form.name,
+      address: form.address || undefined,
+      email: form.email || undefined,
+      phone: form.phone || undefined,
+      type: form.type || undefined,
+    };
+    onSubmit(payload);
+  };
+
+  const F = ({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) => (
+    <div>
+      <label className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">{label}</label>
+      {children}
+      {error && <p className="text-[10px] text-red-500 mt-1">{error}</p>}
+    </div>
+  );
+
+  const inputCls = (err?: string) =>
+    cn(
+      "w-full px-3 py-2 text-[12px] font-mono border rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1",
+      err ? "border-red-300 focus:ring-red-300" : "border-slate-200 focus:ring-cyan-400 focus:border-cyan-400",
+    );
+
+  return (
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <div>
+            <p className="text-[15px] font-bold text-slate-800">
+              {mode === "create" ? "Tambah Perusahaan" : "Edit Perusahaan"}
+            </p>
+            <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+              {mode === "create" ? "Daftarkan perusahaan baru" : `Edit data ${initial?.name}`}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors"
+          >
+            <X size={14} className="text-slate-500" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+          <F label="Nama Perusahaan" error={errors.name}>
+            <input
+              value={form.name}
+              onChange={(e) => set("name", e.target.value)}
+              placeholder="PT Maju Jaya Tbk"
+              className={inputCls(errors.name)}
+            />
+          </F>
+
+          <F label="Alamat (opsional)">
+            <input
+              value={form.address}
+              onChange={(e) => set("address", e.target.value)}
+              placeholder="Jl. Raya No. 123, Bandar Lampung"
+              className={inputCls()}
+            />
+          </F>
+
+          <F label="Email (opsional)" error={errors.email}>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => set("email", e.target.value)}
+              placeholder="info@perusahaan.co.id"
+              className={inputCls(errors.email)}
+            />
+          </F>
+
+          <F label="Nomor Telepon (opsional)">
+            <input
+              value={form.phone}
+              onChange={(e) => set("phone", e.target.value)}
+              placeholder="0721-xxxxxxx"
+              className={inputCls()}
+            />
+          </F>
+
+          <F label="Jenis Perusahaan (opsional)">
+            <input
+              value={form.type}
+              onChange={(e) => set("type", e.target.value)}
+              placeholder="Pertambangan / Industri / Lainnya"
+              className={inputCls()}
+            />
+          </F>
+
+          <div className="flex gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-xl hover:bg-slate-200 transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="flex-1 px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors disabled:opacity-50"
+            >
+              {isPending ? "Menyimpan..." : mode === "create" ? "Tambah" : "Simpan Perubahan"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ── Delete Confirmation Modal ── */
+function DeleteConfirmModal({
+  companyName,
+  onClose,
+  onConfirm,
+  isPending,
+}: {
+  companyName: string;
+  onClose: () => void;
+  onConfirm: () => void;
+  isPending: boolean;
+}) {
+  return (
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-sm overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 py-5 text-center">
+          <div className="w-12 h-12 rounded-full bg-red-50 border border-red-200 flex items-center justify-center mx-auto mb-3">
+            <Trash2 size={20} className="text-red-500" />
+          </div>
+          <p className="text-[15px] font-bold text-slate-800 mb-1">Hapus Perusahaan?</p>
+          <p className="text-[12px] text-slate-500">
+            Perusahaan <span className="font-semibold text-slate-700">{companyName}</span> akan dihapus permanen.
+            Data ini tidak bisa dikembalikan.
+          </p>
+        </div>
+        <div className="flex gap-2 px-6 pb-5">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-xl hover:bg-slate-200 transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isPending}
+            className="flex-1 px-4 py-2 bg-red-600 text-white text-[12px] font-semibold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50"
+          >
+            {isPending ? "Menghapus..." : "Hapus"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Main Page ── */
 export default function CompaniesPage() {
   const { data: companies = [], isLoading } = useCompanies();
   const { data: sensors = [] } = useSensors();
+  const createCompany = useCreateCompany();
+  const updateCompany = useUpdateCompany();
+  const deleteCompany = useDeleteCompany();
 
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Company | null>(null);
   const [menuId, setMenuId] = useState<string | null>(null);
+  const [formMode, setFormMode] = useState<"create" | "edit" | null>(null);
+  const [editTarget, setEditTarget] = useState<Company | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Company | null>(null);
 
   const data = useMemo(() => {
     if (!search) return companies;
@@ -26,6 +240,40 @@ export default function CompaniesPage() {
   const alertSensors = (id: string) =>
     companySensors(id).filter((s) => s.status === "alert").length;
 
+  const handleFormSubmit = (payload: CreateCompanyRequest) => {
+    if (formMode === "create") {
+      createCompany.mutate(payload, {
+        onSuccess: () => setFormMode(null),
+      });
+    } else if (formMode === "edit" && editTarget) {
+      updateCompany.mutate(
+        { id: editTarget.id, payload },
+        { onSuccess: () => { setFormMode(null); setEditTarget(null); } },
+      );
+    }
+  };
+
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    deleteCompany.mutate(deleteTarget.id, {
+      onSuccess: () => {
+        setDeleteTarget(null);
+        setSelected(null);
+      },
+    });
+  };
+
+  const openEdit = (c: Company) => {
+    setEditTarget(c);
+    setFormMode("edit");
+    setMenuId(null);
+  };
+
+  const openDelete = (c: Company) => {
+    setDeleteTarget(c);
+    setMenuId(null);
+  };
+
   return (
     <div className="p-3 sm:p-5 space-y-4">
       <div className="flex items-center justify-between">
@@ -35,7 +283,10 @@ export default function CompaniesPage() {
             Kelola data perusahaan pengguna air tanah
           </p>
         </div>
-        <button className="px-3 sm:px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors flex items-center gap-2 whitespace-nowrap flex-shrink-0">
+        <button
+          onClick={() => setFormMode("create")}
+          className="px-3 sm:px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors flex items-center gap-2 whitespace-nowrap flex-shrink-0"
+        >
           <Plus size={13} />
           <span className="hidden sm:inline">Tambah Perusahaan</span>
         </button>
@@ -152,18 +403,18 @@ export default function CompaniesPage() {
                       </button>
                       {menuId === c.id && (
                         <div className="absolute right-0 top-8 bg-white border border-slate-100 rounded-xl shadow-lg z-10 overflow-hidden min-w-[140px]">
-                          {["Edit Perusahaan", "Lihat Sensor", "Hapus"].map((action, i) => (
-                            <button
-                              key={action}
-                              onClick={() => setMenuId(null)}
-                              className={cn(
-                                "w-full text-left px-3 py-2 text-[11px] hover:bg-slate-50 transition-colors",
-                                i === 2 ? "text-red-600" : "text-slate-700",
-                              )}
-                            >
-                              {action}
-                            </button>
-                          ))}
+                          <button
+                            onClick={() => openEdit(c)}
+                            className="w-full text-left px-3 py-2 text-[11px] hover:bg-slate-50 transition-colors text-slate-700"
+                          >
+                            Edit Perusahaan
+                          </button>
+                          <button
+                            onClick={() => openDelete(c)}
+                            className="w-full text-left px-3 py-2 text-[11px] hover:bg-red-50 transition-colors text-red-600"
+                          >
+                            Hapus
+                          </button>
                         </div>
                       )}
                     </div>
@@ -171,6 +422,11 @@ export default function CompaniesPage() {
                 </div>
               );
             })}
+            {data.length === 0 && !isLoading && (
+              <div className="col-span-full py-12 text-center text-[11px] text-slate-400 font-mono">
+                Tidak ada perusahaan ditemukan
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -231,13 +487,43 @@ export default function CompaniesPage() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <button className="flex-1 px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors">
+                <button
+                  onClick={() => { openEdit(selected); setSelected(null); }}
+                  className="flex-1 px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors"
+                >
                   Edit Perusahaan
+                </button>
+                <button
+                  onClick={() => { openDelete(selected); setSelected(null); }}
+                  className="px-4 py-2 bg-red-50 text-red-600 text-[12px] font-semibold rounded-xl hover:bg-red-100 transition-colors border border-red-200"
+                >
+                  Hapus
                 </button>
               </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Create / Edit Modal */}
+      {formMode && (
+        <CompanyFormModal
+          mode={formMode}
+          initial={editTarget ?? undefined}
+          onClose={() => { setFormMode(null); setEditTarget(null); }}
+          onSubmit={handleFormSubmit}
+          isPending={createCompany.isPending || updateCompany.isPending}
+        />
+      )}
+
+      {/* Delete Confirmation */}
+      {deleteTarget && (
+        <DeleteConfirmModal
+          companyName={deleteTarget.name}
+          onClose={() => setDeleteTarget(null)}
+          onConfirm={handleDelete}
+          isPending={deleteCompany.isPending}
+        />
       )}
     </div>
   );

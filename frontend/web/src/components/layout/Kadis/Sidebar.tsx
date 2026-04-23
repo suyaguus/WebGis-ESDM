@@ -1,9 +1,10 @@
 import React from 'react';
 import {
-  LayoutDashboard, Map, BarChart3, FileText, ChevronRight, Building2, X, CheckSquare,
+  LayoutDashboard, Map, BarChart3, FileText, ChevronRight, Building2, X, CheckSquare, LogOut,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
-import { useAppStore } from '../../../store';
+import { useAppStore, useAuthStore } from '../../../store';
+import { useLogout } from '../../../hooks';
 
 interface NavItem {
   key: string;
@@ -35,6 +36,20 @@ interface SidebarProps {
 
 export default function Sidebar({ onClose }: SidebarProps) {
   const { activePage, setActivePage } = useAppStore();
+  const { user } = useAuthStore();
+  const logout = useLogout();
+
+  const userName = user?.name ?? 'Pengguna';
+  const userInitials = userName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+
+  const handleLogout = () => {
+    logout.mutate(undefined, {
+      onSettled: () => {
+        window.history.replaceState(null, '', '/login');
+        window.location.reload();
+      },
+    });
+  };
 
   return (
     <aside className="w-56 flex-shrink-0 bg-white border-r border-slate-100 flex flex-col h-full shadow-sm overflow-hidden">
@@ -62,10 +77,10 @@ export default function Sidebar({ onClose }: SidebarProps) {
       <div className="px-3 py-3 border-b border-slate-100 bg-white flex-shrink-0">
         <div className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-slate-50/70 px-2.5 py-2">
           <div className="w-8 h-8 rounded-full bg-emerald-100 ring-1 ring-emerald-200 flex items-center justify-center text-[11px] font-semibold text-emerald-700 flex-shrink-0">
-            DK
+            {userInitials}
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold text-slate-800 truncate">Deni Kurniawan</p>
+            <p className="text-[11px] font-semibold text-slate-800 truncate">{userName}</p>
             <p className="text-[9px] font-mono text-emerald-700 tracking-wider">KEPALA DINAS</p>
           </div>
         </div>
@@ -117,6 +132,18 @@ export default function Sidebar({ onClose }: SidebarProps) {
           );
         })}
       </nav>
+
+      {/* Logout */}
+      <div className="px-3 py-2 border-t border-slate-100 flex-shrink-0">
+        <button
+          onClick={handleLogout}
+          disabled={logout.isPending}
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[12px] font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all duration-150 group"
+        >
+          <LogOut size={14} className="text-red-400 group-hover:text-red-500 flex-shrink-0" />
+          <span>{logout.isPending ? 'Keluar...' : 'Keluar'}</span>
+        </button>
+      </div>
 
       {/* Footer */}
       <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/60 flex-shrink-0">

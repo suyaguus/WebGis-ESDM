@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import type { Sensor } from '../../types';
+import { useEffect, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import type { Sensor } from "../../types";
 
 interface SensorMapProps {
   sensors: Sensor[];
@@ -14,14 +14,14 @@ interface SensorMapProps {
    Color map per type + status
    ──────────────────────────────────────────── */
 const MARKER_COLORS: Record<string, string> = {
-  water_online:       '#3B82F6',
-  water_alert:        '#EF4444',
-  water_maintenance:  '#F59E0B',
-  water_offline:      '#94A3B8',
-  gnss_online:        '#F59E0B',
-  gnss_alert:         '#EF4444',
-  gnss_maintenance:   '#CBD5E1',
-  gnss_offline:       '#94A3B8',
+  water_online: "#3B82F6",
+  water_alert: "#EF4444",
+  water_maintenance: "#F59E0B",
+  water_offline: "#94A3B8",
+  gnss_online: "#F59E0B",
+  gnss_alert: "#EF4444",
+  gnss_maintenance: "#CBD5E1",
+  gnss_offline: "#94A3B8",
 };
 
 const KEYFRAMES = `
@@ -36,16 +36,16 @@ const KEYFRAMES = `
   }
 `;
 
-function buildDropletIcon(color: string, opacity = '1'): string {
+function buildDropletIcon(color: string, opacity = "1"): string {
   return `
     <svg width="20" height="20" viewBox="0 0 20 20" style="opacity:${opacity};filter:drop-shadow(0 1px 3px rgba(0,0,0,0.3));">
       <path d="M10 2 C14 5, 16 8, 16 11 C16 15.4, 13.3 18, 10 18 C6.7 18, 4 15.4, 4 11 C4 8, 6 5, 10 2 Z" fill="${color}" stroke="white" stroke-width="1.3" stroke-linejoin="round"/>
     </svg>`;
 }
 
-function buildIconHTML(color: string, status: Sensor['status']): string {
-  const isAlert = status === 'alert';
-  const isMaintenance = status === 'maintenance';
+function buildIconHTML(color: string, status: Sensor["status"]): string {
+  const isAlert = status === "alert";
+  const isMaintenance = status === "maintenance";
 
   if (isAlert) {
     return `
@@ -67,19 +67,19 @@ function buildIconHTML(color: string, status: Sensor['status']): string {
       </div>`;
   }
 
-  const opacity = status === 'offline' ? '0.6' : '1';
+  const opacity = status === "offline" ? "0.6" : "1";
   return `
     <div style="position:relative;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">
       ${buildDropletIcon(color, opacity)}
     </div>`;
 }
 
-function makeIcon(color: string, status: Sensor['status']): L.DivIcon {
+function makeIcon(color: string, status: Sensor["status"]): L.DivIcon {
   return L.divIcon({
-    className:   '',
-    html:        buildIconHTML(color, status),
-    iconSize:    [30, 30],
-    iconAnchor:  [15, 30],
+    className: "",
+    html: buildIconHTML(color, status),
+    iconSize: [30, 30],
+    iconAnchor: [15, 30],
     popupAnchor: [0, -35],
   });
 }
@@ -88,17 +88,24 @@ function makeIcon(color: string, status: Sensor['status']): L.DivIcon {
    Popup HTML
    ──────────────────────────────────────────── */
 function buildPopup(sensor: Sensor, color: string): string {
-  const subColor = sensor.subsidence <= -4.0 ? '#EF4444'
-                 : sensor.subsidence <= -2.5  ? '#F59E0B'
-                 : '#22C55E';
+  const subColor =
+    sensor.subsidence <= -4.0
+      ? "#EF4444"
+      : sensor.subsidence <= -2.5
+        ? "#F59E0B"
+        : "#22C55E";
 
   const rows: [string, string][] = [
-    ['Tipe',       sensor.type === 'water' ? 'Air Tanah' : 'GNSS'],
-    ['Status',     sensor.status.charAt(0).toUpperCase() + sensor.status.slice(1)],
-    ['Subsidence', `${sensor.subsidence.toFixed(2)} cm/thn`],
-    ...(sensor.waterLevel   !== undefined ? [['Muka Air',       `${sensor.waterLevel} m`]   as [string, string]] : []),
-    ...(sensor.verticalValue !== undefined ? [['Nilai Vertikal', `${sensor.verticalValue} mm`] as [string, string]] : []),
-    ['Update', sensor.lastUpdate],
+    ["Tipe", sensor.type === "water" ? "Air Tanah" : "GNSS"],
+    ["Status", sensor.status.charAt(0).toUpperCase() + sensor.status.slice(1)],
+    ["Subsidence", `${sensor.subsidence.toFixed(2)} cm/thn`],
+    ...(sensor.waterLevel !== undefined
+      ? [["Muka Air", `${sensor.waterLevel} m`] as [string, string]]
+      : []),
+    ...(sensor.verticalValue !== undefined
+      ? [["Nilai Vertikal", `${sensor.verticalValue} mm`] as [string, string]]
+      : []),
+    ["Update", sensor.lastUpdate],
   ];
 
   return `
@@ -109,11 +116,15 @@ function buildPopup(sensor: Sensor, color: string): string {
         <span style="font-size:10px;color:#64748B;margin-left:2px">${sensor.location}</span>
       </div>
       <table style="width:100%;font-size:10px;border-collapse:collapse;line-height:1.6">
-        ${rows.map(([k, v]) => `
+        ${rows
+          .map(
+            ([k, v]) => `
           <tr>
             <td style="color:#94A3B8;padding:1px 0;white-space:nowrap">${k}</td>
-            <td style="text-align:right;color:${k === 'Subsidence' ? subColor : k === 'Status' ? color : '#475569'};font-weight:${k === 'Subsidence' ? '600' : '400'}">${v}</td>
-          </tr>`).join('')}
+            <td style="text-align:right;color:${k === "Subsidence" ? subColor : k === "Status" ? color : "#475569"};font-weight:${k === "Subsidence" ? "600" : "400"}">${v}</td>
+          </tr>`,
+          )
+          .join("")}
       </table>
     </div>`;
 }
@@ -121,45 +132,51 @@ function buildPopup(sensor: Sensor, color: string): string {
 /* ─────────────────────────────────────────────
    Main Component
    ──────────────────────────────────────────── */
-export default function SensorMap({ sensors, height = 300, className, onMarkerClick }: SensorMapProps) {
+export default function SensorMap({
+  sensors,
+  height = 300,
+  className,
+  onMarkerClick,
+}: SensorMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef       = useRef<L.Map | null>(null);
-  const markersRef   = useRef<L.Marker[]>([]);
+  const mapRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<L.Marker[]>([]);
 
-  const resolvedHeight = typeof height === 'number' ? `${height}px` : height;
+  const resolvedHeight = typeof height === "number" ? `${height}px` : height;
 
   /* Init map once */
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
     mapRef.current = L.map(containerRef.current, {
-      center:      [-5.45, 105.27],
-      zoom:        10,
+      center: [-5.45, 105.27],
+      zoom: 10,
       zoomControl: false,
       zoomAnimation: false,
     });
 
-    L.control.zoom({ position: 'topright' }).addTo(mapRef.current);
+    L.control.zoom({ position: "topright" }).addTo(mapRef.current);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap',
-      maxZoom:     19,
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap",
+      maxZoom: 19,
     }).addTo(mapRef.current);
 
     const handleResize = () => {
       mapRef.current?.invalidateSize();
     };
 
-    const resizeObserver = typeof ResizeObserver !== 'undefined'
-      ? new ResizeObserver(() => handleResize())
-      : null;
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => handleResize())
+        : null;
 
     resizeObserver?.observe(containerRef.current);
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     return () => {
       resizeObserver?.disconnect();
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
       markersRef.current.forEach((marker) => {
         marker.off();
         marker.remove();
@@ -182,18 +199,30 @@ export default function SensorMap({ sensors, height = 300, className, onMarkerCl
     });
     markersRef.current = [];
 
-    sensors.forEach(sensor => {
-      const color  = MARKER_COLORS[`${sensor.type}_${sensor.status}`] ?? '#94A3B8';
-      const marker = L.marker([sensor.lat, sensor.lng] as [number, number], { icon: makeIcon(color, sensor.status) })
-        .addTo(mapRef.current!)
-        .bindPopup(buildPopup(sensor, color), { maxWidth: 240, className: 'leaflet-popup-light' });
+    const validSensors = sensors.filter(
+      (s) => s.lat != null && s.lng != null && !(s.lat === 0 && s.lng === 0),
+    );
 
-      if (onMarkerClick) marker.on('click', () => onMarkerClick(sensor));
+    validSensors.forEach((sensor) => {
+      const color =
+        MARKER_COLORS[`${sensor.type}_${sensor.status}`] ?? "#94A3B8";
+      const marker = L.marker([sensor.lat!, sensor.lng!] as [number, number], {
+        icon: makeIcon(color, sensor.status),
+      })
+        .addTo(mapRef.current!)
+        .bindPopup(buildPopup(sensor, color), {
+          maxWidth: 240,
+          className: "leaflet-popup-light",
+        });
+
+      if (onMarkerClick) marker.on("click", () => onMarkerClick(sensor));
       markersRef.current.push(marker);
     });
 
-    if (sensors.length > 0) {
-      const bounds = L.latLngBounds(sensors.map(s => [s.lat, s.lng] as [number, number]));
+    if (validSensors.length > 0) {
+      const bounds = L.latLngBounds(
+        validSensors.map((s) => [s.lat!, s.lng!] as [number, number]),
+      );
       mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
     }
   }, [sensors, onMarkerClick]);
@@ -253,7 +282,11 @@ export default function SensorMap({ sensors, height = 300, className, onMarkerCl
           }
         }
       `}</style>
-      <div ref={containerRef} className={`sensor-map-root ${className ?? ''}`} style={{ height: resolvedHeight, width: '100%' }} />
+      <div
+        ref={containerRef}
+        className={`sensor-map-root ${className ?? ""}`}
+        style={{ height: resolvedHeight, width: "100%" }}
+      />
     </>
   );
 }

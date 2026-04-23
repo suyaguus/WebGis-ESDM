@@ -226,6 +226,20 @@ export interface CreateUserRequest {
   phone?: string;
 }
 
+export interface CreateAdminPerusahaanRequest {
+  // Data user
+  name: string;
+  email: string;
+  password: string;
+  phone?: string;
+  // Data perusahaan
+  companyName: string;
+  companyAddress?: string;
+  companyEmail?: string;
+  companyPhone?: string;
+  companyType?: string;
+}
+
 export interface UpdateUserRequest {
   name?: string;
   email?: string;

@@ -7,6 +7,12 @@ interface RegisterAdminPayload {
   name: string;
   email: string;
   password: string;
+  phone?: string;
+  companyName: string;
+  companyAddress?: string;
+  companyEmail?: string;
+  companyPhone?: string;
+  companyType?: string;
 }
 
 export function useLogin() {

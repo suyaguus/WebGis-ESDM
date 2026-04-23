@@ -1,17 +1,17 @@
-export type Role = 'superadmin' | 'admin' | 'kadis' | 'surveyor';
+export type Role = "superadmin" | "admin" | "kadis" | "surveyor";
 
-export type SensorStatus = 'online' | 'offline' | 'alert' | 'maintenance';
-export type SensorType = 'water' | 'gnss';
-export type CompanyStatus = 'online' | 'offline' | 'maintenance';
-export type AlertSeverity = 'critical' | 'warning' | 'info';
+export type SensorStatus = "online" | "offline" | "alert" | "maintenance";
+export type SensorType = "water" | "gnss";
+export type CompanyStatus = "online" | "offline" | "maintenance";
+export type AlertSeverity = "critical" | "warning" | "info";
 
 export interface Sensor {
   id: string;
   code: string;
   type: SensorType;
   location: string;
-  lat: number;
-  lng: number;
+  lat: number | null;
+  lng: number | null;
   status: SensorStatus;
   subsidence: number;
   waterLevel?: number;
@@ -24,6 +24,9 @@ export interface Company {
   id: string;
   name: string;
   region: string;
+  email?: string;
+  phone?: string;
+  type?: string;
   sensorCount: number;
   status: CompanyStatus;
   quota: number;
@@ -46,9 +49,9 @@ export interface StatCard {
   label: string;
   value: string | number;
   sub: string;
-  trend?: 'up' | 'down' | 'neutral';
+  trend?: "up" | "down" | "neutral";
   trendValue?: string;
-  color: 'cyan' | 'amber' | 'red' | 'green' | 'purple' | 'blue';
+  color: "cyan" | "amber" | "red" | "green" | "purple" | "blue";
 }
 
 export interface TrendDataPoint {
@@ -62,7 +65,7 @@ export interface NavItem {
   label: string;
   icon: string;
   badge?: number | string;
-  badgeColor?: 'red' | 'amber';
+  badgeColor?: "red" | "amber";
   section: string;
 }
 

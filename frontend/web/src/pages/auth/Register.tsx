@@ -15,6 +15,12 @@ export default function RegisterPage({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [companyAddress, setCompanyAddress] = useState("");
+  const [companyEmail, setCompanyEmail] = useState("");
+  const [companyPhone, setCompanyPhone] = useState("");
+  const [companyType, setCompanyType] = useState("");
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
@@ -30,8 +36,23 @@ export default function RegisterPage({
       return;
     }
 
+    if (!companyName.trim()) {
+      setError("Nama perusahaan wajib diisi.");
+      return;
+    }
+
     registerAdmin(
-      { name, email, password },
+      {
+        name,
+        email,
+        password,
+        phone: phone || undefined,
+        companyName,
+        companyAddress: companyAddress || undefined,
+        companyEmail: companyEmail || undefined,
+        companyPhone: companyPhone || undefined,
+        companyType: companyType || undefined,
+      },
       {
         onSuccess: () => {
           setSuccessMsg(
@@ -180,6 +201,100 @@ export default function RegisterPage({
                              transition-colors"
                   placeholder="Minimal 8 karakter"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
+                  Nomor HP (opsional)
+                </label>
+                <input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full bg-[var(--bg-input)] border border-[var(--bdr)] rounded-lg px-3 py-2.5 text-sm text-slate-800
+                             focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200
+                             transition-colors"
+                  placeholder="08xxxxxxxxxx"
+                />
+              </div>
+
+              {/* Data Perusahaan */}
+              <div className="border-t border-slate-100 pt-4 space-y-4">
+                <p className="text-[10px] font-bold tracking-wider uppercase text-amber-700">
+                  Data Perusahaan
+                </p>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
+                    Nama Perusahaan *
+                  </label>
+                  <input
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    required
+                    className="w-full bg-[var(--bg-input)] border border-[var(--bdr)] rounded-lg px-3 py-2.5 text-sm text-slate-800
+                               focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200
+                               transition-colors"
+                    placeholder="PT Sumber Air Lestari"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
+                    Alamat Perusahaan (opsional)
+                  </label>
+                  <input
+                    value={companyAddress}
+                    onChange={(e) => setCompanyAddress(e.target.value)}
+                    className="w-full bg-[var(--bg-input)] border border-[var(--bdr)] rounded-lg px-3 py-2.5 text-sm text-slate-800
+                               focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200
+                               transition-colors"
+                    placeholder="Jl. Contoh No. 1, Kota"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
+                      Email Perusahaan (opsional)
+                    </label>
+                    <input
+                      type="email"
+                      value={companyEmail}
+                      onChange={(e) => setCompanyEmail(e.target.value)}
+                      className="w-full bg-[var(--bg-input)] border border-[var(--bdr)] rounded-lg px-3 py-2.5 text-sm text-slate-800
+                                 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200
+                                 transition-colors"
+                      placeholder="info@perusahaan.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
+                      Telepon (opsional)
+                    </label>
+                    <input
+                      value={companyPhone}
+                      onChange={(e) => setCompanyPhone(e.target.value)}
+                      className="w-full bg-[var(--bg-input)] border border-[var(--bdr)] rounded-lg px-3 py-2.5 text-sm text-slate-800
+                                 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200
+                                 transition-colors"
+                      placeholder="021xxxxxxx"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
+                    Jenis Usaha (opsional)
+                  </label>
+                  <input
+                    value={companyType}
+                    onChange={(e) => setCompanyType(e.target.value)}
+                    className="w-full bg-[var(--bg-input)] border border-[var(--bdr)] rounded-lg px-3 py-2.5 text-sm text-slate-800
+                               focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200
+                               transition-colors"
+                    placeholder="Industri, Perhotelan, Komersial, dll."
+                  />
+                </div>
               </div>
 
               {error && (

@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import type { Sensor } from '@/types';
+import { useEffect, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import type { Sensor } from "@/types";
 
 interface PublicSensorMapProps {
   sensors: Sensor[];
@@ -9,14 +9,14 @@ interface PublicSensorMapProps {
 }
 
 const MARKER_COLORS: Record<string, string> = {
-  water_online: '#3B82F6',
-  water_alert: '#EF4444',
-  water_maintenance: '#F59E0B',
-  water_offline: '#94A3B8',
-  gnss_online: '#F59E0B',
-  gnss_alert: '#EF4444',
-  gnss_maintenance: '#CBD5E1',
-  gnss_offline: '#94A3B8',
+  water_online: "#3B82F6",
+  water_alert: "#EF4444",
+  water_maintenance: "#F59E0B",
+  water_offline: "#94A3B8",
+  gnss_online: "#F59E0B",
+  gnss_alert: "#EF4444",
+  gnss_maintenance: "#CBD5E1",
+  gnss_offline: "#94A3B8",
 };
 
 const KEYFRAMES = `
@@ -31,16 +31,16 @@ const KEYFRAMES = `
   }
 `;
 
-function buildDropletIcon(color: string, opacity = '1'): string {
+function buildDropletIcon(color: string, opacity = "1"): string {
   return `
     <svg width="20" height="20" viewBox="0 0 20 20" style="opacity:${opacity};filter:drop-shadow(0 1px 3px rgba(0,0,0,0.3));">
       <path d="M10 2 C14 5, 16 8, 16 11 C16 15.4, 13.3 18, 10 18 C6.7 18, 4 15.4, 4 11 C4 8, 6 5, 10 2 Z" fill="${color}" stroke="white" stroke-width="1.3" stroke-linejoin="round"/>
     </svg>`;
 }
 
-function buildIconHTML(color: string, status: Sensor['status']): string {
-  const isAlert = status === 'alert';
-  const isMaintenance = status === 'maintenance';
+function buildIconHTML(color: string, status: Sensor["status"]): string {
+  const isAlert = status === "alert";
+  const isMaintenance = status === "maintenance";
 
   if (isAlert) {
     return `
@@ -62,16 +62,16 @@ function buildIconHTML(color: string, status: Sensor['status']): string {
       </div>`;
   }
 
-  const opacity = status === 'offline' ? '0.6' : '1';
+  const opacity = status === "offline" ? "0.6" : "1";
   return `
     <div style="position:relative;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">
       ${buildDropletIcon(color, opacity)}
     </div>`;
 }
 
-function makeIcon(color: string, status: Sensor['status']): L.DivIcon {
+function makeIcon(color: string, status: Sensor["status"]): L.DivIcon {
   return L.divIcon({
-    className: '',
+    className: "",
     html: buildIconHTML(color, status),
     iconSize: [30, 30],
     iconAnchor: [15, 30],
@@ -80,13 +80,15 @@ function makeIcon(color: string, status: Sensor['status']): L.DivIcon {
 }
 
 function buildPopup(sensor: Sensor): string {
-  const typeLabel = sensor.type === 'water' ? 'Air Tanah' : 'GNSS';
-  const statusLabel = sensor.status.charAt(0).toUpperCase() + sensor.status.slice(1);
-  const subColor = sensor.subsidence <= -4.0
-    ? '#EF4444'
-    : sensor.subsidence <= -2.5
-      ? '#F59E0B'
-      : '#22C55E';
+  const typeLabel = sensor.type === "water" ? "Air Tanah" : "GNSS";
+  const statusLabel =
+    sensor.status.charAt(0).toUpperCase() + sensor.status.slice(1);
+  const subColor =
+    sensor.subsidence <= -4.0
+      ? "#EF4444"
+      : sensor.subsidence <= -2.5
+        ? "#F59E0B"
+        : "#22C55E";
 
   return `
     <div style="font-family:'IBM Plex Mono',monospace;min-width:190px;max-width:220px;color:#0f172a;">
@@ -115,7 +117,10 @@ function buildPopup(sensor: Sensor): string {
     </div>`;
 }
 
-export default function PublicSensorMap({ sensors, className }: PublicSensorMapProps) {
+export default function PublicSensorMap({
+  sensors,
+  className,
+}: PublicSensorMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
@@ -132,18 +137,18 @@ export default function PublicSensorMap({ sensors, className }: PublicSensorMapP
 
     mapRef.current = map;
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors',
+      attribution: "&copy; OpenStreetMap contributors",
     }).addTo(map);
 
-    L.control.zoom({ position: 'topright' }).addTo(map);
+    L.control.zoom({ position: "topright" }).addTo(map);
 
     const onResize = () => map.invalidateSize();
-    window.addEventListener('resize', onResize);
+    window.addEventListener("resize", onResize);
 
     return () => {
-      window.removeEventListener('resize', onResize);
+      window.removeEventListener("resize", onResize);
       markersRef.current.forEach((marker) => {
         marker.off();
         marker.remove();
@@ -166,19 +171,31 @@ export default function PublicSensorMap({ sensors, className }: PublicSensorMapP
     });
     markersRef.current = [];
 
-    sensors.forEach((sensor) => {
-      const color = MARKER_COLORS[`${sensor.type}_${sensor.status}`] ?? '#94A3B8';
+    const validSensors = sensors.filter(
+      (s) => s.lat != null && s.lng != null && !(s.lat === 0 && s.lng === 0),
+    );
+
+    validSensors.forEach((sensor) => {
+      const color =
+        MARKER_COLORS[`${sensor.type}_${sensor.status}`] ?? "#94A3B8";
       const markerIcon = makeIcon(color, sensor.status);
 
-      const marker = L.marker([sensor.lat, sensor.lng], { icon: markerIcon })
+      const marker = L.marker([sensor.lat!, sensor.lng!], { icon: markerIcon })
         .addTo(map)
-        .bindPopup(buildPopup(sensor), { maxWidth: 240, className: 'leaflet-popup-light' });
+        .bindPopup(buildPopup(sensor), {
+          maxWidth: 240,
+          className: "leaflet-popup-light",
+        });
 
       markersRef.current.push(marker);
     });
 
-    if (sensors.length > 0) {
-      const bounds = L.latLngBounds(sensors.map((sensor) => [sensor.lat, sensor.lng] as [number, number]));
+    if (validSensors.length > 0) {
+      const bounds = L.latLngBounds(
+        validSensors.map(
+          (sensor) => [sensor.lat!, sensor.lng!] as [number, number],
+        ),
+      );
       map.fitBounds(bounds, { padding: [44, 44], maxZoom: 12 });
     }
   }, [sensors]);
@@ -227,7 +244,7 @@ export default function PublicSensorMap({ sensors, className }: PublicSensorMapP
           right: 8px !important;
         }
       `}</style>
-      <div ref={mapContainerRef} className={`public-map ${className ?? ''}`} />
+      <div ref={mapContainerRef} className={`public-map ${className ?? ""}`} />
     </>
   );
 }

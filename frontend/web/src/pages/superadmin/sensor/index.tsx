@@ -1,11 +1,28 @@
 import { useState, useMemo } from "react";
-import { Search, Radio, ArrowUpDown, AlertTriangle, Wifi, WifiOff, Settings2, X } from "lucide-react";
+import {
+  Search,
+  Radio,
+  ArrowUpDown,
+  AlertTriangle,
+  Wifi,
+  WifiOff,
+  Settings2,
+  X,
+  MapPin,
+} from "lucide-react";
 import { StatusPill, Card, Badge } from "../../../components/ui";
 import { useSensors, useCompanies } from "../../../hooks";
+import { useUpdateSensor } from "../../../hooks/useSensors";
 import { cn, getSubsidenceColor } from "../../../lib/utils";
 import type { Sensor, SensorStatus, SensorType } from "../../../types";
 
-type SortKey = "code" | "location" | "subsidence" | "status" | "type" | "lastUpdate";
+type SortKey =
+  | "code"
+  | "location"
+  | "subsidence"
+  | "status"
+  | "type"
+  | "lastUpdate";
 
 const STATUS_ICON: Record<string, JSX.Element> = {
   online: <Wifi size={12} className="text-emerald-500" />,
@@ -14,7 +31,138 @@ const STATUS_ICON: Record<string, JSX.Element> = {
   maintenance: <Settings2 size={12} className="text-amber-500" />,
 };
 
-function DetailModal({ sensor, companyName, onClose }: { sensor: Sensor; companyName: string; onClose: () => void }) {
+function SensorEditModal({
+  sensor,
+  onClose,
+}: {
+  sensor: Sensor;
+  onClose: () => void;
+}) {
+  const updateSensor = useUpdateSensor();
+  const [lat, setLat] = useState(sensor.lat?.toString() ?? "");
+  const [lng, setLng] = useState(sensor.lng?.toString() ?? "");
+  const [location, setLocation] = useState(sensor.location);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateSensor.mutate(
+      {
+        id: sensor.id,
+        payload: {
+          latitude: lat !== "" ? parseFloat(lat) : undefined,
+          longitude: lng !== "" ? parseFloat(lng) : undefined,
+          locationDescription: location || undefined,
+        },
+      },
+      { onSuccess: onClose },
+    );
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <MapPin size={16} className="text-cyan-600" />
+            <p className="text-[14px] font-bold font-mono text-slate-800">
+              Edit Koordinat Sensor
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200"
+          >
+            <X size={13} className="text-slate-500" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+          <p className="text-[11px] text-slate-400 font-mono">{sensor.code}</p>
+          <div>
+            <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">
+              Deskripsi Lokasi
+            </label>
+            <input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="contoh: Jl. Sudirman No. 1, Bandung"
+              className="w-full text-[11px] font-mono border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 text-slate-700 focus:outline-none focus:border-cyan-400"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">
+                Latitude
+              </label>
+              <input
+                type="number"
+                step="any"
+                value={lat}
+                onChange={(e) => setLat(e.target.value)}
+                placeholder="-6.2088"
+                className="w-full text-[11px] font-mono border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 text-slate-700 focus:outline-none focus:border-cyan-400"
+              />
+            </div>
+            <div>
+              <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">
+                Longitude
+              </label>
+              <input
+                type="number"
+                step="any"
+                value={lng}
+                onChange={(e) => setLng(e.target.value)}
+                placeholder="106.8456"
+                className="w-full text-[11px] font-mono border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 text-slate-700 focus:outline-none focus:border-cyan-400"
+              />
+            </div>
+          </div>
+          <p className="text-[9px] text-slate-400 font-mono">
+            Tip: Gunakan Google Maps → klik kanan → "What's here?" untuk
+            mendapatkan koordinat.
+          </p>
+          <div className="flex gap-2 pt-1">
+            <button
+              type="submit"
+              disabled={updateSensor.isPending}
+              className="flex-1 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 disabled:opacity-50 transition-colors"
+            >
+              {updateSensor.isPending ? "Menyimpan..." : "Simpan Koordinat"}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-slate-100 text-slate-600 text-[12px] rounded-xl hover:bg-slate-200"
+            >
+              Batal
+            </button>
+          </div>
+          {updateSensor.isError && (
+            <p className="text-[10px] text-red-500 font-mono">
+              Gagal menyimpan. Coba lagi.
+            </p>
+          )}
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function DetailModal({
+  sensor,
+  companyName,
+  onClose,
+}: {
+  sensor: Sensor;
+  companyName: string;
+  onClose: () => void;
+}) {
+  const [showEdit, setShowEdit] = useState(false);
   return (
     <div
       className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -30,7 +178,9 @@ function DetailModal({ sensor, companyName, onClose }: { sensor: Sensor; company
               <Radio size={18} className="text-cyan-600" />
             </div>
             <div>
-              <p className="text-[15px] font-bold font-mono text-slate-800">{sensor.code}</p>
+              <p className="text-[15px] font-bold font-mono text-slate-800">
+                {sensor.code}
+              </p>
               <p className="text-[11px] text-slate-500">{sensor.location}</p>
             </div>
           </div>
@@ -46,21 +196,42 @@ function DetailModal({ sensor, companyName, onClose }: { sensor: Sensor; company
         </div>
         <div className="px-6 py-5 grid grid-cols-2 gap-4">
           {[
-            ["Tipe Sensor", sensor.type === "water" ? "Air Tanah (Groundwater)" : "GNSS"],
+            [
+              "Tipe Sensor",
+              sensor.type === "water" ? "Air Tanah (Groundwater)" : "GNSS",
+            ],
             ["Perusahaan", companyName],
-            ["Koordinat", `${sensor.lat.toFixed(4)}, ${sensor.lng.toFixed(4)}`],
+            [
+              "Koordinat",
+              sensor.lat != null && sensor.lng != null
+                ? `${sensor.lat.toFixed(4)}, ${sensor.lng.toFixed(4)}`
+                : "Belum diatur",
+            ],
             ["Subsidence", `${sensor.subsidence.toFixed(2)} cm/tahun`],
-            ["Muka Air Tanah", sensor.waterLevel ? `${sensor.waterLevel} m` : "-"],
-            ["Nilai Vertikal", sensor.verticalValue ? `${sensor.verticalValue} mm` : "-"],
+            [
+              "Muka Air Tanah",
+              sensor.waterLevel ? `${sensor.waterLevel} m` : "-",
+            ],
+            [
+              "Nilai Vertikal",
+              sensor.verticalValue ? `${sensor.verticalValue} mm` : "-",
+            ],
             ["Terakhir Update", sensor.lastUpdate],
-            ["Status", sensor.status.charAt(0).toUpperCase() + sensor.status.slice(1)],
+            [
+              "Status",
+              sensor.status.charAt(0).toUpperCase() + sensor.status.slice(1),
+            ],
           ].map(([k, v]) => (
             <div key={k} className="bg-slate-50 rounded-xl px-3 py-2.5">
-              <p className="text-[9px] text-slate-400 font-mono uppercase tracking-wider mb-1">{k}</p>
+              <p className="text-[9px] text-slate-400 font-mono uppercase tracking-wider mb-1">
+                {k}
+              </p>
               <p
                 className={cn(
                   "text-[12px] font-semibold",
-                  k === "Subsidence" ? getSubsidenceColor(sensor.subsidence) : "text-slate-800",
+                  k === "Subsidence"
+                    ? getSubsidenceColor(sensor.subsidence)
+                    : "text-slate-800",
                 )}
               >
                 {v}
@@ -69,13 +240,22 @@ function DetailModal({ sensor, companyName, onClose }: { sensor: Sensor; company
           ))}
         </div>
         <div className="px-6 py-4 border-t border-slate-100 flex gap-2">
-          <button className="px-4 py-2 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-xl hover:bg-slate-200 transition-colors">
-            Edit Sensor
+          <button
+            onClick={() => setShowEdit(true)}
+            className="px-4 py-2 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-1.5"
+          >
+            <MapPin size={12} /> Edit Koordinat
           </button>
-          <button onClick={onClose} className="px-4 py-2 bg-slate-50 text-slate-500 text-[12px] rounded-xl hover:bg-slate-100 transition-colors">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-slate-50 text-slate-500 text-[12px] rounded-xl hover:bg-slate-100 transition-colors"
+          >
             Tutup
           </button>
         </div>
+        {showEdit && (
+          <SensorEditModal sensor={sensor} onClose={() => setShowEdit(false)} />
+        )}
       </div>
     </div>
   );
@@ -106,8 +286,12 @@ export default function SensorPage() {
       const av: string | number = a[sortKey] as string | number;
       const bv: string | number = b[sortKey] as string | number;
       if (typeof av === "string")
-        return sortAsc ? av.localeCompare(bv as string) : (bv as string).localeCompare(av);
-      return sortAsc ? (av as number) - (bv as number) : (bv as number) - (av as number);
+        return sortAsc
+          ? av.localeCompare(bv as string)
+          : (bv as string).localeCompare(av);
+      return sortAsc
+        ? (av as number) - (bv as number)
+        : (bv as number) - (av as number);
     });
     return d;
   }, [sensors, search, statusF, typeF, sortKey, sortAsc]);
@@ -125,7 +309,10 @@ export default function SensorPage() {
     >
       <span className="flex items-center gap-1">
         {label}
-        <ArrowUpDown size={9} className={sortKey === k ? "text-cyan-500" : "text-slate-300"} />
+        <ArrowUpDown
+          size={9}
+          className={sortKey === k ? "text-cyan-500" : "text-slate-300"}
+        />
       </span>
     </th>
   );
@@ -144,7 +331,9 @@ export default function SensorPage() {
     <div className="p-3 sm:p-5 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[18px] font-semibold text-slate-800">Semua Sensor</h1>
+          <h1 className="text-[18px] font-semibold text-slate-800">
+            Semua Sensor
+          </h1>
           <p className="text-[11px] text-slate-400 font-mono mt-0.5">
             Kelola dan pantau seluruh sensor terdaftar
           </p>
@@ -157,18 +346,57 @@ export default function SensorPage() {
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Online", count: summary.online, color: "#22C55E", bg: "bg-emerald-50", border: "border-emerald-200" },
-          { label: "Alert", count: summary.alert, color: "#EF4444", bg: "bg-red-50", border: "border-red-200" },
-          { label: "Maintenance", count: summary.maintenance, color: "#F59E0B", bg: "bg-amber-50", border: "border-amber-200" },
-          { label: "Offline", count: summary.offline, color: "#94A3B8", bg: "bg-slate-50", border: "border-slate-200" },
+          {
+            label: "Online",
+            count: summary.online,
+            color: "#22C55E",
+            bg: "bg-emerald-50",
+            border: "border-emerald-200",
+          },
+          {
+            label: "Alert",
+            count: summary.alert,
+            color: "#EF4444",
+            bg: "bg-red-50",
+            border: "border-red-200",
+          },
+          {
+            label: "Maintenance",
+            count: summary.maintenance,
+            color: "#F59E0B",
+            bg: "bg-amber-50",
+            border: "border-amber-200",
+          },
+          {
+            label: "Offline",
+            count: summary.offline,
+            color: "#94A3B8",
+            bg: "bg-slate-50",
+            border: "border-slate-200",
+          },
         ].map(({ label, count, color, bg, border }) => (
-          <div key={label} className={cn("rounded-xl border px-4 py-3 flex items-center gap-3", bg, border)}>
-            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: color + "20" }}>
-              <span className="text-[14px] font-bold font-mono" style={{ color }}>
+          <div
+            key={label}
+            className={cn(
+              "rounded-xl border px-4 py-3 flex items-center gap-3",
+              bg,
+              border,
+            )}
+          >
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ background: color + "20" }}
+            >
+              <span
+                className="text-[14px] font-bold font-mono"
+                style={{ color }}
+              >
                 {count}
               </span>
             </div>
-            <span className="text-[11px] font-medium text-slate-600">{label}</span>
+            <span className="text-[11px] font-medium text-slate-600">
+              {label}
+            </span>
           </div>
         ))}
       </div>
@@ -177,7 +405,10 @@ export default function SensorPage() {
       <Card padding={false}>
         <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 flex-wrap">
           <div className="relative">
-            <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search
+              size={12}
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+            />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -186,7 +417,9 @@ export default function SensorPage() {
             />
           </div>
           <div className="flex gap-1">
-            {(["all", "online", "alert", "maintenance", "offline"] as const).map((s) => (
+            {(
+              ["all", "online", "alert", "maintenance", "offline"] as const
+            ).map((s) => (
               <button
                 key={s}
                 onClick={() => setStatusF(s)}
@@ -213,11 +446,17 @@ export default function SensorPage() {
                     : "text-slate-400 border-transparent hover:bg-slate-50",
                 )}
               >
-                {t === "all" ? "Semua Tipe" : t === "water" ? "Air Tanah" : "GNSS"}
+                {t === "all"
+                  ? "Semua Tipe"
+                  : t === "water"
+                    ? "Air Tanah"
+                    : "GNSS"}
               </button>
             ))}
           </div>
-          <span className="ml-auto text-[10px] text-slate-400 font-mono">{data.length} sensor</span>
+          <span className="ml-auto text-[10px] text-slate-400 font-mono">
+            {data.length} sensor
+          </span>
         </div>
 
         {isLoading ? (
@@ -243,19 +482,33 @@ export default function SensorPage() {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {data.map((s) => (
-                  <tr key={s.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="px-4 py-3 font-mono text-[12px] font-bold text-slate-800">{s.code}</td>
-                    <td className="px-4 py-3 text-[11px] text-slate-600">{s.location}</td>
+                  <tr
+                    key={s.id}
+                    className="hover:bg-slate-50/60 transition-colors"
+                  >
+                    <td className="px-4 py-3 font-mono text-[12px] font-bold text-slate-800">
+                      {s.code}
+                    </td>
+                    <td className="px-4 py-3 text-[11px] text-slate-600">
+                      {s.location}
+                    </td>
                     <td className="px-4 py-3">
                       <Badge variant={s.type === "water" ? "info" : "neutral"}>
                         {s.type === "water" ? "Air Tanah" : "GNSS"}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={cn("text-[12px] font-semibold font-mono", getSubsidenceColor(s.subsidence))}>
+                      <span
+                        className={cn(
+                          "text-[12px] font-semibold font-mono",
+                          getSubsidenceColor(s.subsidence),
+                        )}
+                      >
                         {s.subsidence.toFixed(2)}
                       </span>
-                      <span className="text-[9px] text-slate-400 font-mono ml-0.5">cm/thn</span>
+                      <span className="text-[9px] text-slate-400 font-mono ml-0.5">
+                        cm/thn
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-[11px] font-mono text-slate-600">
                       {s.waterLevel ?? "-"}
@@ -267,7 +520,9 @@ export default function SensorPage() {
                         <StatusPill status={s.status} />
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[10px] text-slate-400 font-mono">{s.lastUpdate}</td>
+                    <td className="px-4 py-3 text-[10px] text-slate-400 font-mono">
+                      {s.lastUpdate}
+                    </td>
                     <td className="px-4 py-3">
                       <button
                         onClick={() => setDetail(s)}
