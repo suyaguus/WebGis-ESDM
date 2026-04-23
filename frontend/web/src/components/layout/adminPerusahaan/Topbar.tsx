@@ -113,10 +113,10 @@ export default function AdminTopbar() {
           )}
         </div>
 
-        {/* Avatar */}
+        {/* Avatar
         <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-[10px] font-bold text-amber-700 cursor-pointer hover:ring-2 hover:ring-amber-200 transition-all flex-shrink-0 border border-amber-200">
           BS
-        </div>
+        </div> */}
       </div>
     </header>
   );

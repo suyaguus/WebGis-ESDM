@@ -14,6 +14,12 @@ interface RegisterAdminRequest {
   name: string;
   email: string;
   password: string;
+  phone?: string;
+  companyName: string;
+  companyAddress?: string;
+  companyEmail?: string;
+  companyPhone?: string;
+  companyType?: string;
 }
 
 /* ── Data mock untuk development ── */
@@ -117,10 +123,7 @@ export const authService = {
       return; // mock: register sukses, redirect ke login
     }
 
-    await api.post("/auth/register", {
-      ...payload,
-      role: "admin_perusahaan",
-    });
+    await api.post("/auth/register", payload);
   },
 
   /**

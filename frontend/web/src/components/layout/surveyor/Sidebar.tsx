@@ -1,10 +1,11 @@
 import React from 'react';
 import {
   LayoutDashboard, Map, Droplets, FileText,
-  ScanLine, FileBadge, User, X, ChevronRight, Send, Radio,
+  ScanLine, FileBadge, User, X, ChevronRight, Send, Radio, LogOut,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
-import { useAppStore } from '../../../store';
+import { useAppStore, useAuthStore } from '../../../store';
+import { useLogout } from '../../../hooks';
 import { SURVEYOR_PROFILE, TODAY_TASKS } from '../../../constants/surveyorData';
 
 interface NavItem {
@@ -40,6 +41,20 @@ interface SidebarProps {
 
 export default function SurveyorSidebar({ onClose }: SidebarProps) {
   const { activePage, setActivePage } = useAppStore();
+  const { user } = useAuthStore();
+  const logout = useLogout();
+
+  const userName = user?.name ?? SURVEYOR_PROFILE.name;
+  const userInitials = userName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+
+  const handleLogout = () => {
+    logout.mutate(undefined, {
+      onSettled: () => {
+        window.history.replaceState(null, '', '/login');
+        window.location.reload();
+      },
+    });
+  };
 
   const completedToday = TODAY_TASKS.filter(t => t.status === 'selesai').length;
   const totalToday     = TODAY_TASKS.length;
@@ -71,10 +86,10 @@ export default function SurveyorSidebar({ onClose }: SidebarProps) {
         <div className="rounded-xl border border-slate-100 bg-slate-50/70 px-2.5 py-2">
           <div className="flex items-center gap-2.5 mb-2">
             <div className="w-8 h-8 rounded-full bg-blue-100 ring-1 ring-blue-200 flex items-center justify-center text-[11px] font-semibold text-blue-700 flex-shrink-0">
-              {SURVEYOR_PROFILE.initials}
+              {userInitials}
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold text-slate-800 truncate">{SURVEYOR_PROFILE.name}</p>
+              <p className="text-[11px] font-semibold text-slate-800 truncate">{userName}</p>
               <p className="text-[9px] font-mono text-blue-700 tracking-wider">{SURVEYOR_PROFILE.role}</p>
             </div>
           </div>
@@ -124,6 +139,18 @@ export default function SurveyorSidebar({ onClose }: SidebarProps) {
           );
         })}
       </nav>
+
+      {/* Logout */}
+      <div className="px-3 py-2 border-t border-slate-100 flex-shrink-0">
+        <button
+          onClick={handleLogout}
+          disabled={logout.isPending}
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[12px] font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all duration-150 group"
+        >
+          <LogOut size={14} className="text-red-400 group-hover:text-red-500 flex-shrink-0" />
+          <span>{logout.isPending ? 'Keluar...' : 'Keluar'}</span>
+        </button>
+      </div>
 
       {/* Task progress footer */}
       <div className="px-4 py-3 border-t border-slate-100 bg-blue-50/40 flex-shrink-0">
