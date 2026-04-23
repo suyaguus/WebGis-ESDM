@@ -5,6 +5,9 @@ import { roleMiddleware } from "../../middleware/role.middleware";
 
 const router = express.Router();
 
+// route untuk user update profil dirinya sendiri (termasuk password)
+router.patch("/me", authMiddleware, userController.updateMe);
+
 // route untuk get semua data user
 router.get("/", authMiddleware, userController.findAll);
 

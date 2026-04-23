@@ -30,3 +30,10 @@ export type UpdateUserInput = {
   companyId?: string;
   isActive?: boolean;
 };
+
+export type UpdateMeInput = {
+  name?: string;
+  phone?: string;
+  currentPassword?: string;
+  newPassword?: string;
+};

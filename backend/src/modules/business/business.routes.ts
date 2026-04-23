@@ -13,11 +13,11 @@ router.post(
   businessController.create,
 );
 
-// GET ALL (ONLY SUPER ADMIN)
+// GET ALL
 router.get(
   "/",
   authMiddleware,
-  roleMiddleware("super_admin"),
+  roleMiddleware("super_admin", "admin_perusahaan"),
   businessController.findAll,
 );
 
