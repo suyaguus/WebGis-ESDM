@@ -34,6 +34,7 @@ import AdminDokumenPage from "@/pages/adminPerusahaan/dokumen/index";
 import AdminStatusPage from "@/pages/adminPerusahaan/status/index";
 import AdminLaporanPage from "@/pages/adminPerusahaan/laporan/index";
 import AdminKirimSurveyorPage from "@/pages/adminPerusahaan/kirim/index";
+import AdminCompanyPage from "@/pages/adminPerusahaan/perusahaan/index";
 
 /* ── Kadis ── */
 import KadisAppShell from "@/components/layout/Kadis/AppShell";
@@ -152,6 +153,8 @@ function AdminPerusahaanApp() {
         return <AdminLaporanPage />;
       case "ap-kirim":
         return <AdminKirimSurveyorPage />;
+      case "ap-perusahaan":
+        return <AdminCompanyPage />;
       case "ap-peta":
         return <AdminPetaPage />;
       default:

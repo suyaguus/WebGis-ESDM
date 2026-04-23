@@ -1,43 +1,81 @@
-import React from 'react';
+import React from "react";
 import {
-  LayoutDashboard, Map, Radio, BarChart3, Users, Building2,
-  Shield, FileText, Settings, Server, ScrollText, ChevronRight, X,
-  ClipboardCheck, SendHorizonal, LogOut,
-} from 'lucide-react';
-import { cn } from '../../../lib/utils';
-import { useAppStore, useAuthStore } from '../../../store';
-import { useLogout } from '../../../hooks';
+  LayoutDashboard,
+  Map,
+  Radio,
+  BarChart3,
+  Users,
+  Building2,
+  Shield,
+  FileText,
+  Settings,
+  Server,
+  ScrollText,
+  ChevronRight,
+  X,
+  ClipboardCheck,
+  SendHorizonal,
+  LogOut,
+} from "lucide-react";
+import { cn } from "../../../lib/utils";
+import { useAppStore, useAuthStore } from "../../../store";
+import { useLogout } from "../../../hooks";
 
 interface NavItem {
   key: string;
   label: string;
   icon: React.ElementType;
   badge?: number;
-  badgeColor?: 'red' | 'amber';
+  badgeColor?: "red" | "amber";
   section: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: 'dashboard',   label: 'Dashboard',        icon: LayoutDashboard, section: 'overview' },
-  { key: 'peta',        label: 'Peta Interaktif',  icon: Map,             section: 'overview' },
-  { key: 'sensor',      label: 'Semua Sensor',     icon: Radio,           badge: 3, badgeColor: 'red', section: 'overview' },
-  { key: 'analytics',   label: 'Analytics',        icon: BarChart3,       section: 'overview' },
-  { key: 'users',       label: 'Pengguna',         icon: Users,           badge: 12, badgeColor: 'amber', section: 'management' },
-  { key: 'companies',   label: 'Perusahaan',       icon: Building2,       section: 'management' },
-  { key: 'roles',       label: 'Role & Akses',     icon: Shield,          section: 'management' },
-  { key: 'verifikasi',  label: 'Verifikasi Data',  icon: ClipboardCheck,  badge: 5, badgeColor: 'red', section: 'verifikasi' },
-  { key: 'reports',     label: 'Laporan',          icon: FileText,        section: 'verifikasi' },
-  { key: 'kirim-kadis', label: 'Kirim ke Kadis',   icon: SendHorizonal,   section: 'verifikasi' },
-  { key: 'config',      label: 'Konfigurasi',      icon: Settings,        section: 'system' },
-  { key: 'server',      label: 'Server & API',     icon: Server,          section: 'system' },
-  { key: 'audit',       label: 'Audit Log',        icon: ScrollText,      section: 'system' },
+  {
+    key: "dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    section: "overview",
+  },
+  { key: "peta", label: "Peta Interaktif", icon: Map, section: "overview" },
+  { key: "sensor", label: "Semua Sensor", icon: Radio, section: "overview" },
+  {
+    key: "analytics",
+    label: "Analytics",
+    icon: BarChart3,
+    section: "overview",
+  },
+  { key: "users", label: "Pengguna", icon: Users, section: "management" },
+  {
+    key: "companies",
+    label: "Perusahaan",
+    icon: Building2,
+    section: "management",
+  },
+  { key: "roles", label: "Role & Akses", icon: Shield, section: "management" },
+  {
+    key: "verifikasi",
+    label: "Verifikasi Data",
+    icon: ClipboardCheck,
+    section: "verifikasi",
+  },
+  { key: "reports", label: "Laporan", icon: FileText, section: "verifikasi" },
+  {
+    key: "kirim-kadis",
+    label: "Kirim ke Kadis",
+    icon: SendHorizonal,
+    section: "verifikasi",
+  },
+  { key: "config", label: "Konfigurasi", icon: Settings, section: "system" },
+  { key: "server", label: "Server & API", icon: Server, section: "system" },
+  { key: "audit", label: "Audit Log", icon: ScrollText, section: "system" },
 ];
 
 const SECTIONS = [
-  { key: 'overview',    label: 'Overview' },
-  { key: 'management',  label: 'Manajemen' },
-  { key: 'verifikasi',  label: 'Verifikasi & Laporan' },
-  { key: 'system',      label: 'Sistem' },
+  { key: "overview", label: "Overview" },
+  { key: "management", label: "Manajemen" },
+  { key: "verifikasi", label: "Verifikasi & Laporan" },
+  { key: "system", label: "Sistem" },
 ];
 
 interface SidebarProps {
@@ -49,13 +87,18 @@ export default function Sidebar({ onClose }: SidebarProps) {
   const { user } = useAuthStore();
   const logout = useLogout();
 
-  const userName = user?.name ?? 'Pengguna';
-  const userInitials = userName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  const userName = user?.name ?? "Pengguna";
+  const userInitials = userName
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   const handleLogout = () => {
     logout.mutate(undefined, {
       onSettled: () => {
-        window.history.replaceState(null, '', '/login');
+        window.history.replaceState(null, "", "/login");
         window.location.reload();
       },
     });
@@ -69,8 +112,12 @@ export default function Sidebar({ onClose }: SidebarProps) {
           <Map size={16} className="text-white" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-semibold text-slate-800 leading-none tracking-[0.04em]">SIGAT</p>
-          <p className="text-[9px] font-mono text-cyan-700/90 tracking-wide mt-0.5">Sistem Informasi Geologi dan Air Tanah</p>
+          <p className="text-[13px] font-semibold text-slate-800 leading-none tracking-[0.04em]">
+            SIGAT
+          </p>
+          <p className="text-[9px] font-mono text-cyan-700/90 tracking-wide mt-0.5">
+            Sistem Informasi Geologi dan Air Tanah
+          </p>
         </div>
         {/* Close button — mobile only */}
         {onClose && (
@@ -90,8 +137,12 @@ export default function Sidebar({ onClose }: SidebarProps) {
             {userInitials}
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold text-slate-800 truncate">{userName}</p>
-            <p className="text-[9px] font-mono text-cyan-700 tracking-wider">SUPER ADMIN</p>
+            <p className="text-[11px] font-semibold text-slate-800 truncate">
+              {userName}
+            </p>
+            <p className="text-[9px] font-mono text-cyan-700 tracking-wider">
+              SUPER ADMIN
+            </p>
           </div>
         </div>
       </div>
@@ -113,28 +164,42 @@ export default function Sidebar({ onClose }: SidebarProps) {
                     key={item.key}
                     onClick={() => setActivePage(item.key)}
                     className={cn(
-                      'w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] font-medium transition-all duration-150 relative group',
+                      "w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] font-medium transition-all duration-150 relative group",
                       isActive
-                        ? 'text-cyan-700 bg-cyan-50 border-r-2 border-cyan-600'
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50',
+                        ? "text-cyan-700 bg-cyan-50 border-r-2 border-cyan-600"
+                        : "text-slate-500 hover:text-slate-700 hover:bg-slate-50",
                     )}
                   >
                     <Icon
                       size={14}
-                      className={cn('flex-shrink-0', isActive ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-500')}
+                      className={cn(
+                        "flex-shrink-0",
+                        isActive
+                          ? "text-cyan-600"
+                          : "text-slate-400 group-hover:text-slate-500",
+                      )}
                     />
-                    <span className="flex-1 text-left truncate">{item.label}</span>
+                    <span className="flex-1 text-left truncate">
+                      {item.label}
+                    </span>
                     {item.badge && (
                       <span
                         className={cn(
-                          'text-[9px] font-mono font-medium px-1.5 py-0.5 rounded-full flex-shrink-0',
-                          item.badgeColor === 'red' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700',
+                          "text-[9px] font-mono font-medium px-1.5 py-0.5 rounded-full flex-shrink-0",
+                          item.badgeColor === "red"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-amber-100 text-amber-700",
                         )}
                       >
                         {item.badge}
                       </span>
                     )}
-                    {isActive && <ChevronRight size={10} className="text-cyan-400 flex-shrink-0" />}
+                    {isActive && (
+                      <ChevronRight
+                        size={10}
+                        className="text-cyan-400 flex-shrink-0"
+                      />
+                    )}
                   </button>
                 );
               })}
@@ -150,20 +215,23 @@ export default function Sidebar({ onClose }: SidebarProps) {
           disabled={logout.isPending}
           className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[12px] font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all duration-150 group"
         >
-          <LogOut size={14} className="text-red-400 group-hover:text-red-500 flex-shrink-0" />
-          <span>{logout.isPending ? 'Keluar...' : 'Keluar'}</span>
+          <LogOut
+            size={14}
+            className="text-red-400 group-hover:text-red-500 flex-shrink-0"
+          />
+          <span>{logout.isPending ? "Keluar..." : "Keluar"}</span>
         </button>
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/60 flex-shrink-0">
+      {/* <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/60 flex-shrink-0">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 pulse-dot flex-shrink-0" />
           <span className="text-[9px] font-mono text-slate-500">SISTEM ONLINE</span>
           <span className="ml-auto text-[9px] font-mono text-slate-400">99.8%</span>
         </div>
         <p className="text-[9px] font-mono text-slate-400 mt-0.5">Uptime bulan ini</p>
-      </div>
+      </div> */}
     </aside>
   );
 }

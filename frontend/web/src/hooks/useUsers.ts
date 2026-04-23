@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { userService } from "@/services/user.service";
+import type { UpdateMeRequest } from "@/services/user.service";
 import type {
   CreateAdminPerusahaanRequest,
   CreateUserRequest,
@@ -73,5 +74,11 @@ export function useDeleteUser() {
   return useMutation({
     mutationFn: (id: string) => userService.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: [USERS_KEY] }),
+  });
+}
+
+export function useUpdateMe() {
+  return useMutation({
+    mutationFn: (payload: UpdateMeRequest) => userService.updateMe(payload),
   });
 }
