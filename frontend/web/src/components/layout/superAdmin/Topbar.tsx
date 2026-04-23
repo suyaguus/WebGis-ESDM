@@ -115,9 +115,9 @@ export default function Topbar() {
         </div>
 
         {/* Avatar */}
-        <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-[10px] font-bold text-purple-700 cursor-pointer hover:ring-2 hover:ring-purple-200 transition-all flex-shrink-0 border border-purple-200">
+        {/* <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-[10px] font-bold text-purple-700 cursor-pointer hover:ring-2 hover:ring-purple-200 transition-all flex-shrink-0 border border-purple-200">
           AF
-        </div>
+        </div> */}
       </div>
     </header>
   );

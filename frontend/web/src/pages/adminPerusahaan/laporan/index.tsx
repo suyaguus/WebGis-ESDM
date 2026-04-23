@@ -5,14 +5,12 @@ import { MOCK_COMPANIES, COMPANY_SENSORS } from '../../../constants/mockData';
 import { cn } from '../../../lib/utils';
 
 const REPORT_TYPES = [
-  { key: 'subsidence', label: 'Laporan Subsidence',    desc: 'Tren penurunan tanah per sensor',    icon: TrendingDown, color: 'bg-red-50 border-red-200 text-red-700'         },
   { key: 'water',      label: 'Laporan Muka Air',      desc: 'Fluktuasi level air tanah',           icon: Droplets,     color: 'bg-blue-50 border-blue-200 text-blue-700'       },
   { key: 'quota',      label: 'Laporan Kuota',         desc: 'Penggunaan izin pengambilan air',     icon: BarChart3,    color: 'bg-amber-50 border-amber-200 text-amber-700'   },
   { key: 'compliance', label: 'Laporan Kepatuhan',     desc: 'Kesesuaian regulasi dan izin',        icon: Shield,       color: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
 ];
 
 const RECENT_REPORTS = [
-  { id: 'r1', name: 'Laporan Subsidence Q1 2026',       type: 'Subsidence', date: '15 Apr 2026', size: '2.4 MB', format: 'PDF',  status: 'done'       },
   { id: 'r2', name: 'Laporan Kuota Maret 2026',         type: 'Kuota',      date: '01 Apr 2026', size: '0.8 MB', format: 'XLSX', status: 'done'       },
   { id: 'r3', name: 'Laporan Muka Air Q1 2026',         type: 'Muka Air',   date: '31 Mar 2026', size: '1.9 MB', format: 'PDF',  status: 'done'       },
   { id: 'r4', name: 'Laporan Kepatuhan Feb 2026',       type: 'Kepatuhan',  date: '28 Feb 2026', size: '1.1 MB', format: 'PDF',  status: 'done'       },
@@ -178,7 +176,7 @@ export default function AdminLaporanPage() {
           </div>
           <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/50 flex-shrink-0">
             <button className="text-[10px] text-amber-600 hover:text-amber-700 font-medium w-full text-center">
-              Lihat semua laporan →
+              Lihat semua laporan
             </button>
           </div>
         </Card>

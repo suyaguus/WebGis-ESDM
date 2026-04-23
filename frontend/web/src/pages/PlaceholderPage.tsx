@@ -46,9 +46,7 @@ export default function PlaceholderPage({ page }: { page: string }) {
           Halaman ini sedang dalam pengembangan
         </p>
       </div>
-      <span className="text-[10px] font-mono bg-slate-100 text-slate-500 px-3 py-1 rounded-full">
-        COMING SOON
-      </span>
+      
     </div>
   );
 }

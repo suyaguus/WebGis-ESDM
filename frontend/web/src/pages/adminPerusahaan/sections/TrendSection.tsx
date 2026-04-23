@@ -21,14 +21,14 @@ export default function AdminTrendSection() {
       data: {
         labels: COMPANY_TREND_DATA.map(d => d.label),
         datasets: [
-          {
-            label: 'Subsidence (cm/thn)',
-            data: COMPANY_TREND_DATA.map(d => d.subsidence),
-            borderColor: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.08)',
-            fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2,
-            pointBackgroundColor: '#F59E0B', pointBorderColor: '#fff', pointBorderWidth: 1.5,
-            yAxisID: 'y',
-          },
+          // {
+          //   label: 'Subsidence (cm/thn)',
+          //   data: COMPANY_TREND_DATA.map(d => d.subsidence),
+          //   borderColor: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.08)',
+          //   fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2,
+          //   pointBackgroundColor: '#F59E0B', pointBorderColor: '#fff', pointBorderWidth: 1.5,
+          //   yAxisID: 'y',
+          // },
           {
             label: 'Muka Air (m)',
             data: COMPANY_TREND_DATA.map(d => d.waterLevel),
@@ -82,7 +82,7 @@ export default function AdminTrendSection() {
 
   return (
     <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden flex flex-col min-w-0">
-      <SectionHeader title="Tren 12 Bulan — Subsidence & Muka Air" icon={<TrendingDown size={13} />} accent="#F59E0B" />
+      <SectionHeader title="Tren 12 Bulan Muka Air" icon={<TrendingDown size={13} />} accent="#F59E0B" />
       <div className="px-4 pt-3 pb-2">
         <div style={{ position: 'relative', height: 180 }}>
           <canvas ref={ref} />
@@ -91,7 +91,7 @@ export default function AdminTrendSection() {
       {/* Summary row */}
       <div className="grid grid-cols-3 divide-x divide-slate-100 border-t border-slate-100 flex-shrink-0">
         {[
-          { label: 'Subsidence Mar', value: `${latest.subsidence.toFixed(2)}`, unit: 'cm/thn', color: '#F59E0B' },
+          // { label: 'Subsidence Mar', value: `${latest.subsidence.toFixed(2)}`, unit: 'cm/thn', color: '#F59E0B' },
           { label: 'Muka Air Mar',   value: `${latest.waterLevel.toFixed(1)}`, unit: 'm',      color: '#3B82F6' },
           { label: 'Threshold',      value: '-4.00',                           unit: 'kritis',  color: '#EF4444' },
         ].map(({ label, value, unit, color }) => (

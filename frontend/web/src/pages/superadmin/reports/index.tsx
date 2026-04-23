@@ -14,7 +14,6 @@ import { MOCK_COMPANIES } from '../../../constants/mockData';
 import { cn } from '../../../lib/utils';
 
 const REPORT_TYPES = [
-  { key: 'subsidence', label: 'Laporan Subsidence', desc: 'Tren penurunan tanah per sensor & wilayah', icon: <FontAwesomeIcon icon={faFile} />, color: 'bg-red-50 border-red-200 text-red-700' },
   { key: 'water',      label: 'Laporan Muka Air',   desc: 'Fluktuasi level muka air tanah',           icon: <FontAwesomeIcon icon={faWater} />, color: 'bg-blue-50 border-blue-200 text-blue-700' },
   { key: 'quota',      label: 'Laporan Kuota',       desc: 'Penggunaan izin pengambilan air tanah',    icon: <FontAwesomeIcon icon={faChartSimple} />, color: 'bg-amber-50 border-amber-200 text-amber-700' },
   { key: 'compliance', label: 'Laporan Kepatuhan',   desc: 'Status kepatuhan per perusahaan',          icon: <FontAwesomeIcon icon={faCheck} />, color: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
@@ -23,7 +22,6 @@ const REPORT_TYPES = [
 ];
 
 const RECENT_REPORTS = [
-  { id: 'r1', name: 'Laporan Subsidence Q1 2026', type: 'Subsidence', generated: '15 Apr 2026', size: '2.4 MB', format: 'PDF', status: 'done' },
   { id: 'r2', name: 'Kepatuhan Kuota Maret 2026', type: 'Kuota', generated: '01 Apr 2026', size: '1.1 MB', format: 'XLSX', status: 'done' },
   { id: 'r3', name: 'Laporan Sensor Bulanan Mar',  type: 'Sensor',    generated: '31 Mar 2026', size: '3.8 MB', format: 'PDF', status: 'done' },
   { id: 'r4', name: 'Laporan Kepatuhan Feb 2026',  type: 'Kepatuhan', generated: '28 Feb 2026', size: '0.9 MB', format: 'PDF', status: 'done' },
