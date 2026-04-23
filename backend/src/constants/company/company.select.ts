@@ -9,6 +9,8 @@ export const COMPANY_SELECT: Prisma.CompanySelect = {
   type: true,
   isVerified: true,
   isActive: true,
+  quota: true,
+  quotaUsed: true,
   createdAt: true,
   updatedAt: true,
 
@@ -27,8 +29,21 @@ export const COMPANY_SELECT: Prisma.CompanySelect = {
       address: true,
       phone: true,
       createdAt: true,
-    }
-  }
+    },
+  },
+
+  wells: {
+    select: {
+      subsidenceRate: true,
+    },
+  },
+
+  _count: {
+    select: {
+      wells: true,
+      users: true,
+    },
+  },
 };
 
 export const COMPANY_SELECT_DELETE: Prisma.CompanySelect = {

@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import * as userService from "./user.service";
-import { CreateUserInput, UpdateUserInput } from "./user.type";
+import {
+  CreateAdminPerusahaanInput,
+  CreateUserInput,
+  UpdateUserInput,
+} from "./user.type";
 import {
   successResponse,
   errorResponse,
@@ -29,11 +33,36 @@ export const create = async (
   }
 };
 
-// controller get all data user
-export const findAll = async (_req: Request, res: Response) => {
-  const users = await userService.getUsers();
+// controller create admin_perusahaan beserta perusahaan dalam 1 transaksi
+export const createAdminPerusahaan = async (
+  req: Request<{}, {}, CreateAdminPerusahaanInput>,
+  res: Response,
+) => {
+  try {
+    const result = await userService.createAdminPerusahaan(
+      req.body,
+      req.user!.id,
+    );
+    return successResponse(res, result, "Admin perusahaan berhasil dibuat");
+  } catch (err) {
+    return errorResponse(
+      res,
+      err instanceof Error ? err.message : MESSAGES.ERROR.DEFAULT,
+    );
+  }
+};
 
-  return successResponse(res, users, MESSAGES.SUCCESS.GET);
+// controller get all data user dengan pagination
+export const findAll = async (req: Request, res: Response) => {
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.max(
+    1,
+    Math.min(100, parseInt(req.query.limit as string) || 5),
+  );
+
+  const result = await userService.getUsers(page, limit);
+
+  return successResponse(res, result, MESSAGES.SUCCESS.GET);
 };
 
 // controller get data user by id

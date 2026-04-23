@@ -1,279 +1,184 @@
-import { useState } from 'react'
-import { Settings, Save, RotateCcw, Check, Mail, Bell, AlertTriangle, Globe } from 'lucide-react'
-import Topbar from '@/components/layout/Topbar'
-import { Panel } from '@/components/ui'
-import { cn } from '@/lib/utils'
+import { useState } from 'react';
+import { Settings, Save, AlertTriangle, Bell, Map, Database } from 'lucide-react';
+import { Card, SectionHeader } from '../../../../../web/src/components/ui';
+import { cn } from '../../../../../web/src/lib/utils';
 
-const TABS = [
-  { key: 'umum',       label: 'Umum',         Icon: Globe        },
-  { key: 'threshold',  label: 'Threshold',    Icon: AlertTriangle},
-  { key: 'email',      label: 'Email & SMTP', Icon: Mail         },
-  { key: 'notifikasi', label: 'Notifikasi',   Icon: Bell         },
-]
-
-function Field({ label, desc, children }: { label: string; desc?: string; children: React.ReactNode }) {
+function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div className="flex items-start justify-between gap-8 py-5 border-b border-border-light last:border-b-0">
-      <div className="flex-1 min-w-0">
-        <p className="text-[12px] font-semibold text-text-primary">{label}</p>
-        {desc && <p className="text-[10px] text-text-muted mt-0.5 leading-relaxed">{desc}</p>}
-      </div>
-      <div className="flex-shrink-0">{children}</div>
-    </div>
-  )
-}
-
-function Toggle({ value, onChange }: { value: boolean; onChange: () => void }) {
-  return (
-    <button onClick={onChange}
-      className={cn('w-10 h-5 rounded-full transition-all relative flex-shrink-0',
-        value ? 'bg-accent-cyan' : 'bg-border-strong')}>
-      <span className={cn('absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all',
-        value ? 'left-[22px]' : 'left-0.5')} />
+    <button onClick={() => onChange(!value)}
+      className={cn('relative w-9 h-5 rounded-full transition-colors flex-shrink-0', value ? 'bg-cyan-500' : 'bg-slate-200')}>
+      <span className={cn('absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all', value ? 'left-4' : 'left-0.5')} />
     </button>
-  )
-}
-
-function TextInput({ value, onChange, placeholder, type = 'text', width = 'w-64' }: {
-  value: string; onChange: (v: string) => void; placeholder?: string; type?: string; width?: string
-}) {
-  return (
-    <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-      className={cn('bg-bg-card3 border border-border-base rounded-lg px-3 h-9 text-[11px] text-text-primary outline-none focus:border-accent-cyan placeholder:text-text-muted transition-colors', width)} />
-  )
-}
-
-function NumberInput({ value, onChange, unit }: { value: number; onChange: (v: number) => void; unit?: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <input type="number" value={value} onChange={e => onChange(Number(e.target.value))}
-        className="w-24 bg-bg-card3 border border-border-base rounded-lg px-3 h-9 text-[11px] text-text-primary outline-none focus:border-accent-cyan text-right transition-colors" />
-      {unit && <span className="text-[10px] text-text-muted font-mono">{unit}</span>}
-    </div>
-  )
+  );
 }
 
 export default function ConfigPage() {
-  const [tab, setTab] = useState('umum')
-  const [saved, setSaved] = useState(false)
+  const [saved, setSaved] = useState(false);
+  const [config, setConfig] = useState({
+    subsidenceThreshold: -4.0,
+    alertEmail: true,
+    alertSMS: false,
+    alertPush: true,
+    autoRefresh: 30,
+    dataRetention: 365,
+    mapDefault: 'Street',
+    tileServer: 'OpenStreetMap',
+    enableHeatmap: true,
+    enableClustering: true,
+    maintenanceMode: false,
+    debugMode: false,
+    backupFreq: 'Harian',
+    maxFileSize: 10,
+    sessionTimeout: 60,
+  });
 
-  /* ── State ─── */
-  const [appName, setAppName]         = useState('WebGIS SIPASTI')
-  const [appVersion, setAppVersion]   = useState('2.0.1')
-  const [timezone, setTimezone]       = useState('Asia/Jakarta')
-  const [language, setLanguage]       = useState('id')
-  const [maintenanceMode, setMM]      = useState(false)
-  const [autoBackup, setAB]           = useState(true)
-  const [backupInterval, setBI]       = useState(24)
-  const [dataRetention, setDR]        = useState(365)
-
-  const [threshSubsidence, setTS]     = useState(-4.0)
-  const [threshWarning, setTW]        = useState(-3.0)
-  const [threshAirKritis, setTAK]     = useState(-3.5)
-  const [threshAirWaspada, setTAW]    = useState(-2.0)
-  const [threshOffline, setTO]        = useState(120)
-
-  const [smtpHost, setSH]             = useState('smtp.gmail.com')
-  const [smtpPort, setSP]             = useState(587)
-  const [smtpUser, setSU]             = useState('noreply@webgis.id')
-  const [smtpPass, setSPw]            = useState('••••••••••••')
-  const [fromName, setFN]             = useState('WebGIS SIPASTI')
-  const [fromEmail, setFE]            = useState('noreply@webgis.id')
-
-  const [notifKritis, setNK]          = useState(true)
-  const [notifWaspada, setNW]         = useState(true)
-  const [notifOffline, setNO]         = useState(true)
-  const [notifLaporan, setNL]         = useState(true)
-  const [notifUser, setNU]            = useState(false)
-  const [alertDelay, setAD]           = useState(5)
-  const [digestFreq, setDF]           = useState('daily')
-
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 3000) }
+  const update = <K extends keyof typeof config>(k: K, v: typeof config[K]) => setConfig(c => ({ ...c, [k]: v }));
+  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2000); };
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <Topbar
-        breadcrumbs={[{ label: 'Super Admin' }, { label: 'Konfigurasi' }]}
-        actions={
-          <div className="flex items-center gap-2">
-            {saved && <span className="text-[10px] text-accent-green flex items-center gap-1.5 font-medium"><Check size={12} />Tersimpan</span>}
-            <button className="flex items-center gap-1.5 text-[10px] font-medium text-text-secondary border border-border-base rounded-lg px-3 h-8 hover:bg-bg-card3 transition-colors">
-              <RotateCcw size={12} /> Reset
-            </button>
-            <button onClick={handleSave}
-              className="flex items-center gap-1.5 text-[10px] font-semibold bg-accent-cyan text-white rounded-lg px-3 h-8 hover:bg-teal-700 transition-colors">
-              <Save size={12} /> Simpan Perubahan
-            </button>
-          </div>
-        }
-      />
-
-      <div className="flex h-full min-h-0 overflow-hidden">
-        {/* Vertical tab list */}
-        <div className="w-48 flex-shrink-0 bg-bg-card border-r border-border-base p-3 space-y-1">
-          {TABS.map(({ key, label, Icon }) => (
-            <button key={key} onClick={() => setTab(key)}
-              className={cn('w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[11px] font-medium transition-all text-left',
-                tab === key ? 'bg-fill-cyan text-accent-cyan' : 'text-text-muted hover:text-text-secondary hover:bg-bg-card3')}>
-              <Icon size={13} className="flex-shrink-0" />
-              {label}
-            </button>
-          ))}
+    <div className="p-3 sm:p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-[18px] font-semibold text-slate-800">Konfigurasi Sistem</h1>
+          <p className="text-[11px] text-slate-400 font-mono mt-0.5">Pengaturan global aplikasi SIGAT</p>
         </div>
+        <button onClick={handleSave}
+          className={cn('px-4 py-2 text-[12px] font-semibold rounded-xl flex items-center gap-2 transition-all',
+            saved ? 'bg-emerald-600 text-white' : 'bg-cyan-600 text-white hover:bg-cyan-700')}>
+          <Save size={13} /> {saved ? 'Tersimpan ✓' : 'Simpan Perubahan'}
+        </button>
+      </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {tab === 'umum' && (
-            <div className="max-w-2xl space-y-4">
-              <Panel title="Informasi Aplikasi" icon={<Globe size={12} className="text-accent-cyan" />}>
-                <div className="px-5">
-                  <Field label="Nama Aplikasi" desc="Nama yang ditampilkan di halaman dan email notifikasi">
-                    <TextInput value={appName} onChange={setAppName} />
-                  </Field>
-                  <Field label="Versi" desc="Versi current yang sedang berjalan">
-                    <TextInput value={appVersion} onChange={setAppVersion} width="w-32" />
-                  </Field>
-                  <Field label="Timezone" desc="Zona waktu untuk timestamp data dan laporan">
-                    <select value={timezone} onChange={e => setTimezone(e.target.value)}
-                      className="bg-bg-card3 border border-border-base rounded-lg px-3 h-9 text-[11px] text-text-secondary outline-none focus:border-accent-cyan w-52 cursor-pointer">
-                      <option value="Asia/Jakarta">Asia/Jakarta (WIB, UTC+7)</option>
-                      <option value="Asia/Makassar">Asia/Makassar (WITA, UTC+8)</option>
-                      <option value="Asia/Jayapura">Asia/Jayapura (WIT, UTC+9)</option>
-                    </select>
-                  </Field>
-                  <Field label="Bahasa Default">
-                    <select value={language} onChange={e => setLanguage(e.target.value)}
-                      className="bg-bg-card3 border border-border-base rounded-lg px-3 h-9 text-[11px] text-text-secondary outline-none focus:border-accent-cyan w-40 cursor-pointer">
-                      <option value="id">Bahasa Indonesia</option>
-                      <option value="en">English</option>
-                    </select>
-                  </Field>
-                </div>
-              </Panel>
-              <Panel title="Sistem & Data" icon={<Settings size={12} className="text-accent-purple" />}>
-                <div className="px-5">
-                  <Field label="Mode Maintenance" desc="Nonaktifkan akses user sementara selama pemeliharaan sistem">
-                    <Toggle value={maintenanceMode} onChange={() => setMM(!maintenanceMode)} />
-                  </Field>
-                  <Field label="Auto Backup" desc="Backup otomatis database setiap interval yang ditentukan">
-                    <Toggle value={autoBackup} onChange={() => setAB(!autoBackup)} />
-                  </Field>
-                  {autoBackup && (
-                    <Field label="Interval Backup" desc="Seberapa sering backup otomatis dijalankan">
-                      <NumberInput value={backupInterval} onChange={setBI} unit="jam" />
-                    </Field>
-                  )}
-                  <Field label="Retensi Data" desc="Berapa lama data sensor historis disimpan dalam database">
-                    <NumberInput value={dataRetention} onChange={setDR} unit="hari" />
-                  </Field>
-                </div>
-              </Panel>
+      <div className="grid grid-cols-2 gap-4">
+        {/* Alert settings */}
+        <Card padding={false}>
+          <SectionHeader title="Threshold & Alert" icon={<AlertTriangle size={13} />} accent="#EF4444" />
+          <div className="p-4 space-y-4">
+            <div>
+              <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">Threshold Subsidence (cm/tahun)</label>
+              <input type="number" step="0.1" value={config.subsidenceThreshold}
+                onChange={e => update('subsidenceThreshold', parseFloat(e.target.value))}
+                className="w-full text-[13px] font-mono font-semibold border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 text-red-600 focus:outline-none focus:border-red-300" />
+              <p className="text-[9px] text-slate-400 font-mono mt-1">Sensor melebihi nilai ini akan masuk status KRITIS</p>
             </div>
-          )}
-
-          {tab === 'threshold' && (
-            <div className="max-w-2xl space-y-4">
-              <Panel title="Threshold Subsidence (GNSS)" icon={<AlertTriangle size={12} className="text-accent-red" />}>
-                <div className="px-5">
-                  <Field label="Batas Kritis" desc="Sensor GNSS dengan nilai di bawah ini akan ditandai KRITIS dan memicu alert segera">
-                    <NumberInput value={threshSubsidence} onChange={setTS} unit="cm/thn" />
-                  </Field>
-                  <Field label="Batas Waspada" desc="Sensor GNSS dengan nilai di bawah ini akan ditandai WASPADA">
-                    <NumberInput value={threshWarning} onChange={setTW} unit="cm/thn" />
-                  </Field>
-                </div>
-              </Panel>
-              <Panel title="Threshold Air Tanah" icon={<AlertTriangle size={12} className="text-accent-amber" />}>
-                <div className="px-5">
-                  <Field label="Batas Kritis Muka Air" desc="Sensor air tanah dengan muka air di bawah ini ditandai KRITIS">
-                    <NumberInput value={threshAirKritis} onChange={setTAK} unit="meter" />
-                  </Field>
-                  <Field label="Batas Waspada Muka Air" desc="Sensor air tanah dengan muka air di bawah ini ditandai WASPADA">
-                    <NumberInput value={threshAirWaspada} onChange={setTAW} unit="meter" />
-                  </Field>
-                </div>
-              </Panel>
-              <Panel title="Threshold Konektivitas" icon={<AlertTriangle size={12} className="text-accent-blue" />}>
-                <div className="px-5">
-                  <Field label="Batas Offline" desc="Sensor yang tidak mengirim data lebih dari durasi ini akan ditandai OFFLINE">
-                    <NumberInput value={threshOffline} onChange={setTO} unit="menit" />
-                  </Field>
-                </div>
-              </Panel>
+            <div>
+              <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-2">Saluran Notifikasi Alert</label>
+              <div className="space-y-2.5">
+                {[
+                  { label: 'Email Notifikasi', key: 'alertEmail' as const },
+                  { label: 'SMS Notifikasi',   key: 'alertSMS'   as const },
+                  { label: 'Push Notification',key: 'alertPush'  as const },
+                ].map(({ label, key }) => (
+                  <div key={key} className="flex items-center justify-between">
+                    <span className="text-[11px] text-slate-600">{label}</span>
+                    <Toggle value={config[key] as boolean} onChange={v => update(key, v)} />
+                  </div>
+                ))}
+              </div>
             </div>
-          )}
+          </div>
+        </Card>
 
-          {tab === 'email' && (
-            <div className="max-w-2xl space-y-4">
-              <Panel title="Konfigurasi SMTP" icon={<Mail size={12} className="text-accent-blue" />}>
-                <div className="px-5">
-                  <Field label="SMTP Host" desc="Server SMTP untuk pengiriman email">
-                    <TextInput value={smtpHost} onChange={setSH} placeholder="smtp.gmail.com" />
-                  </Field>
-                  <Field label="SMTP Port">
-                    <NumberInput value={smtpPort} onChange={setSP} />
-                  </Field>
-                  <Field label="Username SMTP">
-                    <TextInput value={smtpUser} onChange={setSU} type="email" />
-                  </Field>
-                  <Field label="Password SMTP">
-                    <TextInput value={smtpPass} onChange={setSPw} type="password" />
-                  </Field>
+        {/* Map settings */}
+        <Card padding={false}>
+          <SectionHeader title="Pengaturan Peta" icon={<Map size={13} />} />
+          <div className="p-4 space-y-4">
+            <div>
+              <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">Layer Peta Default</label>
+              <div className="grid grid-cols-3 gap-2">
+                {['Street','Satellite','Terrain'].map(l => (
+                  <button key={l} onClick={() => update('mapDefault', l)}
+                    className={cn('py-2 text-[10px] font-mono font-medium rounded-lg border transition-all',
+                      config.mapDefault === l ? 'bg-cyan-600 text-white border-cyan-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100')}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">Tile Server</label>
+              <select value={config.tileServer} onChange={e => update('tileServer', e.target.value)}
+                className="w-full text-[11px] font-mono border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 text-slate-700 focus:outline-none focus:border-cyan-400">
+                {['OpenStreetMap','Mapbox Streets','Mapbox Satellite','CartoDB Light'].map(o => <option key={o}>{o}</option>)}
+              </select>
+            </div>
+            <div className="space-y-2.5">
+              {[
+                { label: 'Aktifkan Heatmap Layer', key: 'enableHeatmap'   as const },
+                { label: 'Aktifkan Marker Clustering', key: 'enableClustering' as const },
+              ].map(({ label, key }) => (
+                <div key={key} className="flex items-center justify-between">
+                  <span className="text-[11px] text-slate-600">{label}</span>
+                  <Toggle value={config[key] as boolean} onChange={v => update(key, v)} />
                 </div>
-              </Panel>
-              <Panel title="Pengirim Email" icon={<Mail size={12} className="text-accent-cyan" />}>
-                <div className="px-5">
-                  <Field label="From Name" desc="Nama pengirim yang terlihat di inbox penerima">
-                    <TextInput value={fromName} onChange={setFN} />
-                  </Field>
-                  <Field label="From Email" desc="Alamat email pengirim">
-                    <TextInput value={fromEmail} onChange={setFE} type="email" />
-                  </Field>
+              ))}
+            </div>
+          </div>
+        </Card>
+
+        {/* System settings */}
+        <Card padding={false}>
+          <SectionHeader title="Sistem & Performa" icon={<Settings size={13} />} />
+          <div className="p-4 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: 'Auto Refresh (detik)', key: 'autoRefresh' as const, min: 10, max: 300, step: 5 },
+                { label: 'Session Timeout (menit)', key: 'sessionTimeout' as const, min: 15, max: 480, step: 15 },
+                { label: 'Max File Upload (MB)', key: 'maxFileSize' as const, min: 1, max: 50, step: 1 },
+              ].map(({ label, key, min, max, step }) => (
+                <div key={key}>
+                  <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">{label}</label>
+                  <input type="number" min={min} max={max} step={step} value={config[key] as number}
+                    onChange={e => update(key, parseInt(e.target.value))}
+                    className="w-full text-[12px] font-mono border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 text-slate-800 focus:outline-none focus:border-cyan-400" />
                 </div>
-              </Panel>
-              <button className="flex items-center gap-2 text-[11px] font-semibold text-accent-blue border border-accent-blue/30 bg-fill-blue rounded-xl px-4 py-2.5 hover:bg-blue-50 transition-colors">
-                <Mail size={13} /> Kirim Email Test
+              ))}
+            </div>
+            <div className="space-y-2.5 pt-1">
+              {[
+                { label: 'Mode Maintenance', key: 'maintenanceMode' as const, danger: true },
+                { label: 'Mode Debug (log verbose)', key: 'debugMode'       as const, danger: false },
+              ].map(({ label, key, danger }) => (
+                <div key={key} className="flex items-center justify-between">
+                  <span className={cn('text-[11px]', danger && config[key] ? 'text-red-600 font-semibold' : 'text-slate-600')}>{label}</span>
+                  <Toggle value={config[key] as boolean} onChange={v => update(key, v)} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+
+        {/* Database settings */}
+        <Card padding={false}>
+          <SectionHeader title="Database & Backup" icon={<Database size={13} />} />
+          <div className="p-4 space-y-4">
+            <div>
+              <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">Retensi Data (hari)</label>
+              <input type="number" value={config.dataRetention} min={90} max={3650}
+                onChange={e => update('dataRetention', parseInt(e.target.value))}
+                className="w-full text-[12px] font-mono border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 text-slate-800 focus:outline-none focus:border-cyan-400" />
+              <p className="text-[9px] text-slate-400 font-mono mt-1">Data lebih lama dari ini akan diarsipkan otomatis</p>
+            </div>
+            <div>
+              <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">Frekuensi Backup</label>
+              <div className="grid grid-cols-3 gap-2">
+                {['Harian','Mingguan','Manual'].map(f => (
+                  <button key={f} onClick={() => update('backupFreq', f)}
+                    className={cn('py-2 text-[10px] font-mono font-medium rounded-lg border transition-all',
+                      config.backupFreq === f ? 'bg-cyan-600 text-white border-cyan-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100')}>
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="pt-1">
+              <button className="w-full py-2 bg-slate-800 text-white text-[11px] font-semibold rounded-xl hover:bg-slate-900 transition-colors">
+                Jalankan Backup Sekarang
               </button>
             </div>
-          )}
-
-          {tab === 'notifikasi' && (
-            <div className="max-w-2xl space-y-4">
-              <Panel title="Jenis Notifikasi" icon={<Bell size={12} className="text-accent-purple" />}>
-                <div className="px-5">
-                  {[
-                    { label: 'Alert Kritis',          desc: 'Notifikasi segera saat sensor melebihi threshold kritis', value: notifKritis, onChange: () => setNK(!notifKritis) },
-                    { label: 'Alert Waspada',          desc: 'Notifikasi saat sensor masuk zona waspada',              value: notifWaspada,onChange: () => setNW(!notifWaspada) },
-                    { label: 'Sensor Offline',         desc: 'Notifikasi saat sensor berhenti mengirim data',          value: notifOffline,onChange: () => setNO(!notifOffline) },
-                    { label: 'Laporan Baru',           desc: 'Notifikasi saat ada laporan baru menunggu persetujuan', value: notifLaporan,onChange: () => setNL(!notifLaporan) },
-                    { label: 'Pendaftaran Pengguna',   desc: 'Notifikasi saat ada user baru menunggu verifikasi',     value: notifUser,   onChange: () => setNU(!notifUser)    },
-                  ].map((n) => (
-                    <Field key={n.label} label={n.label} desc={n.desc}>
-                      <Toggle value={n.value} onChange={n.onChange} />
-                    </Field>
-                  ))}
-                </div>
-              </Panel>
-              <Panel title="Pengaturan Lanjutan" icon={<Bell size={12} className="text-accent-amber" />}>
-                <div className="px-5">
-                  <Field label="Delay Alert" desc="Tunggu sebelum mengirim alert (mencegah false positive)">
-                    <NumberInput value={alertDelay} onChange={setAD} unit="menit" />
-                  </Field>
-                  <Field label="Frekuensi Digest Email" desc="Seberapa sering ringkasan harian dikirim">
-                    <select value={digestFreq} onChange={e => setDF(e.target.value)}
-                      className="bg-bg-card3 border border-border-base rounded-lg px-3 h-9 text-[11px] text-text-secondary outline-none focus:border-accent-cyan w-40 cursor-pointer">
-                      <option value="realtime">Real-time</option>
-                      <option value="hourly">Per Jam</option>
-                      <option value="daily">Harian</option>
-                      <option value="weekly">Mingguan</option>
-                    </select>
-                  </Field>
-                </div>
-              </Panel>
-            </div>
-          )}
-        </div>
+          </div>
+        </Card>
       </div>
     </div>
-  )
+  );
 }

@@ -11,6 +11,11 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+.env.example
+# Claude files
+claude.md
+.claude
 
 # Editor directories and files
 .vscode/*
@@ -22,3 +27,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+FOLDER_STRUCTURE.md

@@ -36,7 +36,7 @@ router.patch(
 router.delete(
   "/:id",
   authMiddleware,
-  roleMiddleware("super_admin"),
+  roleMiddleware("super_admin", "admin_perusahaan"),
   businessController.remove,
 );
 

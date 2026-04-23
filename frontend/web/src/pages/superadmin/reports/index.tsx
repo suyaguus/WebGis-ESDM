@@ -1,287 +1,321 @@
-import { useState } from 'react'
+import { useState, useMemo } from "react";
+import { FileText, Download, Calendar, CheckCircle, Clock } from "lucide-react";
+import { Card, SectionHeader } from "../../../components/ui";
 import {
-  FileText, Download, Eye, Check, X,
-  Filter, Search, Clock, CheckCircle2, XCircle,
-  FileDown, ChevronRight, Calendar,
-} from 'lucide-react'
-import Topbar from '@/components/layout/Topbar'
-import { Panel, Badge, StatusPill } from '@/components/ui'
-import { cn } from '@/lib/utils'
+  faChartSimple,
+  faGear,
+  faSatelliteDish,
+  faCheck,
+  faWater,
+  faFile,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useCompanies } from "../../../hooks";
+import { useVerificationReports } from "../../../hooks/useReports";
+import { cn } from "../../../lib/utils";
 
-type ReportStatus = 'approved' | 'pending' | 'draft' | 'rejected'
-
-interface Report {
-  id: string
-  title: string
-  company: string
-  type: 'subsidence' | 'air_tanah' | 'tahunan' | 'bulanan'
-  period: string
-  status: ReportStatus
-  submittedBy: string
-  submittedAt: string
-  approvedBy?: string
-  approvedAt?: string
-  pages: number
-  sensorCount: number
+function formatDate(iso: string) {
+  try {
+    return new Intl.DateTimeFormat("id-ID", { dateStyle: "medium" }).format(
+      new Date(iso),
+    );
+  } catch {
+    return iso;
+  }
 }
 
-const REPORTS: Report[] = [
-  { id:'1',  title:'Laporan Subsidence Q1 2026',       company:'PT Maju Jaya Tbk',    type:'subsidence', period:'Jan–Mar 2026', status:'pending',  submittedBy:'Budi Raharjo',   submittedAt:'08 Apr 2026', pages:24, sensorCount:34 },
-  { id:'2',  title:'Laporan Muka Air Q1 2026',          company:'PT Tirta Mandiri',    type:'air_tanah',  period:'Jan–Mar 2026', status:'pending',  submittedBy:'Sari Wulandari', submittedAt:'07 Apr 2026', pages:18, sensorCount:27 },
-  { id:'3',  title:'Laporan Tahunan 2025',              company:'PT Karya Makmur',     type:'tahunan',    period:'Jan–Des 2025', status:'approved', submittedBy:'Dedi Haryanto',  submittedAt:'05 Apr 2026', approvedBy:'Ahmad Fauzi', approvedAt:'07 Apr 2026', pages:48, sensorCount:15 },
-  { id:'4',  title:'Laporan Subsidence Q4 2025',        company:'PT Bumi Raya',        type:'subsidence', period:'Okt–Des 2025', status:'rejected', submittedBy:'Rina Kusuma',    submittedAt:'15 Jan 2026', pages:20, sensorCount:18 },
-  { id:'5',  title:'Laporan Bulanan Mar 2026',          company:'PT Sumber Air',       type:'bulanan',    period:'Mar 2026',     status:'draft',    submittedBy:'Agus Pratama',   submittedAt:'01 Apr 2026', pages:12, sensorCount:21 },
-  { id:'6',  title:'Laporan Tahunan 2025',              company:'PT Maju Jaya Tbk',    type:'tahunan',    period:'Jan–Des 2025', status:'approved', submittedBy:'Budi Raharjo',   submittedAt:'10 Jan 2026', approvedBy:'Ahmad Fauzi', approvedAt:'12 Jan 2026', pages:52, sensorCount:34 },
-  { id:'7',  title:'Laporan Muka Air Q4 2025',          company:'PT Indo Nusantara',   type:'air_tanah',  period:'Okt–Des 2025', status:'approved', submittedBy:'Hendra Saputra', submittedAt:'08 Jan 2026', approvedBy:'Ahmad Fauzi', approvedAt:'10 Jan 2026', pages:15, sensorCount:11 },
-  { id:'8',  title:'Laporan Subsidence Semester II 2025', company:'PT Tirta Mandiri', type:'subsidence', period:'Jul–Des 2025', status:'approved', submittedBy:'Sari Wulandari', submittedAt:'03 Jan 2026', approvedBy:'Ahmad Fauzi', approvedAt:'05 Jan 2026', pages:30, sensorCount:27 },
-]
-
-const STATUS_CFG: Record<ReportStatus, { label: string; icon: React.ElementType; color: string; bg: string; badgeVariant: 'success'|'warning'|'info'|'critical' }> = {
-  approved: { label: 'Disetujui', icon: CheckCircle2, color: 'text-accent-green', bg: 'bg-fill-green', badgeVariant: 'success'  },
-  pending:  { label: 'Menunggu',  icon: Clock,        color: 'text-accent-amber', bg: 'bg-fill-amber', badgeVariant: 'warning'  },
-  draft:    { label: 'Draft',     icon: FileText,     color: 'text-accent-blue',  bg: 'bg-fill-blue',  badgeVariant: 'info'     },
-  rejected: { label: 'Ditolak',   icon: XCircle,      color: 'text-accent-red',   bg: 'bg-fill-red',   badgeVariant: 'critical' },
-}
-
-const TYPE_LABELS = { subsidence: 'Subsidence', air_tanah: 'Air Tanah', tahunan: 'Tahunan', bulanan: 'Bulanan' }
-
-/* ── Preview Modal ─────────────────────────────────────────────────── */
-function ReportPreviewModal({ report, onClose, onApprove, onReject }: {
-  report: Report; onClose: () => void
-  onApprove: () => void; onReject: () => void
-}) {
-  const cfg = STATUS_CFG[report.status]
-  const Icon = cfg.icon
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-bg-card border border-border-base rounded-2xl shadow-[0_20px_60px_rgba(15,23,42,0.15)] w-[520px] max-h-[85vh] flex flex-col"
-        onClick={e => e.stopPropagation()}>
-        <div className="flex items-start gap-3 px-6 py-5 border-b border-border-base bg-bg-card3">
-          <div className="w-10 h-10 rounded-xl bg-fill-blue flex items-center justify-center flex-shrink-0">
-            <FileText size={18} className="text-accent-blue" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-bold text-text-primary truncate">{report.title}</p>
-            <p className="text-[10px] text-text-muted mt-0.5">{report.company} · {report.period}</p>
-            <div className="flex items-center gap-2 mt-1.5">
-              <div className={cn('inline-flex items-center gap-1 text-[9px] font-mono font-semibold px-2 py-0.5 rounded-full', cfg.bg, cfg.color)}>
-                <Icon size={9} /> {cfg.label}
-              </div>
-              <span className="text-[9px] text-text-muted">{report.pages} hal · {report.sensorCount} sensor</span>
-            </div>
-          </div>
-          <button onClick={onClose}><X size={16} className="text-text-muted hover:text-text-primary transition-colors" /></button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { k: 'Disubmit oleh', v: report.submittedBy },
-              { k: 'Tanggal Submit', v: report.submittedAt },
-              { k: 'Tipe Laporan',  v: TYPE_LABELS[report.type] },
-              { k: 'Periode',       v: report.period },
-              { k: 'Jumlah Sensor', v: `${report.sensorCount} sensor` },
-              { k: 'Halaman',       v: `${report.pages} halaman` },
-            ].map(({ k, v }) => (
-              <div key={k} className="bg-bg-card3 rounded-lg p-3">
-                <p className="text-[8px] text-text-muted uppercase tracking-wide mb-1">{k}</p>
-                <p className="text-[11px] font-semibold text-text-primary">{v}</p>
-              </div>
-            ))}
-          </div>
-
-          {report.approvedBy && (
-            <div className="bg-fill-green border border-accent-green/20 rounded-xl p-4">
-              <p className="text-[10px] font-semibold text-accent-green mb-1">Disetujui oleh</p>
-              <p className="text-[12px] font-bold text-text-primary">{report.approvedBy}</p>
-              <p className="text-[10px] text-text-muted mt-0.5">{report.approvedAt}</p>
-            </div>
-          )}
-
-          {/* Mock PDF preview */}
-          <div className="bg-bg-card3 border border-border-base rounded-xl h-48 flex flex-col items-center justify-center gap-3 text-text-muted">
-            <FileText size={32} className="opacity-30" />
-            <p className="text-[11px]">Preview dokumen PDF</p>
-            <button className="flex items-center gap-1.5 text-[10px] text-accent-blue hover:text-blue-700 transition-colors">
-              <FileDown size={12} /> Unduh PDF ({report.pages} hal)
-            </button>
-          </div>
-        </div>
-
-        <div className="flex gap-2 px-6 py-4 border-t border-border-base bg-bg-card3">
-          <button onClick={onClose} className="flex-1 border border-border-base rounded-xl py-2.5 text-[11px] font-semibold text-text-secondary hover:bg-bg-card3 transition-colors flex items-center justify-center gap-2">
-            <Download size={13} /> Unduh
-          </button>
-          {report.status === 'pending' && (
-            <>
-              <button onClick={onReject} className="flex-1 bg-fill-red border border-accent-red/20 rounded-xl py-2.5 text-[11px] font-semibold text-accent-red hover:bg-red-50 transition-colors flex items-center justify-center gap-1.5">
-                <X size={13} /> Tolak
-              </button>
-              <button onClick={onApprove} className="flex-1 bg-accent-green text-white rounded-xl py-2.5 text-[11px] font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-1.5">
-                <Check size={13} /> Setujui
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
+const REPORT_TYPES = [
+  {
+    key: "subsidence",
+    label: "Laporan Subsidence",
+    desc: "Tren penurunan tanah per sensor & wilayah",
+    icon: <FontAwesomeIcon icon={faFile} />,
+    color: "bg-red-50 border-red-200 text-red-700",
+  },
+  {
+    key: "water",
+    label: "Laporan Muka Air",
+    desc: "Fluktuasi level muka air tanah",
+    icon: <FontAwesomeIcon icon={faWater} />,
+    color: "bg-blue-50 border-blue-200 text-blue-700",
+  },
+  {
+    key: "quota",
+    label: "Laporan Kuota",
+    desc: "Penggunaan izin pengambilan air tanah",
+    icon: <FontAwesomeIcon icon={faChartSimple} />,
+    color: "bg-amber-50 border-amber-200 text-amber-700",
+  },
+  {
+    key: "compliance",
+    label: "Laporan Kepatuhan",
+    desc: "Status kepatuhan per perusahaan",
+    icon: <FontAwesomeIcon icon={faCheck} />,
+    color: "bg-emerald-50 border-emerald-200 text-emerald-700",
+  },
+  {
+    key: "sensor",
+    label: "Laporan Sensor",
+    desc: "Status operasional dan histori sensor",
+    icon: <FontAwesomeIcon icon={faSatelliteDish} />,
+    color: "bg-purple-50 border-purple-200 text-purple-700",
+  },
+  {
+    key: "custom",
+    label: "Laporan Kustom",
+    desc: "Pilih parameter dan rentang sendiri",
+    icon: <FontAwesomeIcon icon={faGear} />,
+    color: "bg-slate-50 border-slate-200 text-slate-700",
+  },
+];
 
 export default function ReportsPage() {
-  const [reports, setReports] = useState<Report[]>(REPORTS)
-  const [search,   setSearch]   = useState('')
-  const [status,   setStatus]   = useState<ReportStatus | 'all'>('all')
-  const [preview,  setPreview]  = useState<Report | null>(null)
+  const { data: companies = [] } = useCompanies();
+  const { data: allReports = [], isLoading: loadingReports } =
+    useVerificationReports();
 
-  const filtered = reports.filter(r => {
-    if (status !== 'all' && r.status !== status) return false
-    if (search) {
-      const q = search.toLowerCase()
-      return r.title.toLowerCase().includes(q) || r.company.toLowerCase().includes(q)
-    }
-    return true
-  })
+  const recentReports = useMemo(
+    () =>
+      [...allReports]
+        .filter((r) => r.status === "APPROVED")
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        )
+        .slice(0, 10),
+    [allReports],
+  );
 
-  const approve = (id: string) => {
-    setReports(rs => rs.map(r => r.id === id ? { ...r, status: 'approved', approvedBy: 'Ahmad Fauzi', approvedAt: '10 Apr 2026' } : r))
-    setPreview(null)
-  }
-  const reject = (id: string) => {
-    setReports(rs => rs.map(r => r.id === id ? { ...r, status: 'rejected' } : r))
-    setPreview(null)
-  }
+  const [selectedType, setSelectedType] = useState("");
+  const [company, setCompany] = useState("all");
+  const [period, setPeriod] = useState("Q1 2026");
+  const [format, setFormat] = useState("PDF");
+  const [generating, setGenerating] = useState(false);
+  const [done, setDone] = useState(false);
 
-  const pendingCount = reports.filter(r => r.status === 'pending').length
+  const handleGenerate = () => {
+    if (!selectedType) return;
+    setGenerating(true);
+    setDone(false);
+    setTimeout(() => {
+      setGenerating(false);
+      setDone(true);
+    }, 2200);
+  };
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <Topbar breadcrumbs={[{ label: 'Super Admin' }, { label: 'Laporan' }]} />
+    <div className="p-3 sm:p-5 space-y-4">
+      <div>
+        <h1 className="text-[18px] font-semibold text-slate-800">Laporan</h1>
+        <p className="text-[11px] text-slate-400 font-mono mt-0.5">
+          Generate dan unduh laporan sistem pemantauan
+        </p>
+      </div>
 
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
-        {/* Summary */}
-        <div className="grid grid-cols-4 gap-3">
-          {([
-            ['all', 'Total Laporan', reports.length, 'text-accent-blue'],
-            ['approved', 'Disetujui', reports.filter(r => r.status === 'approved').length, 'text-accent-green'],
-            ['pending',  'Menunggu',  pendingCount, 'text-accent-amber'],
-            ['rejected', 'Ditolak',   reports.filter(r => r.status === 'rejected').length, 'text-accent-red'],
-          ] as const).map(([key, label, val, color]) => (
-            <div key={key}
-              onClick={() => setStatus(key)}
-              className={cn('bg-bg-card border border-border-base rounded-xl p-4 shadow-card cursor-pointer hover:shadow-card-hover transition-shadow',
-                status === key && 'ring-2 ring-accent-cyan/30')}>
-              <p className="text-[9px] text-text-muted uppercase tracking-wide font-mono mb-1">{label}</p>
-              <p className={cn('text-[26px] font-bold font-mono leading-none', color)}>{val}</p>
-              {key === 'pending' && val > 0 && (
-                <p className="text-[9px] text-accent-amber mt-1">Butuh persetujuan</p>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Pending alert */}
-        {pendingCount > 0 && (
-          <div className="flex items-center gap-3 px-4 py-3 bg-fill-amber border border-accent-amber/20 rounded-xl">
-            <Clock size={16} className="text-accent-amber flex-shrink-0" />
-            <p className="text-[11px] text-accent-amber font-medium">
-              {pendingCount} laporan menunggu persetujuan Anda
-            </p>
-            <button onClick={() => setStatus('pending')} className="ml-auto text-[10px] font-semibold text-accent-amber hover:text-amber-700 transition-colors flex items-center gap-1">
-              Tinjau Sekarang <ChevronRight size={12} />
-            </button>
-          </div>
-        )}
-
-        <Panel
-          title="Semua Laporan"
-          icon={<FileText size={12} className="text-accent-blue" />}
-          headerRight={<span className="text-[10px] font-mono text-text-muted">{filtered.length} laporan</span>}
-        >
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-border-base bg-bg-card3">
-            <div className="flex items-center gap-2 bg-bg-card border border-border-base rounded-lg px-3 h-8 min-w-[220px]">
-              <Search size={12} className="text-text-muted flex-shrink-0" />
-              <input value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Cari laporan, perusahaan..."
-                className="bg-transparent outline-none text-[11px] text-text-primary placeholder:text-text-muted flex-1" />
-            </div>
-            <div className="flex items-center gap-1 bg-bg-card border border-border-base rounded-lg p-1">
-              {(['all','pending','approved','rejected','draft'] as const).map((s) => (
-                <button key={s} onClick={() => setStatus(s)}
-                  className={cn('px-2.5 py-1 rounded-md text-[10px] font-medium transition-all',
-                    status === s ? 'bg-bg-card3 text-text-primary shadow-sm border border-border-base' : 'text-text-muted hover:text-text-secondary')}>
-                  {s === 'all' ? 'Semua' : STATUS_CFG[s]?.label ?? s}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
+        <div className="space-y-4">
+          {/* Report type selector */}
+          <Card padding={false}>
+            <SectionHeader
+              title="Pilih Jenis Laporan"
+              icon={<FileText size={13} />}
+            />
+            <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {REPORT_TYPES.map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => setSelectedType(t.key)}
+                  className={cn(
+                    "text-left p-3 rounded-xl border transition-all",
+                    selectedType === t.key
+                      ? "border-cyan-300 ring-1 ring-cyan-200 bg-cyan-50/30"
+                      : `hover:shadow-sm bg-white border-slate-100`,
+                  )}
+                >
+                  <span className="text-xl mb-2 block">{t.icon}</span>
+                  <p className="text-[11px] font-semibold text-slate-800 mb-0.5">
+                    {t.label}
+                  </p>
+                  <p className="text-[9px] text-slate-400 font-mono leading-relaxed">
+                    {t.desc}
+                  </p>
                 </button>
               ))}
             </div>
-          </div>
+          </Card>
 
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Laporan</th>
-                <th>Perusahaan</th>
-                <th>Tipe</th>
-                <th>Periode</th>
-                <th>Disubmit</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((report) => {
-                const cfg = STATUS_CFG[report.status]
-                const Icon = cfg.icon
-                return (
-                  <tr key={report.id} className="cursor-pointer group" onClick={() => setPreview(report)}>
-                    <td>
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-fill-blue flex items-center justify-center flex-shrink-0">
-                          <FileText size={13} className="text-accent-blue" />
-                        </div>
-                        <div>
-                          <p className="text-[11px] font-semibold text-text-primary">{report.title}</p>
-                          <p className="text-[9px] text-text-muted">{report.pages} hal · {report.sensorCount} sensor</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="text-text-secondary text-[11px]">{report.company}</td>
-                    <td>
-                      <span className="text-[9px] font-mono bg-bg-card3 text-text-secondary px-2 py-0.5 rounded-md">
-                        {TYPE_LABELS[report.type]}
+          {/* Parameters */}
+          <Card>
+            <h3 className="text-[13px] font-semibold text-slate-800 mb-4 flex items-center gap-2">
+              <Calendar size={13} className="text-cyan-600" /> Parameter Laporan
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">
+                  Periode
+                </label>
+                <select
+                  value={period}
+                  onChange={(e) => setPeriod(e.target.value)}
+                  className="w-full text-[11px] font-mono border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 text-slate-700 focus:outline-none focus:border-cyan-400"
+                >
+                  {[
+                    "Q1 2026",
+                    "Q4 2025",
+                    "Q3 2025",
+                    "Q2 2025",
+                    "Q1 2025",
+                    "Kustom",
+                  ].map((p) => (
+                    <option key={p}>{p}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">
+                  Perusahaan
+                </label>
+                <select
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                  className="w-full text-[11px] font-mono border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 text-slate-700 focus:outline-none focus:border-cyan-400"
+                >
+                  <option value="all">Semua Perusahaan</option>
+                  {companies.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">
+                  Format Output
+                </label>
+                <div className="flex gap-2">
+                  {["PDF", "XLSX", "CSV"].map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setFormat(f)}
+                      className={cn(
+                        "flex-1 py-2 text-[10px] font-mono font-semibold rounded-lg border transition-all",
+                        format === f
+                          ? "bg-cyan-600 text-white border-cyan-600"
+                          : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100",
+                      )}
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">
+                  Opsi Tambahan
+                </label>
+                <div className="space-y-1.5">
+                  {["Sertakan grafik", "Sertakan peta", "Kirim ke email"].map(
+                    (o) => (
+                      <label
+                        key={o}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          className="w-3 h-3 accent-cyan-600"
+                        />
+                        <span className="text-[10px] text-slate-600">{o}</span>
+                      </label>
+                    ),
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <button
+                onClick={handleGenerate}
+                disabled={!selectedType || generating}
+                className={cn(
+                  "w-full py-2.5 text-[12px] font-semibold rounded-xl transition-all",
+                  selectedType && !generating
+                    ? "bg-cyan-600 text-white hover:bg-cyan-700"
+                    : "bg-slate-100 text-slate-400 cursor-not-allowed",
+                )}
+              >
+                {generating
+                  ? "⏳ Membuat laporan..."
+                  : done
+                    ? "✅ Laporan siap diunduh"
+                    : "Generate Laporan"}
+              </button>
+            </div>
+          </Card>
+        </div>
+
+        {/* Recent reports */}
+        <Card padding={false} className="flex flex-col">
+          <SectionHeader
+            title="Laporan Terverifikasi"
+            icon={<Download size={13} />}
+            subtitle={
+              loadingReports ? "Memuat..." : `${recentReports.length} laporan`
+            }
+          />
+          <div className="flex-1 divide-y divide-slate-50 overflow-y-auto">
+            {loadingReports ? (
+              <div className="px-4 py-8 text-center text-[10px] text-slate-400 font-mono">
+                Memuat...
+              </div>
+            ) : recentReports.length === 0 ? (
+              <div className="px-4 py-8 text-center text-[10px] text-slate-400 font-mono">
+                Belum ada laporan terverifikasi
+              </div>
+            ) : (
+              recentReports.map((r) => (
+                <div
+                  key={r.id}
+                  className="px-4 py-3 hover:bg-slate-50/60 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <p className="text-[11px] font-semibold text-slate-700 leading-tight">
+                      {r.wellName}
+                    </p>
+                    <CheckCircle
+                      size={12}
+                      className="text-emerald-500 flex-shrink-0 mt-0.5"
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-500 truncate mb-1">
+                    {r.companyName}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-mono text-slate-400">
+                      {formatDate(r.createdAt)}
+                    </span>
+                    <span className="text-[9px] font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">
+                      {r.surveyorName}
+                    </span>
+                    {r.waterQuality && (
+                      <span
+                        className={cn(
+                          "text-[8px] font-mono px-1.5 py-0.5 rounded-full border",
+                          r.waterQuality === "BAIK"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : r.waterQuality === "SEDANG"
+                              ? "bg-amber-50 text-amber-700 border-amber-200"
+                              : "bg-red-50 text-red-700 border-red-200",
+                        )}
+                      >
+                        {r.waterQuality}
                       </span>
-                    </td>
-                    <td className="td-mono text-text-muted">{report.period}</td>
-                    <td className="td-mono text-text-muted">{report.submittedAt}</td>
-                    <td>
-                      <div className={cn('inline-flex items-center gap-1.5 text-[9px] font-mono font-semibold px-2 py-1 rounded-full', cfg.bg, cfg.color)}>
-                        <Icon size={9} /> {cfg.label}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="text-text-muted hover:text-accent-cyan transition-colors"><Eye size={13} /></button>
-                        <button className="text-text-muted hover:text-accent-blue transition-colors"><Download size={13} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </Panel>
-
-        <div className="h-2" />
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
       </div>
-
-      {preview && (
-        <ReportPreviewModal
-          report={preview}
-          onClose={() => setPreview(null)}
-          onApprove={() => approve(preview.id)}
-          onReject={() => reject(preview.id)}
-        />
-      )}
     </div>
-  )
+  );
 }
