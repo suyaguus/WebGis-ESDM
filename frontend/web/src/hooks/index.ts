@@ -1,6 +1,7 @@
 export * from "./useAuth";
 export * from "./useSensors";
 export * from "./useCompanies";
+export * from "./useBusinesses";
 export * from "./useAlerts";
 export * from "./useAnalytics";
 export * from "./useReports";

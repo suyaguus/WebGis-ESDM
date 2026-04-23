@@ -16,6 +16,13 @@ import type {
   UpdateUserRequest,
 } from "@/types/api";
 
+export interface UpdateMeRequest {
+  name?: string;
+  phone?: string;
+  currentPassword?: string;
+  newPassword?: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -117,5 +124,13 @@ export const userService = {
 
   delete: async (id: string): Promise<void> => {
     await api.delete(`/users/${id}`);
+  },
+
+  updateMe: async (payload: UpdateMeRequest): Promise<User> => {
+    const { data } = await api.patch<{ data: BackendUser }>(
+      "/users/me",
+      payload,
+    );
+    return mapUser(data.data);
   },
 };

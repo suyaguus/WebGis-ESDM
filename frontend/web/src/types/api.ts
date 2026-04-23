@@ -196,6 +196,37 @@ export interface CreateCompanyRequest {
 
 export interface UpdateCompanyRequest extends Partial<CreateCompanyRequest> {}
 
+/** Response dari GET /api/businesses */
+export interface BackendBusiness {
+  id: string;
+  name: string;
+  address: string | null;
+  phone: string | null;
+  createdAt: string;
+  updatedAt: string;
+  company: {
+    id: string;
+    name: string;
+    email: string | null;
+    type: string | null;
+    isVerified: boolean;
+    createdBy: string | null;
+  };
+}
+
+export interface CreateBusinessRequest {
+  name: string;
+  address?: string;
+  phone?: string;
+  companyId?: string; // auto-filled on backend for admin_perusahaan
+}
+
+export interface UpdateBusinessRequest {
+  name?: string;
+  address?: string;
+  phone?: string;
+}
+
 export interface CreateMeasurementRequest {
   wellId: string;
   waterDepth: number;
