@@ -96,14 +96,16 @@ model Well {
   pumpDepth      Float?
   pipeDiameter   Float?
 
-  // Pengukuran geodetik
-  subsidenceRate Float? // laju penurunan tanah (cm/tahun)
-  verticalValue  Float? // nilai vertikal GNSS (m)
+  // Pengukuran Muka Air Tanah
+  staticWaterLevel          Float? // Kedalaman muka air tanah (m dari permukaan)
+  waterLevelTrend           WaterLevelTrend?
+  lastWaterLevelMeasurement DateTime?
 
-  createdBy String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  isActive  Boolean  @default(true)
+  createdBy  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+  isActive   Boolean  @default(true)
+  isVerified Boolean  @default(false)
 
   company  Company   @relation(fields: [companyId], references: [id])
   business Business? @relation(fields: [businessId], references: [id])
@@ -208,6 +210,13 @@ enum WellType {
   perusahaan
   non_perusahaan
   rumah_tangga
+}
+
+enum WaterLevelTrend {
+  rising
+  falling
+  stable
+  unknown
 }
 
 model AuditLog {

@@ -9,12 +9,13 @@ type Role =
   | "supervisor";
 
 type RegisterInput = {
-  name: string;
+  name?: string;
   email: string;
   password: string;
   phone?: string;
-  // Data perusahaan
-  companyName: string;
+  role?: Role;
+  // Data perusahaan (optional, hanya untuk admin_perusahaan)
+  companyName?: string;
   companyAddress?: string;
   companyEmail?: string;
   companyPhone?: string;
@@ -31,11 +32,40 @@ export const registerUser = async (data: RegisterInput) => {
   }
 
   const hashedPassword = await bcrypt.hash(data.password, 10);
+  const userRole = data.role || "admin_perusahaan";
+  const userName: string = data.name ?? data.email.split("@")[0] ?? "User";
+
+  // Jika super_admin, tidak perlu company
+  if (userRole === "super_admin") {
+    const user = await prisma.user.create({
+      data: {
+        name: userName,
+        email: data.email,
+        password: hashedPassword,
+        phone: data.phone,
+        role: "super_admin",
+        isVerified: true,
+        isActive: true,
+      },
+    });
+
+    const { password, ...safeUser } = user;
+    return { user: safeUser };
+  }
+
+  // Untuk admin_perusahaan, wajib ada companyName
+  if (!data.companyName) {
+    throw new Error(
+      "companyName wajib diisi untuk admin_perusahaan registration",
+    );
+  }
+
+  const companyName = data.companyName;
 
   return prisma.$transaction(async (tx) => {
     const company = await tx.company.create({
       data: {
-        name: data.companyName,
+        name: companyName,
         address: data.companyAddress,
         email: data.companyEmail,
         phone: data.companyPhone,
@@ -47,7 +77,7 @@ export const registerUser = async (data: RegisterInput) => {
 
     const user = await tx.user.create({
       data: {
-        name: data.name,
+        name: userName,
         email: data.email,
         password: hashedPassword,
         phone: data.phone,

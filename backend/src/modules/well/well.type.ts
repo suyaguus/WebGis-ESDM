@@ -1,4 +1,4 @@
-import { WellType } from "@prisma/client";
+import { WellType, WaterLevelTrend } from "@prisma/client";
 
 export type CreateWellInput = {
   name: string;
@@ -14,6 +14,11 @@ export type CreateWellInput = {
   pumpCapacity?: number;
   pumpDepth?: number;
   pipeDiameter?: number;
+
+  // Groundwater level measurement (input dalam CM, akan dikonversi ke M di backend)
+  staticWaterLevelCm?: number;
+  waterLevelTrend?: WaterLevelTrend;
+  lastWaterLevelMeasurement?: Date | string;
 };
 
 export type UpdateWellInput = Partial<CreateWellInput>;
