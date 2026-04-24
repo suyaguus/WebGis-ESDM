@@ -64,3 +64,11 @@ export function useDeleteSensor() {
     onSuccess: () => qc.invalidateQueries({ queryKey: [SENSORS_KEY] }),
   });
 }
+
+export function useVerifyWell() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => sensorService.verify(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [SENSORS_KEY] }),
+  });
+}

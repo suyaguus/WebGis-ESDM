@@ -29,9 +29,10 @@ function mapWellToSensor(w: BackendWell): Sensor {
     lat: w.latitude ?? null,
     lng: w.longitude ?? null,
     status: w.isActive ? "online" : "offline",
-    subsidence: w.subsidenceRate ?? 0,
-    waterLevel: w.depthMeter ?? undefined,
-    verticalValue: w.verticalValue ?? undefined,
+    staticWaterLevel: w.staticWaterLevel ?? null,
+    waterLevelTrend: w.waterLevelTrend,
+    isActive: w.isActive,
+    isVerified: w.isVerified,
     companyId: w.company.id,
     lastUpdate:
       new Date(w.updatedAt).toLocaleTimeString("id-ID", {
@@ -166,5 +167,15 @@ export const sensorService = {
 
   delete: async (id: string): Promise<void> => {
     await api.delete(`/wells/${id}`);
+  },
+
+  verify: async (id: string): Promise<Sensor> => {
+    const { data: response } = await api.patch<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendWell;
+    }>(`/wells/${id}/verify`);
+    return mapWellToSensor(response.data);
   },
 };
