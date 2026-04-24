@@ -65,9 +65,11 @@ export interface BackendWell {
   pumpCapacity: number | null;
   pumpDepth: number | null;
   pipeDiameter: number | null;
-  subsidenceRate: number | null; // laju penurunan tanah (cm/tahun)
-  verticalValue: number | null; // nilai vertikal GNSS (m)
+  staticWaterLevel: number | null; // Kedalaman muka air tanah (m dari permukaan)
+  waterLevelTrend: "rising" | "falling" | "stable" | "unknown" | null;
+  lastWaterLevelMeasurement: string | null; // ISO datetime
   isActive: boolean;
+  isVerified: boolean;
   createdAt: string;
   updatedAt: string;
   company: {
@@ -186,8 +188,10 @@ export interface CreateSensorRequest {
   pumpCapacity?: number;
   pumpDepth?: number;
   pipeDiameter?: number;
-  subsidenceRate?: number;
-  verticalValue?: number;
+  staticWaterLevelCm?: number; // Input dari frontend dalam CM, akan dikonversi ke M di backend
+  waterLevelTrend?: "rising" | "falling" | "stable" | "unknown";
+  lastWaterLevelMeasurement?: string; // ISO datetime
+  isActive?: boolean; // Active/inactive status for visibility on maps
 }
 
 export interface UpdateSensorRequest extends Partial<CreateSensorRequest> {}

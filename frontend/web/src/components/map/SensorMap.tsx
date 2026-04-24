@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { getWaterLevelTrendLabel } from "../../lib/groundwater";
 import type { Sensor } from "../../types";
 
 interface SensorMapProps {
@@ -88,24 +89,30 @@ function makeIcon(color: string, status: Sensor["status"]): L.DivIcon {
    Popup HTML
    ──────────────────────────────────────────── */
 function buildPopup(sensor: Sensor, color: string): string {
-  const subColor =
-    sensor.subsidence <= -4.0
-      ? "#EF4444"
-      : sensor.subsidence <= -2.5
+  const waterLevelCm =
+    sensor.staticWaterLevel !== null && sensor.staticWaterLevel !== undefined
+      ? (sensor.staticWaterLevel * 100).toFixed(2)
+      : "-";
+  const trendLabel = sensor.waterLevelTrend
+    ? getWaterLevelTrendLabel(sensor.waterLevelTrend)
+    : "Tidak Diketahui";
+  const trendColor =
+    sensor.waterLevelTrend === "rising"
+      ? "#22C55E"
+      : sensor.waterLevelTrend === "falling"
         ? "#F59E0B"
-        : "#22C55E";
+        : "#3B82F6";
 
-  const rows: [string, string][] = [
-    ["Tipe", sensor.type === "water" ? "Air Tanah" : "GNSS"],
-    ["Status", sensor.status.charAt(0).toUpperCase() + sensor.status.slice(1)],
-    ["Subsidence", `${sensor.subsidence.toFixed(2)} cm/thn`],
-    ...(sensor.waterLevel !== undefined
-      ? [["Muka Air", `${sensor.waterLevel} m`] as [string, string]]
-      : []),
-    ...(sensor.verticalValue !== undefined
-      ? [["Nilai Vertikal", `${sensor.verticalValue} mm`] as [string, string]]
-      : []),
-    ["Update", sensor.lastUpdate],
+  const rows: [string, string, string][] = [
+    ["Tipe", sensor.type === "water" ? "Air Tanah" : "GNSS", "#475569"],
+    [
+      "Status",
+      sensor.status.charAt(0).toUpperCase() + sensor.status.slice(1),
+      color,
+    ],
+    ["Muka Air Tanah", `${waterLevelCm} cm`, "#475569"],
+    ["Tren", trendLabel, trendColor],
+    ["Update", sensor.lastUpdate, "#475569"],
   ];
 
   return `
@@ -118,10 +125,10 @@ function buildPopup(sensor: Sensor, color: string): string {
       <table style="width:100%;font-size:10px;border-collapse:collapse;line-height:1.6">
         ${rows
           .map(
-            ([k, v]) => `
+            ([k, v, valueColor]) => `
           <tr>
             <td style="color:#94A3B8;padding:1px 0;white-space:nowrap">${k}</td>
-            <td style="text-align:right;color:${k === "Subsidence" ? subColor : k === "Status" ? color : "#475569"};font-weight:${k === "Subsidence" ? "600" : "400"}">${v}</td>
+            <td style="text-align:right;color:${valueColor};font-weight:${k === "Tren" || k === "Muka Air Tanah" ? "600" : "400"}">${v}</td>
           </tr>`,
           )
           .join("")}
@@ -200,7 +207,12 @@ export default function SensorMap({
     markersRef.current = [];
 
     const validSensors = sensors.filter(
-      (s) => s.lat != null && s.lng != null && !(s.lat === 0 && s.lng === 0),
+      (s) =>
+        s.lat != null &&
+        s.lng != null &&
+        !(s.lat === 0 && s.lng === 0) &&
+        s.isActive !== false && // Exclude disabled/inactive sensors
+        s.isVerified !== false, // Exclude unverified sensors
     );
 
     validSensors.forEach((sensor) => {

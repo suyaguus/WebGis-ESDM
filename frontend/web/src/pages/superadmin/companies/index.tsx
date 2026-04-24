@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   Building2,
   Plus,
@@ -20,6 +20,33 @@ import {
 import { cn, getSubsidenceColor, getQuotaPercent } from "../../../lib/utils";
 import type { Company } from "../../../services/company.service";
 import type { CreateCompanyRequest } from "../../../types/api";
+
+/* ── Helper Functions ── */
+const getCompanyInputCls = (err?: string) =>
+  cn(
+    "w-full px-3 py-2 text-[12px] font-mono border rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1",
+    err
+      ? "border-red-300 focus:ring-red-300"
+      : "border-slate-200 focus:ring-cyan-400 focus:border-cyan-400",
+  );
+
+const CompanyFieldWrapper = ({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) => (
+  <div>
+    <label className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">
+      {label}
+    </label>
+    {children}
+    {error && <p className="text-[10px] text-red-500 mt-1">{error}</p>}
+  </div>
+);
 
 /* ── Form Modal ── */
 interface CompanyFormProps {
@@ -51,8 +78,24 @@ function CompanyFormModal({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const set = (k: string, v: string) => {
+  // Reset form ketika mode atau initial berubah
+  useEffect(() => {
+    setForm({
+      name: initial?.name ?? "",
+      address: initial?.region !== "-" ? (initial?.region ?? "") : "",
+      email: initial?.email ?? "",
+      phone: initial?.phone ?? "",
+      type: initial?.type ?? "",
+    });
+    setErrors({});
+  }, [mode, initial]);
+
+  // Stable callback for setting form field
+  const setField = useCallback((k: string, v: string) => {
     setForm((p) => ({ ...p, [k]: v }));
+  }, []);
+
+  const clearError = (k: string) => {
     setErrors((p) => {
       const n = { ...p };
       delete n[k];
@@ -86,32 +129,6 @@ function CompanyFormModal({
     onSubmit(payload);
   };
 
-  const F = ({
-    label,
-    error,
-    children,
-  }: {
-    label: string;
-    error?: string;
-    children: React.ReactNode;
-  }) => (
-    <div>
-      <label className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">
-        {label}
-      </label>
-      {children}
-      {error && <p className="text-[10px] text-red-500 mt-1">{error}</p>}
-    </div>
-  );
-
-  const inputCls = (err?: string) =>
-    cn(
-      "w-full px-3 py-2 text-[12px] font-mono border rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1",
-      err
-        ? "border-red-300 focus:ring-red-300"
-        : "border-slate-200 focus:ring-cyan-400 focus:border-cyan-400",
-    );
-
   return (
     <div
       className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -141,51 +158,56 @@ function CompanyFormModal({
         </div>
 
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
-          <F label="Nama Perusahaan" error={errors.name}>
+          <CompanyFieldWrapper label="Nama Perusahaan" error={errors.name}>
             <input
               value={form.name}
-              onChange={(e) => set("name", e.target.value)}
+              onChange={(e) => setField("name", e.target.value)}
+              onBlur={() => clearError("name")}
               placeholder="PT Maju Jaya Tbk"
-              className={inputCls(errors.name)}
+              className={getCompanyInputCls(errors.name)}
             />
-          </F>
+          </CompanyFieldWrapper>
 
-          <F label="Alamat (opsional)">
+          <CompanyFieldWrapper label="Alamat (opsional)">
             <input
               value={form.address}
-              onChange={(e) => set("address", e.target.value)}
+              onChange={(e) => setField("address", e.target.value)}
+              onBlur={() => clearError("address")}
               placeholder="Jl. Raya No. 123, Bandar Lampung"
-              className={inputCls()}
+              className={getCompanyInputCls()}
             />
-          </F>
+          </CompanyFieldWrapper>
 
-          <F label="Email (opsional)" error={errors.email}>
+          <CompanyFieldWrapper label="Email (opsional)" error={errors.email}>
             <input
               type="email"
               value={form.email}
-              onChange={(e) => set("email", e.target.value)}
+              onChange={(e) => setField("email", e.target.value)}
+              onBlur={() => clearError("email")}
               placeholder="info@perusahaan.co.id"
-              className={inputCls(errors.email)}
+              className={getCompanyInputCls(errors.email)}
             />
-          </F>
+          </CompanyFieldWrapper>
 
-          <F label="Nomor Telepon (opsional)">
+          <CompanyFieldWrapper label="Nomor Telepon (opsional)">
             <input
               value={form.phone}
-              onChange={(e) => set("phone", e.target.value)}
+              onChange={(e) => setField("phone", e.target.value)}
+              onBlur={() => clearError("phone")}
               placeholder="0721-xxxxxxx"
-              className={inputCls()}
+              className={getCompanyInputCls()}
             />
-          </F>
+          </CompanyFieldWrapper>
 
-          <F label="Jenis Perusahaan (opsional)">
+          <CompanyFieldWrapper label="Jenis Perusahaan (opsional)">
             <input
               value={form.type}
-              onChange={(e) => set("type", e.target.value)}
+              onChange={(e) => setField("type", e.target.value)}
+              onBlur={() => clearError("type")}
               placeholder="Pertambangan / Industri / Lainnya"
-              className={inputCls()}
+              className={getCompanyInputCls()}
             />
-          </F>
+          </CompanyFieldWrapper>
 
           <div className="flex gap-2 pt-2">
             <button

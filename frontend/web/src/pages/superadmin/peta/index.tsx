@@ -1,9 +1,22 @@
 import { useState, useMemo } from "react";
-import { Search, Layers, Radio, AlertTriangle, Filter } from "lucide-react";
+import {
+  Search,
+  Layers,
+  Radio,
+  AlertTriangle,
+  Filter,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+} from "lucide-react";
 import SensorMap from "../../../components/map/SensorMap";
 import { StatusPill, Badge } from "../../../components/ui";
 import { useSensors, useCompanies } from "../../../hooks";
-import { cn, getSubsidenceColor } from "../../../lib/utils";
+import { cn } from "../../../lib/utils";
+import {
+  getWaterLevelTrendLabel,
+  getWaterLevelTrendColor,
+} from "../../../lib/groundwater";
 import type { Sensor, SensorStatus, SensorType } from "../../../types";
 
 type FilterStatus = "all" | SensorStatus;
@@ -156,14 +169,25 @@ export default function PetaPage() {
                       <span className="text-[9px] text-slate-400 font-mono">
                         {co?.name ?? "-"}
                       </span>
-                      <span
-                        className={cn(
-                          "text-[10px] font-mono font-semibold",
-                          getSubsidenceColor(s.subsidence),
+                      <div className="flex items-center gap-1">
+                        {s.waterLevelTrend === "rising" && (
+                          <TrendingUp size={11} className="text-emerald-600" />
                         )}
-                      >
-                        {s.subsidence.toFixed(2)} cm/thn
-                      </span>
+                        {s.waterLevelTrend === "falling" && (
+                          <TrendingDown size={11} className="text-amber-600" />
+                        )}
+                        {s.waterLevelTrend === "stable" && (
+                          <Minus size={11} className="text-blue-600" />
+                        )}
+                        <span
+                          className={cn(
+                            "text-[10px] font-mono font-semibold",
+                            getWaterLevelTrendColor(s.waterLevelTrend),
+                          )}
+                        >
+                          {getWaterLevelTrendLabel(s.waterLevelTrend)}
+                        </span>
+                      </div>
                     </div>
                   </button>
                 );
@@ -251,14 +275,16 @@ export default function PetaPage() {
               {[
                 ["Lokasi", selected.location],
                 ["Tipe", selected.type === "water" ? "Air Tanah" : "GNSS"],
-                ["Subsidence", `${selected.subsidence.toFixed(2)} cm/thn`],
                 [
-                  "Muka Air",
-                  selected.waterLevel ? `${selected.waterLevel} m` : "-",
+                  "Tren Muka Air",
+                  getWaterLevelTrendLabel(selected.waterLevelTrend),
                 ],
                 [
-                  "Nilai Vertikal",
-                  selected.verticalValue ? `${selected.verticalValue} mm` : "-",
+                  "Muka Air Tanah",
+                  selected.staticWaterLevel !== null &&
+                  selected.staticWaterLevel !== undefined
+                    ? `${(selected.staticWaterLevel * 100).toFixed(2)} cm`
+                    : "-",
                 ],
                 ["Update", selected.lastUpdate],
               ].map(([k, v]) => (

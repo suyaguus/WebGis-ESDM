@@ -1,6 +1,10 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import {
+  getWaterLevelTrendLabel,
+  getWaterLevelTrendColor,
+} from "@/lib/groundwater";
 import type { Sensor } from "@/types";
 
 interface PublicSensorMapProps {
@@ -83,12 +87,19 @@ function buildPopup(sensor: Sensor): string {
   const typeLabel = sensor.type === "water" ? "Air Tanah" : "GNSS";
   const statusLabel =
     sensor.status.charAt(0).toUpperCase() + sensor.status.slice(1);
-  const subColor =
-    sensor.subsidence <= -4.0
-      ? "#EF4444"
-      : sensor.subsidence <= -2.5
+  const waterLevelCm =
+    sensor.staticWaterLevel !== null && sensor.staticWaterLevel !== undefined
+      ? (sensor.staticWaterLevel * 100).toFixed(2)
+      : "-";
+  const trendLabel = sensor.waterLevelTrend
+    ? getWaterLevelTrendLabel(sensor.waterLevelTrend)
+    : "Tidak Diketahui";
+  const trendColor =
+    sensor.waterLevelTrend === "rising"
+      ? "#22C55E"
+      : sensor.waterLevelTrend === "falling"
         ? "#F59E0B"
-        : "#22C55E";
+        : "#3B82F6";
 
   return `
     <div style="font-family:'IBM Plex Mono',monospace;min-width:190px;max-width:220px;color:#0f172a;">
@@ -106,8 +117,12 @@ function buildPopup(sensor: Sensor): string {
           <td style="text-align:right;color:#475569;padding:1px 0;">${statusLabel}</td>
         </tr>
         <tr>
-          <td style="color:#94a3b8;padding:1px 0;">Subsidence</td>
-          <td style="text-align:right;color:${subColor};font-weight:600;padding:1px 0;">${sensor.subsidence.toFixed(2)} cm/thn</td>
+          <td style="color:#94a3b8;padding:1px 0;">Muka Air</td>
+          <td style="text-align:right;color:#475569;padding:1px 0;">${waterLevelCm} cm</td>
+        </tr>
+        <tr>
+          <td style="color:#94a3b8;padding:1px 0;">Tren</td>
+          <td style="text-align:right;color:${trendColor};font-weight:600;padding:1px 0;">${trendLabel}</td>
         </tr>
         <tr>
           <td style="color:#94a3b8;padding:1px 0;">Update</td>
@@ -172,7 +187,12 @@ export default function PublicSensorMap({
     markersRef.current = [];
 
     const validSensors = sensors.filter(
-      (s) => s.lat != null && s.lng != null && !(s.lat === 0 && s.lng === 0),
+      (s) =>
+        s.lat != null &&
+        s.lng != null &&
+        !(s.lat === 0 && s.lng === 0) &&
+        s.isActive !== false && // Exclude disabled/inactive sensors
+        s.isVerified !== false, // Exclude unverified sensors
     );
 
     validSensors.forEach((sensor) => {

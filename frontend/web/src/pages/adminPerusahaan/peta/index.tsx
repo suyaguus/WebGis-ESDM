@@ -1,10 +1,23 @@
 import { useState, useMemo } from "react";
-import { Search, Filter, X, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Search,
+  Filter,
+  X,
+  ChevronDown,
+  ChevronUp,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+} from "lucide-react";
 import SensorMap from "../../../components/map/SensorMap";
 import { StatusPill } from "../../../components/ui";
 import { useSensors } from "@/hooks/useSensors";
 import { useAuthStore } from "@/store";
-import { cn, getSubsidenceColor } from "../../../lib/utils";
+import { cn } from "../../../lib/utils";
+import {
+  getWaterLevelTrendLabel,
+  getWaterLevelTrendColor,
+} from "../../../lib/groundwater";
 import type { Sensor, SensorStatus, SensorType } from "../../../types";
 
 export default function AdminPetaPage() {
@@ -143,14 +156,25 @@ export default function AdminPetaPage() {
             <span className="text-[10px] text-slate-500 flex-1 truncate">
               {s.location}
             </span>
-            <span
-              className={cn(
-                "text-[10px] font-mono font-semibold flex-shrink-0",
-                getSubsidenceColor(s.subsidence),
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {s.waterLevelTrend === "rising" && (
+                <TrendingUp size={11} className="text-emerald-600" />
               )}
-            >
-              {s.subsidence.toFixed(2)}
-            </span>
+              {s.waterLevelTrend === "falling" && (
+                <TrendingDown size={11} className="text-amber-600" />
+              )}
+              {s.waterLevelTrend === "stable" && (
+                <Minus size={11} className="text-blue-600" />
+              )}
+              <span
+                className={cn(
+                  "text-[10px] font-mono font-semibold",
+                  getWaterLevelTrendColor(s.waterLevelTrend),
+                )}
+              >
+                {getWaterLevelTrendLabel(s.waterLevelTrend)}
+              </span>
+            </div>
             <StatusPill status={s.status} />
           </button>
         ))}
@@ -197,14 +221,25 @@ export default function AdminPetaPage() {
                   <p className="text-[10px] text-slate-500 mb-1">
                     {s.location}
                   </p>
-                  <span
-                    className={cn(
-                      "text-[10px] font-mono font-semibold",
-                      getSubsidenceColor(s.subsidence),
+                  <div className="flex items-center gap-1">
+                    {s.waterLevelTrend === "rising" && (
+                      <TrendingUp size={11} className="text-emerald-600" />
                     )}
-                  >
-                    {s.subsidence.toFixed(2)} cm/thn
-                  </span>
+                    {s.waterLevelTrend === "falling" && (
+                      <TrendingDown size={11} className="text-amber-600" />
+                    )}
+                    {s.waterLevelTrend === "stable" && (
+                      <Minus size={11} className="text-blue-600" />
+                    )}
+                    <span
+                      className={cn(
+                        "text-[10px] font-mono font-semibold",
+                        getWaterLevelTrendColor(s.waterLevelTrend),
+                      )}
+                    >
+                      {getWaterLevelTrendLabel(s.waterLevelTrend)}
+                    </span>
+                  </div>
                 </button>
               ))}
             </div>
@@ -281,10 +316,16 @@ export default function AdminPetaPage() {
                 {[
                   ["Lokasi", selected.location],
                   ["Tipe", selected.type === "water" ? "Air Tanah" : "GNSS"],
-                  ["Subsidence", `${selected.subsidence.toFixed(2)} cm/thn`],
                   [
-                    "Muka Air",
-                    selected.waterLevel ? `${selected.waterLevel} m` : "-",
+                    "Tren Muka Air",
+                    getWaterLevelTrendLabel(selected.waterLevelTrend),
+                  ],
+                  [
+                    "Muka Air Tanah",
+                    selected.staticWaterLevel !== null &&
+                    selected.staticWaterLevel !== undefined
+                      ? `${(selected.staticWaterLevel * 100).toFixed(2)} cm`
+                      : "-",
                   ],
                   ["Update", selected.lastUpdate],
                 ].map(([k, v]) => (
@@ -331,10 +372,16 @@ export default function AdminPetaPage() {
               {[
                 ["Lokasi", selected.location],
                 ["Tipe", selected.type === "water" ? "Air Tanah" : "GNSS"],
-                ["Subsidence", `${selected.subsidence.toFixed(2)} cm/thn`],
                 [
-                  "Muka Air",
-                  selected.waterLevel ? `${selected.waterLevel} m` : "-",
+                  "Tren Muka Air",
+                  getWaterLevelTrendLabel(selected.waterLevelTrend),
+                ],
+                [
+                  "Muka Air Tanah",
+                  selected.staticWaterLevel !== null &&
+                  selected.staticWaterLevel !== undefined
+                    ? `${(selected.staticWaterLevel * 100).toFixed(2)} cm`
+                    : "-",
                 ],
               ].map(([k, v]) => (
                 <div key={k}>

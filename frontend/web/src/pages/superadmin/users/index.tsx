@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   Search,
   Plus,
@@ -52,6 +52,34 @@ const STATUS_ICON = {
   pending: <Clock size={12} className="text-amber-500" />,
 };
 
+// Helper function untuk input class
+const getInputCls = (err?: string) =>
+  cn(
+    "w-full px-3 py-2 text-[12px] font-mono border rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1",
+    err
+      ? "border-red-300 focus:ring-red-300"
+      : "border-slate-200 focus:ring-cyan-400 focus:border-cyan-400",
+  );
+
+// Form label + error component
+const FieldWrapper = ({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) => (
+  <div>
+    <label className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">
+      {label}
+    </label>
+    {children}
+    {error && <p className="text-[10px] text-red-500 mt-1">{error}</p>}
+  </div>
+);
+
 interface UserFormProps {
   mode: "create" | "edit";
   initial?: User;
@@ -88,14 +116,37 @@ function UserFormModal({
   const [showPwd, setShowPwd] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const set = (k: string, v: string) => {
-    setForm((p) => ({ ...p, [k]: v }));
+  // Reset form ketika mode atau initial berubah
+  useEffect(() => {
+    setForm({
+      name: initial?.name ?? "",
+      email: initial?.email ?? "",
+      phone: initial?.phone ?? "",
+      role: (initial?.role ?? "admin_perusahaan") as BackendRole,
+      companyId: initial?.companyId ?? "",
+      password: "",
+      companyName: "",
+      companyAddress: "",
+      companyEmail: "",
+      companyPhone: "",
+      companyType: "",
+    });
+    setErrors({});
+    setShowPwd(false);
+  }, [mode, initial]);
+
+  const clearError = (k: string) => {
     setErrors((p) => {
       const n = { ...p };
       delete n[k];
       return n;
     });
   };
+
+  // Stable callback for setting form field
+  const setField = useCallback((k: string, v: string) => {
+    setForm((p) => ({ ...p, [k]: v }));
+  }, []);
 
   const isAdminPerusahaan = form.role === "admin_perusahaan";
 
@@ -157,44 +208,16 @@ function UserFormModal({
     }
   };
 
-  const F = ({
-    label,
-    error,
-    children,
-  }: {
-    label: string;
-    error?: string;
-    children: React.ReactNode;
-  }) => (
-    <div>
-      <label className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">
-        {label}
-      </label>
-      {children}
-      {error && <p className="text-[10px] text-red-500 mt-1">{error}</p>}
-    </div>
-  );
-
-  const inputCls = (err?: string) =>
-    cn(
-      "w-full px-3 py-2 text-[12px] font-mono border rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1",
-      err
-        ? "border-red-300 focus:ring-red-300"
-        : "border-slate-200 focus:ring-cyan-400 focus:border-cyan-400",
-    );
-
-  const needsCompany = ["admin_perusahaan", "supervisor"].includes(form.role);
-
   return (
     <div
-      className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden"
+        className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-md my-auto flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
           <div>
             <p className="text-[15px] font-bold text-slate-800">
               {mode === "create" ? "Tambah Pengguna" : "Edit Pengguna"}
@@ -207,50 +230,58 @@ function UserFormModal({
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors"
+            className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors flex-shrink-0"
           >
             <X size={14} className="text-slate-500" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
-          <F label="Nama Lengkap" error={errors.name}>
+        <form
+          onSubmit={handleSubmit}
+          className="px-6 py-5 space-y-4 overflow-y-auto flex-1"
+          id="user-form"
+        >
+          <FieldWrapper label="Nama Lengkap" error={errors.name}>
             <input
               value={form.name}
-              onChange={(e) => set("name", e.target.value)}
+              onChange={(e) => setField("name", e.target.value)}
+              onBlur={() => clearError("name")}
               placeholder="Ahmad Fauzi"
-              className={inputCls(errors.name)}
+              className={getInputCls(errors.name)}
             />
-          </F>
+          </FieldWrapper>
 
-          <F label="Email" error={errors.email}>
+          <FieldWrapper label="Email" error={errors.email}>
             <input
               type="email"
               value={form.email}
-              onChange={(e) => set("email", e.target.value)}
+              onChange={(e) => setField("email", e.target.value)}
+              onBlur={() => clearError("email")}
               placeholder="user@sigat.go.id"
-              className={inputCls(errors.email)}
+              className={getInputCls(errors.email)}
             />
-          </F>
+          </FieldWrapper>
 
-          <F label="Nomor HP (opsional)">
+          <FieldWrapper label="Nomor HP (opsional)">
             <input
               value={form.phone}
-              onChange={(e) => set("phone", e.target.value)}
+              onChange={(e) => setField("phone", e.target.value)}
+              onBlur={() => clearError("phone")}
               placeholder="08xxxxxxxxxx"
-              className={inputCls()}
+              className={getInputCls()}
             />
-          </F>
+          </FieldWrapper>
 
           {mode === "create" && (
-            <F label="Password" error={errors.password}>
+            <FieldWrapper label="Password" error={errors.password}>
               <div className="relative">
                 <input
                   type={showPwd ? "text" : "password"}
                   value={form.password}
-                  onChange={(e) => set("password", e.target.value)}
+                  onChange={(e) => setField("password", e.target.value)}
+                  onBlur={() => clearError("password")}
                   placeholder="Min. 8 karakter"
-                  className={cn(inputCls(errors.password), "pr-9")}
+                  className={cn(getInputCls(errors.password), "pr-9")}
                 />
                 <button
                   type="button"
@@ -260,21 +291,21 @@ function UserFormModal({
                   {showPwd ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
-            </F>
+            </FieldWrapper>
           )}
 
-          <F label="Role">
+          <FieldWrapper label="Role">
             <select
               value={form.role}
-              onChange={(e) => set("role", e.target.value)}
-              className={inputCls()}
+              onChange={(e) => setField("role", e.target.value)}
+              className={getInputCls()}
             >
               <option value="super_admin">Super Admin</option>
               <option value="admin_perusahaan">Admin Perusahaan</option>
               <option value="kepala_instansi">Kepala Instansi</option>
               <option value="supervisor">Surveyor</option>
             </select>
-          </F>
+          </FieldWrapper>
 
           {/* Saat create admin_perusahaan → input data perusahaan baru */}
           {mode === "create" && isAdminPerusahaan && (
@@ -282,60 +313,68 @@ function UserFormModal({
               <p className="text-[10px] font-mono font-semibold text-amber-700 uppercase tracking-wider">
                 Data Perusahaan
               </p>
-              <F label="Nama Perusahaan *" error={errors.companyName}>
+              <FieldWrapper
+                label="Nama Perusahaan *"
+                error={errors.companyName}
+              >
                 <input
                   value={form.companyName}
-                  onChange={(e) => set("companyName", e.target.value)}
+                  onChange={(e) => setField("companyName", e.target.value)}
+                  onBlur={() => clearError("companyName")}
                   placeholder="PT Sumber Air Lestari"
-                  className={inputCls(errors.companyName)}
+                  className={getInputCls(errors.companyName)}
                 />
-              </F>
-              <F label="Alamat Perusahaan (opsional)">
+              </FieldWrapper>
+              <FieldWrapper label="Alamat Perusahaan (opsional)">
                 <input
                   value={form.companyAddress}
-                  onChange={(e) => set("companyAddress", e.target.value)}
+                  onChange={(e) => setField("companyAddress", e.target.value)}
+                  onBlur={() => clearError("companyAddress")}
                   placeholder="Jl. Contoh No. 1, Kota"
-                  className={inputCls()}
+                  className={getInputCls()}
                 />
-              </F>
+              </FieldWrapper>
               <div className="grid grid-cols-2 gap-2">
-                <F label="Email Perusahaan (opsional)">
+                <FieldWrapper label="Email Perusahaan (opsional)">
                   <input
                     type="email"
                     value={form.companyEmail}
-                    onChange={(e) => set("companyEmail", e.target.value)}
+                    onChange={(e) => setField("companyEmail", e.target.value)}
+                    onBlur={() => clearError("companyEmail")}
                     placeholder="info@perusahaan.com"
-                    className={inputCls()}
+                    className={getInputCls()}
                   />
-                </F>
-                <F label="Telepon Perusahaan (opsional)">
+                </FieldWrapper>
+                <FieldWrapper label="Telepon Perusahaan (opsional)">
                   <input
                     value={form.companyPhone}
-                    onChange={(e) => set("companyPhone", e.target.value)}
+                    onChange={(e) => setField("companyPhone", e.target.value)}
+                    onBlur={() => clearError("companyPhone")}
                     placeholder="021xxxxxxx"
-                    className={inputCls()}
+                    className={getInputCls()}
                   />
-                </F>
+                </FieldWrapper>
               </div>
-              <F label="Jenis Usaha (opsional)">
+              <FieldWrapper label="Jenis Usaha (opsional)">
                 <input
                   value={form.companyType}
-                  onChange={(e) => set("companyType", e.target.value)}
+                  onChange={(e) => setField("companyType", e.target.value)}
+                  onBlur={() => clearError("companyType")}
                   placeholder="Industri, Perhotelan, dll."
-                  className={inputCls()}
+                  className={getInputCls()}
                 />
-              </F>
+              </FieldWrapper>
             </div>
           )}
 
           {/* Saat role lain (supervisor, kepala_instansi) → dropdown pilih perusahaan */}
           {!isAdminPerusahaan &&
             ["supervisor", "kepala_instansi"].includes(form.role) && (
-              <F label="Perusahaan">
+              <FieldWrapper label="Perusahaan">
                 <select
                   value={form.companyId}
-                  onChange={(e) => set("companyId", e.target.value)}
-                  className={inputCls()}
+                  onChange={(e) => setField("companyId", e.target.value)}
+                  className={getInputCls()}
                 >
                   <option value="">— Pilih Perusahaan —</option>
                   {companies.map((c) => (
@@ -344,30 +383,31 @@ function UserFormModal({
                     </option>
                   ))}
                 </select>
-              </F>
+              </FieldWrapper>
             )}
-
-          <div className="flex gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-xl hover:bg-slate-200 transition-colors"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              disabled={isPending}
-              className="flex-1 px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors disabled:opacity-50"
-            >
-              {isPending
-                ? "Menyimpan..."
-                : mode === "create"
-                  ? "Buat Pengguna"
-                  : "Simpan Perubahan"}
-            </button>
-          </div>
         </form>
+
+        <div className="border-t border-slate-100 px-6 py-3 flex gap-2 flex-shrink-0 bg-slate-50">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 px-4 py-2 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-xl hover:bg-slate-200 transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            form="user-form"
+            disabled={isPending}
+            className="flex-1 px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors disabled:opacity-50"
+          >
+            {isPending
+              ? "Menyimpan..."
+              : mode === "create"
+                ? "Buat Pengguna"
+                : "Simpan Perubahan"}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   Search,
   Radio,
@@ -12,6 +12,9 @@ import {
   Plus,
   Trash2,
   Edit2,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from "lucide-react";
 import { StatusPill, Card, Badge, Pagination } from "../../../components/ui";
 import { useSensors, useCompanies, useBusinesses } from "../../../hooks";
@@ -19,15 +22,22 @@ import {
   useUpdateSensor,
   useCreateSensor,
   useDeleteSensor,
+  useVerifyWell,
 } from "../../../hooks/useSensors";
 import { cn, getSubsidenceColor } from "../../../lib/utils";
+import {
+  formatGroundwaterLevel,
+  getWaterLevelTrendLabel,
+  getWaterLevelTrendColor,
+  convertMToCm,
+} from "../../../lib/groundwater";
 import type { Sensor, SensorStatus, SensorType } from "../../../types";
 import type { CreateSensorRequest } from "../../../types/api";
 
 type SortKey =
   | "code"
   | "location"
-  | "subsidence"
+  | "staticWaterLevel"
   | "status"
   | "type"
   | "lastUpdate";
@@ -38,6 +48,33 @@ const STATUS_ICON: Record<string, JSX.Element> = {
   alert: <AlertTriangle size={12} className="text-red-500" />,
   maintenance: <Settings2 size={12} className="text-amber-500" />,
 };
+
+/* ── Helper Functions ── */
+const getSensorInputCls = (err?: string) =>
+  cn(
+    "w-full px-3 py-2 text-[12px] font-mono border rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1",
+    err
+      ? "border-red-300 focus:ring-red-300"
+      : "border-slate-200 focus:ring-cyan-400 focus:border-cyan-400",
+  );
+
+const SensorFieldWrapper = ({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) => (
+  <div>
+    <label className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">
+      {label}
+    </label>
+    {children}
+    {error && <p className="text-[10px] text-red-500 mt-1">{error}</p>}
+  </div>
+);
 
 interface CreateSensorModalProps {
   onClose: () => void;
@@ -56,13 +93,37 @@ function CreateSensorModal({ onClose, businesses }: CreateSensorModalProps) {
     depthMeter: undefined,
     diameterInch: undefined,
     pumpCapacity: undefined,
-    subsidenceRate: undefined,
-    verticalValue: undefined,
+    staticWaterLevelCm: undefined,
+    waterLevelTrend: "stable",
+    lastWaterLevelMeasurement: undefined,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const set = (k: string, v: any) => {
+  // Reset form ketika modal dibuka
+  useEffect(() => {
+    setForm({
+      name: "",
+      businessId: "",
+      latitude: undefined,
+      longitude: undefined,
+      locationDescription: "",
+      wellType: "perusahaan",
+      depthMeter: undefined,
+      diameterInch: undefined,
+      pumpCapacity: undefined,
+      staticWaterLevelCm: undefined,
+      waterLevelTrend: "stable",
+      lastWaterLevelMeasurement: undefined,
+    });
+    setErrors({});
+  }, []);
+
+  // Stable callback for setting form field
+  const setField = useCallback((k: string, v: any) => {
     setForm((p) => ({ ...p, [k]: v }));
+  }, []);
+
+  const clearError = (k: string) => {
     setErrors((p) => {
       const n = { ...p };
       delete n[k];
@@ -88,32 +149,6 @@ function CreateSensorModal({ onClose, businesses }: CreateSensorModalProps) {
     }
     createSensor.mutate(form, { onSuccess: onClose });
   };
-
-  const F = ({
-    label,
-    error,
-    children,
-  }: {
-    label: string;
-    error?: string;
-    children: React.ReactNode;
-  }) => (
-    <div>
-      <label className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">
-        {label}
-      </label>
-      {children}
-      {error && <p className="text-[10px] text-red-500 mt-1">{error}</p>}
-    </div>
-  );
-
-  const inputCls = (err?: string) =>
-    cn(
-      "w-full px-3 py-2 text-[12px] font-mono border rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1",
-      err
-        ? "border-red-300 focus:ring-red-300"
-        : "border-slate-200 focus:ring-cyan-400 focus:border-cyan-400",
-    );
 
   return (
     <div
@@ -145,20 +180,22 @@ function CreateSensorModal({ onClose, businesses }: CreateSensorModalProps) {
           onSubmit={handleSubmit}
           className="px-6 py-5 space-y-4 max-h-96 overflow-y-auto"
         >
-          <F label="Nama Sumur" error={errors.name}>
+          <SensorFieldWrapper label="Nama Sumur" error={errors.name}>
             <input
               value={form.name}
-              onChange={(e) => set("name", e.target.value)}
+              onChange={(e) => setField("name", e.target.value)}
+              onBlur={() => clearError("name")}
               placeholder="Sumur A-01"
-              className={inputCls(errors.name)}
+              className={getSensorInputCls(errors.name)}
             />
-          </F>
+          </SensorFieldWrapper>
 
-          <F label="Unit Bisnis" error={errors.businessId}>
+          <SensorFieldWrapper label="Unit Bisnis" error={errors.businessId}>
             <select
               value={form.businessId}
-              onChange={(e) => set("businessId", e.target.value)}
-              className={inputCls(errors.businessId)}
+              onChange={(e) => setField("businessId", e.target.value)}
+              onBlur={() => clearError("businessId")}
+              className={getSensorInputCls(errors.businessId)}
             >
               <option value="">Pilih unit bisnis</option>
               {businesses.map((b) => (
@@ -167,143 +204,156 @@ function CreateSensorModal({ onClose, businesses }: CreateSensorModalProps) {
                 </option>
               ))}
             </select>
-          </F>
+          </SensorFieldWrapper>
 
           <div className="grid grid-cols-2 gap-3">
-            <F label="Latitude" error={errors.latitude}>
+            <SensorFieldWrapper label="Latitude" error={errors.latitude}>
               <input
                 type="number"
                 step="any"
                 value={form.latitude ?? ""}
                 onChange={(e) =>
-                  set(
+                  setField(
                     "latitude",
                     e.target.value ? parseFloat(e.target.value) : undefined,
                   )
                 }
+                onBlur={() => clearError("latitude")}
                 placeholder="-6.2088"
-                className={inputCls(errors.latitude)}
+                className={getSensorInputCls(errors.latitude)}
               />
-            </F>
-            <F label="Longitude" error={errors.longitude}>
+            </SensorFieldWrapper>
+            <SensorFieldWrapper label="Longitude" error={errors.longitude}>
               <input
                 type="number"
                 step="any"
                 value={form.longitude ?? ""}
                 onChange={(e) =>
-                  set(
+                  setField(
                     "longitude",
                     e.target.value ? parseFloat(e.target.value) : undefined,
                   )
                 }
+                onBlur={() => clearError("longitude")}
                 placeholder="106.8456"
-                className={inputCls(errors.longitude)}
+                className={getSensorInputCls(errors.longitude)}
               />
-            </F>
+            </SensorFieldWrapper>
           </div>
 
-          <F label="Deskripsi Lokasi">
+          <SensorFieldWrapper label="Deskripsi Lokasi">
             <input
               value={form.locationDescription ?? ""}
-              onChange={(e) => set("locationDescription", e.target.value)}
+              onChange={(e) => setField("locationDescription", e.target.value)}
+              onBlur={() => clearError("locationDescription")}
               placeholder="Jl. Sudirman No. 1, Bandung"
-              className={inputCls()}
+              className={getSensorInputCls()}
             />
-          </F>
+          </SensorFieldWrapper>
 
-          <F label="Tipe Sumur">
+          <SensorFieldWrapper label="Tipe Sumur">
             <select
               value={form.wellType}
-              onChange={(e) => set("wellType", e.target.value)}
-              className={inputCls()}
+              onChange={(e) => setField("wellType", e.target.value)}
+              onBlur={() => clearError("wellType")}
+              className={getSensorInputCls()}
             >
               <option value="perusahaan">Perusahaan</option>
               <option value="non_perusahaan">Non Perusahaan</option>
               <option value="rumah_tangga">Rumah Tangga</option>
             </select>
-          </F>
+          </SensorFieldWrapper>
 
           <div className="grid grid-cols-2 gap-3">
-            <F label="Kedalaman (m)">
+            <SensorFieldWrapper label="Kedalaman (m)">
               <input
                 type="number"
                 step="any"
                 value={form.depthMeter ?? ""}
                 onChange={(e) =>
-                  set(
+                  setField(
                     "depthMeter",
                     e.target.value ? parseFloat(e.target.value) : undefined,
                   )
                 }
+                onBlur={() => clearError("depthMeter")}
                 placeholder="50"
-                className={inputCls()}
+                className={getSensorInputCls()}
               />
-            </F>
-            <F label="Diameter (inch)">
+            </SensorFieldWrapper>
+            <SensorFieldWrapper label="Diameter (inch)">
               <input
                 type="number"
                 step="any"
                 value={form.diameterInch ?? ""}
                 onChange={(e) =>
-                  set(
+                  setField(
                     "diameterInch",
                     e.target.value ? parseFloat(e.target.value) : undefined,
                   )
                 }
+                onBlur={() => clearError("diameterInch")}
                 placeholder="6"
-                className={inputCls()}
+                className={getSensorInputCls()}
               />
-            </F>
+            </SensorFieldWrapper>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <F label="Kapasitas Pompa">
+            <SensorFieldWrapper label="Muka Air Tanah (cm)">
               <input
                 type="number"
-                step="any"
-                value={form.pumpCapacity ?? ""}
+                step="0.01"
+                value={form.staticWaterLevelCm ?? ""}
                 onChange={(e) =>
-                  set(
-                    "pumpCapacity",
+                  setField(
+                    "staticWaterLevelCm",
                     e.target.value ? parseFloat(e.target.value) : undefined,
                   )
                 }
-                placeholder="100"
-                className={inputCls()}
+                onBlur={() => clearError("staticWaterLevelCm")}
+                onFocus={() => handleFieldFocus("staticWaterLevelCm")}
+                placeholder="250.50"
+                className={getSensorInputCls()}
               />
-            </F>
-            <F label="Subsidence (cm/tahun)">
-              <input
-                type="number"
-                step="any"
-                value={form.subsidenceRate ?? ""}
-                onChange={(e) =>
-                  set(
-                    "subsidenceRate",
-                    e.target.value ? parseFloat(e.target.value) : undefined,
-                  )
-                }
-                placeholder="0.5"
-                className={inputCls()}
-              />
-            </F>
+            </SensorFieldWrapper>
+            <SensorFieldWrapper label="Tren Muka Air">
+              <select
+                value={form.waterLevelTrend ?? "stable"}
+                onChange={(e) => setField("waterLevelTrend", e.target.value)}
+                onBlur={() => clearError("waterLevelTrend")}
+                onFocus={() => handleFieldFocus("waterLevelTrend")}
+                className={getSensorInputCls()}
+              >
+                <option value="rising">Naik</option>
+                <option value="falling">Turun</option>
+                <option value="stable">Stabil</option>
+                <option value="unknown">Tidak Diketahui</option>
+              </select>
+            </SensorFieldWrapper>
           </div>
 
-          <F label="Nilai Vertikal (mm)">
+          <SensorFieldWrapper label="Tanggal Pengukuran (Opsional)">
             <input
-              type="number"
-              step="any"
-              value={form.verticalValue ?? ""}
+              type="datetime-local"
+              value={
+                form.lastWaterLevelMeasurement
+                  ? form.lastWaterLevelMeasurement.toString().slice(0, 16)
+                  : ""
+              }
               onChange={(e) =>
-                set(
-                  "verticalValue",
-                  e.target.value ? parseFloat(e.target.value) : undefined,
+                setField(
+                  "lastWaterLevelMeasurement",
+                  e.target.value
+                    ? new Date(e.target.value).toISOString()
+                    : undefined,
                 )
               }
-              placeholder="12.34"
-              className={inputCls()}
+              onBlur={() => clearError("lastWaterLevelMeasurement")}
+              onFocus={() => handleFieldFocus("lastWaterLevelMeasurement")}
+              className={getSensorInputCls()}
             />
-          </F>
+          </SensorFieldWrapper>
 
           <div className="flex gap-2 pt-4">
             <button
@@ -424,21 +474,51 @@ function SensorEditModal({
   const updateSensor = useUpdateSensor();
   const [form, setForm] = useState({
     name: sensor.code,
-    businessId: sensor.id, // Note: We don't have businessId in sensor, but we'll keep this for consistency
+    businessId: sensor.id,
     latitude: sensor.lat?.toString() ?? "",
     longitude: sensor.lng?.toString() ?? "",
     locationDescription: sensor.location || "",
     wellType: "perusahaan" as const,
-    depthMeter: sensor.waterLevel?.toString() ?? "",
+    depthMeter: "",
     diameterInch: "",
     pumpCapacity: "",
-    subsidenceRate: sensor.subsidence?.toString() ?? "",
-    verticalValue: sensor.verticalValue?.toString() ?? "",
+    staticWaterLevelCm: (sensor.staticWaterLevel
+      ? sensor.staticWaterLevel * 100
+      : ""
+    ).toString(),
+    waterLevelTrend: sensor.waterLevelTrend || "stable",
+    lastWaterLevelMeasurement: sensor.lastWaterLevelMeasurement || "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const set = (k: string, v: any) => {
+  // Reset form ketika sensor berubah
+  useEffect(() => {
+    setForm({
+      name: sensor.code,
+      businessId: sensor.id,
+      latitude: sensor.lat?.toString() ?? "",
+      longitude: sensor.lng?.toString() ?? "",
+      locationDescription: sensor.location || "",
+      wellType: "perusahaan" as const,
+      depthMeter: "",
+      diameterInch: "",
+      pumpCapacity: "",
+      staticWaterLevelCm: (sensor.staticWaterLevel
+        ? sensor.staticWaterLevel * 100
+        : ""
+      ).toString(),
+      waterLevelTrend: sensor.waterLevelTrend || "stable",
+      lastWaterLevelMeasurement: sensor.lastWaterLevelMeasurement || "",
+    });
+    setErrors({});
+  }, [sensor]);
+
+  // Stable callback for setting form field
+  const setField = useCallback((k: string, v: any) => {
     setForm((p) => ({ ...p, [k]: v }));
+  }, []);
+
+  const clearError = (k: string) => {
     setErrors((p) => {
       const n = { ...p };
       delete n[k];
@@ -475,12 +555,11 @@ function SensorEditModal({
       pumpCapacity: form.pumpCapacity
         ? parseFloat(form.pumpCapacity)
         : undefined,
-      subsidenceRate: form.subsidenceRate
-        ? parseFloat(form.subsidenceRate)
+      staticWaterLevelCm: form.staticWaterLevelCm
+        ? parseFloat(form.staticWaterLevelCm)
         : undefined,
-      verticalValue: form.verticalValue
-        ? parseFloat(form.verticalValue)
-        : undefined,
+      waterLevelTrend: form.waterLevelTrend || "stable",
+      lastWaterLevelMeasurement: form.lastWaterLevelMeasurement || undefined,
     };
 
     updateSensor.mutate(
@@ -491,32 +570,6 @@ function SensorEditModal({
       { onSuccess: onClose },
     );
   };
-
-  const F = ({
-    label,
-    error,
-    children,
-  }: {
-    label: string;
-    error?: string;
-    children: React.ReactNode;
-  }) => (
-    <div>
-      <label className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">
-        {label}
-      </label>
-      {children}
-      {error && <p className="text-[10px] text-red-500 mt-1">{error}</p>}
-    </div>
-  );
-
-  const inputCls = (err?: string) =>
-    cn(
-      "w-full px-3 py-2 text-[12px] font-mono border rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1",
-      err
-        ? "border-red-300 focus:ring-red-300"
-        : "border-slate-200 focus:ring-cyan-400 focus:border-cyan-400",
-    );
 
   return (
     <div
@@ -546,115 +599,131 @@ function SensorEditModal({
           onSubmit={handleSubmit}
           className="px-6 py-5 space-y-4 max-h-96 overflow-y-auto"
         >
-          <F label="Nama Sumur" error={errors.name}>
+          <SensorFieldWrapper label="Nama Sumur" error={errors.name}>
             <input
               value={form.name}
-              onChange={(e) => set("name", e.target.value)}
+              onChange={(e) => setField("name", e.target.value)}
+              onBlur={() => clearError("name")}
               placeholder="Sumur A-01"
-              className={inputCls(errors.name)}
+              className={getSensorInputCls(errors.name)}
             />
-          </F>
+          </SensorFieldWrapper>
 
           <div className="grid grid-cols-2 gap-3">
-            <F label="Latitude" error={errors.latitude}>
+            <SensorFieldWrapper label="Latitude" error={errors.latitude}>
               <input
                 type="number"
                 step="any"
                 value={form.latitude}
-                onChange={(e) => set("latitude", e.target.value)}
+                onChange={(e) => setField("latitude", e.target.value)}
+                onBlur={() => clearError("latitude")}
                 placeholder="-6.2088"
-                className={inputCls(errors.latitude)}
+                className={getSensorInputCls(errors.latitude)}
               />
-            </F>
-            <F label="Longitude" error={errors.longitude}>
+            </SensorFieldWrapper>
+            <SensorFieldWrapper label="Longitude" error={errors.longitude}>
               <input
                 type="number"
                 step="any"
                 value={form.longitude}
-                onChange={(e) => set("longitude", e.target.value)}
+                onChange={(e) => setField("longitude", e.target.value)}
+                onBlur={() => clearError("longitude")}
                 placeholder="106.8456"
-                className={inputCls(errors.longitude)}
+                className={getSensorInputCls(errors.longitude)}
               />
-            </F>
+            </SensorFieldWrapper>
           </div>
 
-          <F label="Deskripsi Lokasi">
+          <SensorFieldWrapper label="Deskripsi Lokasi">
             <input
               value={form.locationDescription}
-              onChange={(e) => set("locationDescription", e.target.value)}
+              onChange={(e) => setField("locationDescription", e.target.value)}
+              onBlur={() => clearError("locationDescription")}
               placeholder="Jl. Sudirman No. 1, Bandung"
-              className={inputCls()}
+              className={getSensorInputCls()}
             />
-          </F>
+          </SensorFieldWrapper>
 
-          <F label="Tipe Sumur">
+          <SensorFieldWrapper label="Tipe Sumur">
             <select
               value={form.wellType}
-              onChange={(e) => set("wellType", e.target.value)}
-              className={inputCls()}
+              onChange={(e) => setField("wellType", e.target.value)}
+              onBlur={() => clearError("wellType")}
+              className={getSensorInputCls()}
             >
               <option value="perusahaan">Perusahaan</option>
               <option value="non_perusahaan">Non Perusahaan</option>
               <option value="rumah_tangga">Rumah Tangga</option>
             </select>
-          </F>
+          </SensorFieldWrapper>
 
           <div className="grid grid-cols-2 gap-3">
-            <F label="Kedalaman (m)">
+            <SensorFieldWrapper label="Kedalaman (m)">
               <input
                 type="number"
                 step="any"
                 value={form.depthMeter}
-                onChange={(e) => set("depthMeter", e.target.value)}
+                onChange={(e) => setField("depthMeter", e.target.value)}
+                onBlur={() => clearError("depthMeter")}
                 placeholder="50"
-                className={inputCls()}
+                className={getSensorInputCls()}
               />
-            </F>
-            <F label="Diameter (inch)">
+            </SensorFieldWrapper>
+            <SensorFieldWrapper label="Diameter (inch)">
               <input
                 type="number"
                 step="any"
                 value={form.diameterInch}
-                onChange={(e) => set("diameterInch", e.target.value)}
+                onChange={(e) => setField("diameterInch", e.target.value)}
+                onBlur={() => clearError("diameterInch")}
                 placeholder="6"
-                className={inputCls()}
+                className={getSensorInputCls()}
               />
-            </F>
+            </SensorFieldWrapper>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <F label="Kapasitas Pompa">
+            <SensorFieldWrapper label="Muka Air Tanah (cm)">
               <input
                 type="number"
-                step="any"
-                value={form.pumpCapacity}
-                onChange={(e) => set("pumpCapacity", e.target.value)}
-                placeholder="100"
-                className={inputCls()}
+                step="0.01"
+                value={form.staticWaterLevelCm}
+                onChange={(e) => setField("staticWaterLevelCm", e.target.value)}
+                onBlur={() => clearError("staticWaterLevelCm")}
+                placeholder="250.50"
+                className={getSensorInputCls()}
               />
-            </F>
-            <F label="Subsidence (cm/tahun)">
-              <input
-                type="number"
-                step="any"
-                value={form.subsidenceRate}
-                onChange={(e) => set("subsidenceRate", e.target.value)}
-                placeholder="0.5"
-                className={inputCls()}
-              />
-            </F>
+            </SensorFieldWrapper>
+            <SensorFieldWrapper label="Tren Muka Air">
+              <select
+                value={form.waterLevelTrend || "stable"}
+                onChange={(e) => setField("waterLevelTrend", e.target.value)}
+                onBlur={() => clearError("waterLevelTrend")}
+                className={getSensorInputCls()}
+              >
+                <option value="rising">Naik</option>
+                <option value="falling">Turun</option>
+                <option value="stable">Stabil</option>
+                <option value="unknown">Tidak Diketahui</option>
+              </select>
+            </SensorFieldWrapper>
           </div>
 
-          <F label="Nilai Vertikal (mm)">
+          <SensorFieldWrapper label="Tanggal Pengukuran (Opsional)">
             <input
-              type="number"
-              step="any"
-              value={form.verticalValue}
-              onChange={(e) => set("verticalValue", e.target.value)}
-              placeholder="12.34"
-              className={inputCls()}
+              type="datetime-local"
+              value={
+                form.lastWaterLevelMeasurement
+                  ? form.lastWaterLevelMeasurement.toString().slice(0, 16)
+                  : ""
+              }
+              onChange={(e) =>
+                setField("lastWaterLevelMeasurement", e.target.value)
+              }
+              onBlur={() => clearError("lastWaterLevelMeasurement")}
+              className={getSensorInputCls()}
             />
-          </F>
+          </SensorFieldWrapper>
 
           <div className="flex gap-2 pt-2">
             <button
@@ -689,6 +758,7 @@ function DetailModal({
   onClose,
   onEdit,
   onDelete,
+  onVerify,
   businesses,
 }: {
   sensor: Sensor;
@@ -696,6 +766,7 @@ function DetailModal({
   onClose: () => void;
   onEdit: (s: Sensor) => void;
   onDelete: (s: Sensor) => void;
+  onVerify: (s: Sensor) => void;
   businesses: any[];
 }) {
   const [showEdit, setShowEdit] = useState(false);
@@ -743,19 +814,26 @@ function DetailModal({
                 ? `${sensor.lat.toFixed(4)}, ${sensor.lng.toFixed(4)}`
                 : "Belum diatur",
             ],
-            ["Subsidence", `${sensor.subsidence.toFixed(2)} cm/tahun`],
             [
               "Muka Air Tanah",
-              sensor.waterLevel ? `${sensor.waterLevel} m` : "-",
+              sensor.staticWaterLevel != null
+                ? `${(sensor.staticWaterLevel * 100).toFixed(2)} cm`
+                : "-",
             ],
             [
-              "Nilai Vertikal",
-              sensor.verticalValue ? `${sensor.verticalValue} mm` : "-",
+              "Tren Muka Air",
+              sensor.waterLevelTrend
+                ? getWaterLevelTrendLabel(sensor.waterLevelTrend)
+                : "-",
             ],
             ["Terakhir Update", sensor.lastUpdate],
             [
               "Status",
               sensor.status.charAt(0).toUpperCase() + sensor.status.slice(1),
+            ],
+            [
+              "Verifikasi",
+              sensor.isVerified ? "Terverifikasi ✓" : "Menunggu Verifikasi",
             ],
           ].map(([k, v]) => (
             <div key={k} className="bg-slate-50 rounded-xl px-3 py-2.5">
@@ -765,9 +843,13 @@ function DetailModal({
               <p
                 className={cn(
                   "text-[12px] font-semibold",
-                  k === "Subsidence"
-                    ? getSubsidenceColor(sensor.subsidence)
-                    : "text-slate-800",
+                  k === "Tren Muka Air" && sensor.waterLevelTrend
+                    ? getWaterLevelTrendColor(sensor.waterLevelTrend)
+                    : k === "Verifikasi" && !sensor.isVerified
+                      ? "text-amber-600"
+                      : k === "Verifikasi"
+                        ? "text-emerald-600"
+                        : "text-slate-800",
                 )}
               >
                 {v}
@@ -776,6 +858,17 @@ function DetailModal({
           ))}
         </div>
         <div className="px-6 py-4 border-t border-slate-100 flex gap-2">
+          {!sensor.isVerified && (
+            <button
+              onClick={() => {
+                onVerify(sensor);
+                onClose();
+              }}
+              className="px-4 py-2 bg-emerald-50 text-emerald-600 text-[12px] font-semibold rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1.5"
+            >
+              <Radio size={12} /> Verifikasi
+            </button>
+          )}
           <button
             onClick={() => {
               onEdit(sensor);
@@ -823,6 +916,7 @@ export default function SensorPage() {
   const businesses = businessesResponse.data ?? [];
 
   const deleteSensor = useDeleteSensor();
+  const verifySensor = useVerifyWell();
 
   const [search, setSearch] = useState("");
   const [statusF, setStatusF] = useState<SensorStatus | "all">("all");
@@ -893,17 +987,17 @@ export default function SensorPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[18px] font-semibold text-slate-800">
-            Semua Sensor
+            Kelola Data Sumur
           </h1>
           <p className="text-[11px] text-slate-400 font-mono mt-0.5">
-            Kelola dan pantau seluruh sensor terdaftar
+            Kelola dan pantau seluruh sumur terdaftar
           </p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
           className="px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors flex items-center gap-2"
         >
-          <Plus size={13} /> Tambah Sensor
+          <Plus size={13} /> Tambah Sumur
         </button>
       </div>
 
@@ -1035,9 +1129,9 @@ export default function SensorPage() {
                   <Th label="Kode" k="code" />
                   <Th label="Lokasi" k="location" />
                   <Th label="Tipe" k="type" />
-                  <Th label="Subsidence" k="subsidence" />
+                  <Th label="Tren Muka Air" k="staticWaterLevel" />
                   <th className="text-[9px] font-mono text-slate-400 uppercase tracking-wider px-4 py-3 text-left">
-                    Muka Air
+                    Muka Air Tanah (cm)
                   </th>
                   <Th label="Status" k="status" />
                   <Th label="Update" k="lastUpdate" />
@@ -1062,21 +1156,30 @@ export default function SensorPage() {
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={cn(
-                          "text-[12px] font-semibold font-mono",
-                          getSubsidenceColor(s.subsidence),
+                      <div className="flex items-center gap-1.5">
+                        {s.waterLevelTrend === "rising" && (
+                          <TrendingUp size={14} className="text-emerald-600" />
                         )}
-                      >
-                        {s.subsidence.toFixed(2)}
-                      </span>
-                      <span className="text-[9px] text-slate-400 font-mono ml-0.5">
-                        cm/thn
-                      </span>
+                        {s.waterLevelTrend === "falling" && (
+                          <TrendingDown size={14} className="text-amber-600" />
+                        )}
+                        {s.waterLevelTrend === "stable" && (
+                          <Minus size={14} className="text-blue-600" />
+                        )}
+                        {(!s.waterLevelTrend ||
+                          s.waterLevelTrend === "unknown") && (
+                          <span className="text-slate-400 text-[12px]">-</span>
+                        )}
+                        <span className="text-[11px] font-mono text-slate-600">
+                          {getWaterLevelTrendLabel(s.waterLevelTrend)}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-[11px] font-mono text-slate-600">
-                      {s.waterLevel ?? "-"}
-                      {s.waterLevel ? " m" : ""}
+                      {s.staticWaterLevel !== null &&
+                      s.staticWaterLevel !== undefined
+                        ? `${(s.staticWaterLevel * 100).toFixed(2)} cm`
+                        : "-"}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
@@ -1125,6 +1228,9 @@ export default function SensorPage() {
           onClose={() => setDetail(null)}
           onEdit={() => {}}
           onDelete={setDeleteTarget}
+          onVerify={(sensor) => {
+            verifySensor.mutate(sensor.id);
+          }}
           businesses={businesses}
         />
       )}

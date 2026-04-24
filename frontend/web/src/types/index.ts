@@ -13,9 +13,11 @@ export interface Sensor {
   lat: number | null;
   lng: number | null;
   status: SensorStatus;
-  subsidence: number;
-  waterLevel?: number;
-  verticalValue?: number;
+  staticWaterLevel: number | null; // Muka air tanah (m)
+  waterLevelTrend?: "rising" | "falling" | "stable" | "unknown";
+  lastWaterLevelMeasurement?: string; // ISO datetime
+  isActive: boolean; // Active/inactive status for visibility on maps (admin_perusahaan control)
+  isVerified: boolean; // Verification status (super_admin approval)
   companyId: string;
   lastUpdate: string;
 }
