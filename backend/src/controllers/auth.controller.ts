@@ -5,11 +5,12 @@ import { USER_SELECT } from "../constants/user.select";
 import { saveAuditLog } from "../utils/audit";
 
 type RegisterBody = {
-  name: string;
+  name?: string;
   email: string;
   password: string;
   phone?: string;
-  companyName: string;
+  role?: "super_admin" | "admin_perusahaan" | "kepala_instansi" | "supervisor";
+  companyName?: string;
   companyAddress?: string;
   companyEmail?: string;
   companyPhone?: string;

@@ -62,3 +62,13 @@ export const remove = async (req: Request<Params>, res: Response) => {
     return errorResponse(res, err instanceof Error ? err.message : "Error");
   }
 };
+
+export const verify = async (req: Request<Params>, res: Response) => {
+  try {
+    const data = await wellService.verifyWell(req.params.id, req.user);
+
+    return successResponse(res, data, "Well verified successfully", req.user);
+  } catch (err) {
+    return errorResponse(res, err instanceof Error ? err.message : "Error");
+  }
+};

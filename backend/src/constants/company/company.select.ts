@@ -31,7 +31,8 @@ export const COMPANY_SELECT: Prisma.CompanySelect = {
 
   wells: {
     select: {
-      subsidenceRate: true,
+      staticWaterLevel: true,
+      waterLevelTrend: true,
     },
   },
 

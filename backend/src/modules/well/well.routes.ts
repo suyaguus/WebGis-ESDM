@@ -35,4 +35,12 @@ router.delete(
   wellController.remove,
 );
 
+// VERIFY (only super_admin)
+router.patch(
+  "/:id/verify",
+  authMiddleware,
+  roleMiddleware("super_admin"),
+  wellController.verify,
+);
+
 export default router;

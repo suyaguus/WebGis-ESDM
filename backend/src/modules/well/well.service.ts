@@ -3,6 +3,7 @@ import { WELL_SELECT } from "../../constants/well/well.select";
 import { WELL_MESSAGES } from "../../constants/well/well.message";
 import { CreateWellInput, UpdateWellInput } from "./well.type";
 import { resolveCompanyId } from "../../utils/company-access";
+import { convertCmToM } from "../../utils/groundwater";
 import { Prisma } from "@prisma/client";
 import {
   parsePaginationParams,
@@ -49,12 +50,19 @@ export const createWell = async (data: CreateWellInput, user: any) => {
 
   const business = await findBusinessForUser(data.businessId, user);
 
+  // Konversi staticWaterLevelCm (dari frontend) ke staticWaterLevel dalam meter
+  const wellData = {
+    ...data,
+    companyId: business.companyId,
+    createdBy: user.id,
+    staticWaterLevel: convertCmToM(data.staticWaterLevelCm),
+  };
+
+  // Remove staticWaterLevelCm karena sudah dikonversi
+  const { staticWaterLevelCm, ...createData } = wellData;
+
   return prisma.well.create({
-    data: {
-      ...data,
-      companyId: business.companyId,
-      createdBy: user.id,
-    },
+    data: createData,
     select: WELL_SELECT,
   });
 };
@@ -118,7 +126,10 @@ const buildWellUpdateData = async (
   data: UpdateWellInput,
   user: any,
 ) => {
-  const updateData: UpdateWellInput & { companyId?: string } = { ...data };
+  const updateData: UpdateWellInput & {
+    companyId?: string;
+    staticWaterLevel?: number;
+  } = { ...data };
 
   if (data.businessId) {
     const business = await findBusinessForUser(data.businessId, user);
@@ -129,7 +140,15 @@ const buildWellUpdateData = async (
     updateData.businessId = well.businessId;
   }
 
-  return updateData;
+  // Konversi staticWaterLevelCm (dari frontend) ke staticWaterLevel dalam meter
+  if (data.staticWaterLevelCm !== undefined) {
+    updateData.staticWaterLevel = convertCmToM(data.staticWaterLevelCm);
+  }
+
+  // Remove staticWaterLevelCm karena sudah dikonversi
+  const { staticWaterLevelCm, ...finalUpdateData } = updateData as any;
+
+  return finalUpdateData;
 };
 
 export const updateWell = async (
@@ -193,4 +212,26 @@ export const deleteWell = async (id: string, user: any) => {
       name: well.company.name,
     },
   };
+};
+
+export const verifyWell = async (id: string, user: any) => {
+  // Only super_admin can verify wells
+  if (user.role !== "super_admin") {
+    throw new Error(WELL_MESSAGES.FORBIDDEN);
+  }
+
+  const well = await prisma.well.findUnique({
+    where: { id },
+    select: WELL_SELECT,
+  });
+
+  if (!well) throw new Error(WELL_MESSAGES.NOT_FOUND);
+
+  return prisma.well.update({
+    where: { id },
+    data: {
+      isVerified: true,
+    },
+    select: WELL_SELECT,
+  });
 };
