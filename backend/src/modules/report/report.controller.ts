@@ -31,9 +31,13 @@ export const create = async (req: Request, res: Response) => {
 };
 
 export const findAll = async (req: Request, res: Response) => {
-  const data = await reportService.getReports(req.user);
+  try {
+    const data = await reportService.getReports(req.user);
 
-  return successResponse(res, data, "Success", req.user);
+    return successResponse(res, data, "Success", req.user);
+  } catch (err) {
+    return errorResponse(res, err instanceof Error ? err.message : "Error");
+  }
 };
 
 export const findOne = async (req: Request<Params>, res: Response) => {

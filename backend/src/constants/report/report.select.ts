@@ -16,6 +16,13 @@ export const REPORT_SELECT = Prisma.validator<Prisma.ReportSelect>()({
     select: {
       id: true,
       name: true,
+      business: {
+        select: {
+          id: true,
+          name: true,
+          companyId: true,
+        },
+      },
       company: {
         select: {
           id: true,

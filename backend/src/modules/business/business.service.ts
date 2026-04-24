@@ -2,16 +2,13 @@ import prisma from "../../config/prisma";
 import { CreateBusinessInput, UpdateBusinessInput } from "./business.type";
 import { BUSINESS_SELECT } from "../../constants/business/business.select";
 import { BUSINESS_MESSAGES } from "../../constants/business/business.message";
-
-/** Resolve companyId untuk admin_perusahaan dari DB user record */
-async function resolveCompanyId(user: any): Promise<string | null> {
-  if (user.role === "super_admin") return null; // super_admin tidak perlu filter
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { companyId: true },
-  });
-  return dbUser?.companyId ?? null;
-}
+import { resolveCompanyId } from "../../utils/company-access";
+import {
+  parsePaginationParams,
+  formatPaginationResult,
+  calculateSkip,
+  PaginationParams,
+} from "../../utils/pagination";
 
 // create
 export const createBusiness = async (data: CreateBusinessInput, user: any) => {
@@ -37,18 +34,38 @@ export const createBusiness = async (data: CreateBusinessInput, user: any) => {
 };
 
 // get all
-export const getBusinesses = async (user: any) => {
+export const getBusinesses = async (
+  user: any,
+  paginationParams?: PaginationParams,
+) => {
+  const { page, limit } = parsePaginationParams(paginationParams || {});
+  const skip = calculateSkip(page, limit);
+
   if (user.role === "super_admin") {
-    return prisma.business.findMany({ select: BUSINESS_SELECT });
+    const [businesses, total] = await Promise.all([
+      prisma.business.findMany({
+        select: BUSINESS_SELECT,
+        skip,
+        take: limit,
+      }),
+      prisma.business.count(),
+    ]);
+    return formatPaginationResult(businesses, total, page, limit);
   }
 
   const companyId = await resolveCompanyId(user);
-  if (!companyId) return [];
+  if (!companyId) return formatPaginationResult([], 0, page, limit);
 
-  return prisma.business.findMany({
-    where: { companyId },
-    select: BUSINESS_SELECT,
-  });
+  const [businesses, total] = await Promise.all([
+    prisma.business.findMany({
+      where: { companyId },
+      select: BUSINESS_SELECT,
+      skip,
+      take: limit,
+    }),
+    prisma.business.count({ where: { companyId } }),
+  ]);
+  return formatPaginationResult(businesses, total, page, limit);
 };
 
 // get by id

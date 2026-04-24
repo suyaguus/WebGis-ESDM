@@ -24,9 +24,18 @@ export const create = async (
 
 // GET ALL
 export const findAll = async (req: Request, res: Response) => {
-  const companies = await companyService.getCompanies(req.user);
+  try {
+    const { page, limit } = req.query;
+    const companies = await companyService.getCompanies(req.user, {
+      page: page as string | undefined,
+      limit: limit as string | undefined,
+    });
 
-  return successResponse(res, companies, MESSAGES.SUCCESS.GET, req.user);
+    return successResponse(res, companies, MESSAGES.SUCCESS.GET, req.user);
+  } catch (err) {
+    console.error("[Company.findAll] Error:", err);
+    return errorResponse(res, err instanceof Error ? err.message : "Error");
+  }
 };
 
 // GET ONE

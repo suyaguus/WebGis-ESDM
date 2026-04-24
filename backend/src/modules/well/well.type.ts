@@ -2,7 +2,7 @@ import { WellType } from "@prisma/client";
 
 export type CreateWellInput = {
   name: string;
-  companyId: string;
+  businessId: string;
   latitude?: number;
   longitude?: number;
   locationDescription?: string;

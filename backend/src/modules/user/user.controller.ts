@@ -55,15 +55,22 @@ export const createAdminPerusahaan = async (
 
 // controller get all data user dengan pagination
 export const findAll = async (req: Request, res: Response) => {
-  const page = Math.max(1, parseInt(req.query.page as string) || 1);
-  const limit = Math.max(
-    1,
-    Math.min(100, parseInt(req.query.limit as string) || 5),
-  );
+  try {
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.max(
+      1,
+      Math.min(100, parseInt(req.query.limit as string) || 5),
+    );
 
-  const result = await userService.getUsers(page, limit);
+    const result = await userService.getUsers(page, limit);
 
-  return successResponse(res, result, MESSAGES.SUCCESS.GET);
+    return successResponse(res, result, MESSAGES.SUCCESS.GET);
+  } catch (err) {
+    return errorResponse(
+      res,
+      err instanceof Error ? err.message : MESSAGES.ERROR.DEFAULT,
+    );
+  }
 };
 
 // controller get data user by id
