@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useLogin } from "@/hooks/useAuth";
 import { useAppStore, useAuthStore } from "@/store";
 import { toFrontendRole } from "@/types/api";
+import axios from "axios";
 
 interface LoginPageProps {
   onBackToMap?: () => void;
@@ -15,6 +16,8 @@ const ALLOWED_LOGIN_ROLES = [
   "kadis",
   "surveyor",
 ] as const;
+
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
 
 export default function LoginPage({
   onBackToMap,
@@ -46,8 +49,11 @@ export default function LoginPage({
           setRole(frontendRole);
           onSuccess?.();
         },
-        onError: () => {
-          setError("Email atau password salah.");
+        onError: (err) => {
+          const message = axios.isAxiosError(err)
+            ? err.response?.data?.message
+            : null;
+          setError(message ?? "Email atau password salah.");
         },
       },
     );
@@ -227,7 +233,7 @@ export default function LoginPage({
           </div>
 
           {/* Dev hint */}
-          {import.meta.env.DEV && (
+          {import.meta.env.DEV && USE_MOCK && (
             <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
               <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wide mb-2">
                 Akun dev (mock)
@@ -238,6 +244,18 @@ export default function LoginPage({
                 <p>surveyor@lapangan.go.id — surveyor</p>
                 <p>admin@majujaya.co.id — admin perusahaan</p>
                 <p className="text-amber-600 mt-1">password: sigat123</p>
+              </div>
+            </div>
+          )}
+
+          {import.meta.env.DEV && !USE_MOCK && (
+            <div className="mt-4 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+              <p className="text-[10px] font-bold text-slate-700 uppercase tracking-wide mb-2">
+                Mode API nyata
+              </p>
+              <div className="space-y-1 text-[11px] text-slate-600">
+                <p>Login memakai akun yang benar-benar tersimpan di database.</p>
+                <p>Akun demo `admin@sigat.go.id` dan password `sigat123` hanya berlaku saat `VITE_USE_MOCK=true`.</p>
               </div>
             </div>
           )}

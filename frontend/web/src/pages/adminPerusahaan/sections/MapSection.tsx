@@ -11,9 +11,10 @@ export default function AdminMapSection() {
   const [selected, setSelected] = useState<Sensor | null>(null);
   const { user } = useAuthStore();
   const companyId = user?.companyId ?? "";
-  const { data: sensors = [], isLoading } = useSensors({
+  const { data: sensorsResponse = { data: [] }, isLoading } = useSensors({
     companyId: companyId || undefined,
   });
+  const sensors = sensorsResponse.data ?? [];
 
   return (
     <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden flex flex-col min-w-0">

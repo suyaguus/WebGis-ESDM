@@ -8,6 +8,8 @@ import type {
   CreateCompanyRequest,
   UpdateCompanyRequest,
   BackendCompany,
+  PaginationParams,
+  PaginatedResponse,
 } from "@/types/api";
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
@@ -40,13 +42,43 @@ function mapCompany(c: BackendCompany): Company {
 }
 
 export const companyService = {
-  getAll: async (): Promise<Company[]> => {
+  getAll: async (
+    pagination?: PaginationParams,
+  ): Promise<PaginatedResponse<Company>> => {
     if (USE_MOCK) {
       await mockDelay();
-      return MOCK_COMPANIES;
+      // Mock pagination
+      const limit = pagination?.limit ?? 10;
+      const page = pagination?.page ?? 1;
+      const start = (page - 1) * limit;
+      const data = MOCK_COMPANIES.slice(start, start + limit);
+      return {
+        data,
+        pagination: {
+          currentPage: page,
+          pageSize: limit,
+          totalRecords: MOCK_COMPANIES.length,
+          totalPages: Math.ceil(MOCK_COMPANIES.length / limit),
+          hasNextPage: page < Math.ceil(MOCK_COMPANIES.length / limit),
+          hasPrevPage: page > 1,
+        },
+      };
     }
-    const { data } = await api.get<{ data: BackendCompany[] }>("/companies");
-    return data.data.map(mapCompany);
+    const params = new URLSearchParams();
+    if (pagination?.page) params.append("page", String(pagination.page));
+    if (pagination?.limit) params.append("limit", String(pagination.limit));
+
+    const { data: response } = await api.get<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: PaginatedResponse<BackendCompany>;
+    }>(`/companies?${params.toString()}`);
+
+    return {
+      data: response.data.data.map(mapCompany),
+      pagination: response.data.pagination,
+    };
   },
 
   getById: async (id: string): Promise<Company> => {
@@ -56,29 +88,36 @@ export const companyService = {
       if (!c) throw new Error(`Perusahaan ${id} tidak ditemukan`);
       return c;
     }
-    const { data } = await api.get<{ data: BackendCompany }>(
-      `/companies/${id}`,
-    );
-    return mapCompany(data.data);
+    const { data: response } = await api.get<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendCompany;
+    }>(`/companies/${id}`);
+    return mapCompany(response.data);
   },
 
   create: async (payload: CreateCompanyRequest): Promise<Company> => {
-    const { data } = await api.post<{ data: BackendCompany }>(
-      "/companies",
-      payload,
-    );
-    return mapCompany(data.data);
+    const { data: response } = await api.post<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendCompany;
+    }>("/companies", payload);
+    return mapCompany(response.data);
   },
 
   update: async (
     id: string,
     payload: Partial<CreateCompanyRequest>,
   ): Promise<Company> => {
-    const { data } = await api.patch<{ data: BackendCompany }>(
-      `/companies/${id}`,
-      payload,
-    );
-    return mapCompany(data.data);
+    const { data: response } = await api.patch<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendCompany;
+    }>(`/companies/${id}`, payload);
+    return mapCompany(response.data);
   },
 
   delete: async (id: string): Promise<void> => {

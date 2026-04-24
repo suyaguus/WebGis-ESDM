@@ -17,6 +17,7 @@ import SensorPage from "@/pages/superadmin/sensor/index";
 import AnalyticsPage from "@/pages/superadmin/analytics/index";
 import UsersPage from "@/pages/superadmin/users/index";
 import CompaniesPage from "@/pages/superadmin/companies/index";
+import BusinessPage from "@/pages/superadmin/business/index";
 import RolesPage from "@/pages/superadmin/roles/index";
 import VerifikasiPage from "@/pages/superadmin/verifikasi/index";
 import ReportsPage from "@/pages/superadmin/reports/index";
@@ -35,6 +36,7 @@ import AdminStatusPage from "@/pages/adminPerusahaan/status/index";
 import AdminLaporanPage from "@/pages/adminPerusahaan/laporan/index";
 import AdminKirimSurveyorPage from "@/pages/adminPerusahaan/kirim/index";
 import AdminCompanyPage from "@/pages/adminPerusahaan/perusahaan/index";
+import AdminBusinessPage from "@/pages/adminPerusahaan/business/index";
 
 /* ── Kadis ── */
 import KadisAppShell from "@/components/layout/Kadis/AppShell";
@@ -114,6 +116,8 @@ function SuperAdminApp() {
         return <UsersPage />;
       case "companies":
         return <CompaniesPage />;
+      case "business":
+        return <BusinessPage />;
       case "roles":
         return <RolesPage />;
       case "verifikasi":
@@ -155,6 +159,8 @@ function AdminPerusahaanApp() {
         return <AdminKirimSurveyorPage />;
       case "ap-perusahaan":
         return <AdminCompanyPage />;
+      case "ap-business":
+        return <AdminBusinessPage />;
       case "ap-peta":
         return <AdminPetaPage />;
       default:

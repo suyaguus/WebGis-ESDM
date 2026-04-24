@@ -175,13 +175,19 @@ export interface SensorFilter {
 
 export interface CreateSensorRequest {
   name: string;
-  companyId: string;
+  businessId: string;
   wellType: "perusahaan" | "non_perusahaan" | "rumah_tangga";
   latitude?: number;
   longitude?: number;
   locationDescription?: string;
   depthMeter?: number;
   diameterInch?: number;
+  casingDiameter?: number;
+  pumpCapacity?: number;
+  pumpDepth?: number;
+  pipeDiameter?: number;
+  subsidenceRate?: number;
+  verticalValue?: number;
 }
 
 export interface UpdateSensorRequest extends Partial<CreateSensorRequest> {}
@@ -225,6 +231,7 @@ export interface UpdateBusinessRequest {
   name?: string;
   address?: string;
   phone?: string;
+  companyId?: string;
 }
 
 export interface CreateMeasurementRequest {
@@ -239,6 +246,29 @@ export interface CreateMeasurementRequest {
 export interface VerifyMeasurementRequest {
   status: "APPROVED" | "REJECTED";
   note?: string;
+}
+
+/* ─────────────────────────────────────────────
+   Pagination types
+───────────────────────────────────────────── */
+
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginationMeta {
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  totalRecords: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: PaginationMeta;
 }
 
 export interface GenerateReportRequest {

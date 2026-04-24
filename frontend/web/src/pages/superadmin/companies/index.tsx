@@ -1,6 +1,15 @@
 import { useState, useMemo } from "react";
-import { Building2, Plus, Search, MoreHorizontal, X, Eye, EyeOff, Trash2 } from "lucide-react";
-import { StatusPill } from "../../../components/ui";
+import {
+  Building2,
+  Plus,
+  Search,
+  MoreHorizontal,
+  X,
+  Eye,
+  EyeOff,
+  Trash2,
+} from "lucide-react";
+import { StatusPill, Pagination, Card } from "../../../components/ui";
 import {
   useCompanies,
   useCreateCompany,
@@ -15,13 +24,24 @@ import type { CreateCompanyRequest } from "../../../types/api";
 /* ── Form Modal ── */
 interface CompanyFormProps {
   mode: "create" | "edit";
-  initial?: Company & { address?: string; email?: string; phone?: string; type?: string };
+  initial?: Company & {
+    address?: string;
+    email?: string;
+    phone?: string;
+    type?: string;
+  };
   onClose: () => void;
   onSubmit: (data: CreateCompanyRequest) => void;
   isPending: boolean;
 }
 
-function CompanyFormModal({ mode, initial, onClose, onSubmit, isPending }: CompanyFormProps) {
+function CompanyFormModal({
+  mode,
+  initial,
+  onClose,
+  onSubmit,
+  isPending,
+}: CompanyFormProps) {
   const [form, setForm] = useState({
     name: initial?.name ?? "",
     address: initial?.region !== "-" ? (initial?.region ?? "") : "",
@@ -33,20 +53,28 @@ function CompanyFormModal({ mode, initial, onClose, onSubmit, isPending }: Compa
 
   const set = (k: string, v: string) => {
     setForm((p) => ({ ...p, [k]: v }));
-    setErrors((p) => { const n = { ...p }; delete n[k]; return n; });
+    setErrors((p) => {
+      const n = { ...p };
+      delete n[k];
+      return n;
+    });
   };
 
   const validate = () => {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = "Nama perusahaan wajib diisi";
-    if (form.email && !/\S+@\S+\.\S+/.test(form.email)) e.email = "Format email tidak valid";
+    if (form.email && !/\S+@\S+\.\S+/.test(form.email))
+      e.email = "Format email tidak valid";
     return e;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const errs = validate();
-    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
 
     const payload: CreateCompanyRequest = {
       name: form.name,
@@ -58,9 +86,19 @@ function CompanyFormModal({ mode, initial, onClose, onSubmit, isPending }: Compa
     onSubmit(payload);
   };
 
-  const F = ({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) => (
+  const F = ({
+    label,
+    error,
+    children,
+  }: {
+    label: string;
+    error?: string;
+    children: React.ReactNode;
+  }) => (
     <div>
-      <label className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">{label}</label>
+      <label className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">
+        {label}
+      </label>
       {children}
       {error && <p className="text-[10px] text-red-500 mt-1">{error}</p>}
     </div>
@@ -69,11 +107,16 @@ function CompanyFormModal({ mode, initial, onClose, onSubmit, isPending }: Compa
   const inputCls = (err?: string) =>
     cn(
       "w-full px-3 py-2 text-[12px] font-mono border rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1",
-      err ? "border-red-300 focus:ring-red-300" : "border-slate-200 focus:ring-cyan-400 focus:border-cyan-400",
+      err
+        ? "border-red-300 focus:ring-red-300"
+        : "border-slate-200 focus:ring-cyan-400 focus:border-cyan-400",
     );
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
       <div
         className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden"
         onClick={(e) => e.stopPropagation()}
@@ -84,7 +127,9 @@ function CompanyFormModal({ mode, initial, onClose, onSubmit, isPending }: Compa
               {mode === "create" ? "Tambah Perusahaan" : "Edit Perusahaan"}
             </p>
             <p className="text-[10px] text-slate-400 font-mono mt-0.5">
-              {mode === "create" ? "Daftarkan perusahaan baru" : `Edit data ${initial?.name}`}
+              {mode === "create"
+                ? "Daftarkan perusahaan baru"
+                : `Edit data ${initial?.name}`}
             </p>
           </div>
           <button
@@ -155,7 +200,11 @@ function CompanyFormModal({ mode, initial, onClose, onSubmit, isPending }: Compa
               disabled={isPending}
               className="flex-1 px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors disabled:opacity-50"
             >
-              {isPending ? "Menyimpan..." : mode === "create" ? "Tambah" : "Simpan Perubahan"}
+              {isPending
+                ? "Menyimpan..."
+                : mode === "create"
+                  ? "Tambah"
+                  : "Simpan Perubahan"}
             </button>
           </div>
         </form>
@@ -177,7 +226,10 @@ function DeleteConfirmModal({
   isPending: boolean;
 }) {
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
       <div
         className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-sm overflow-hidden"
         onClick={(e) => e.stopPropagation()}
@@ -186,10 +238,13 @@ function DeleteConfirmModal({
           <div className="w-12 h-12 rounded-full bg-red-50 border border-red-200 flex items-center justify-center mx-auto mb-3">
             <Trash2 size={20} className="text-red-500" />
           </div>
-          <p className="text-[15px] font-bold text-slate-800 mb-1">Hapus Perusahaan?</p>
+          <p className="text-[15px] font-bold text-slate-800 mb-1">
+            Hapus Perusahaan?
+          </p>
           <p className="text-[12px] text-slate-500">
-            Perusahaan <span className="font-semibold text-slate-700">{companyName}</span> akan dihapus permanen.
-            Data ini tidak bisa dikembalikan.
+            Perusahaan{" "}
+            <span className="font-semibold text-slate-700">{companyName}</span>{" "}
+            akan dihapus permanen. Data ini tidak bisa dikembalikan.
           </p>
         </div>
         <div className="flex gap-2 px-6 pb-5">
@@ -214,8 +269,15 @@ function DeleteConfirmModal({
 
 /* ── Main Page ── */
 export default function CompaniesPage() {
-  const { data: companies = [], isLoading } = useCompanies();
-  const { data: sensors = [] } = useSensors();
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const { data: response, isLoading } = useCompanies({ page, limit });
+  const { data: sensorsResponse = { data: [] } } = useSensors();
+
+  const companies = response?.data ?? [];
+  const pagination = response?.pagination;
+  const sensors = sensorsResponse.data ?? [];
+
   const createCompany = useCreateCompany();
   const updateCompany = useUpdateCompany();
   const deleteCompany = useDeleteCompany();
@@ -236,7 +298,8 @@ export default function CompaniesPage() {
     );
   }, [companies, search]);
 
-  const companySensors = (id: string) => sensors.filter((s) => s.companyId === id);
+  const companySensors = (id: string) =>
+    sensors.filter((s) => s.companyId === id);
   const alertSensors = (id: string) =>
     companySensors(id).filter((s) => s.status === "alert").length;
 
@@ -248,7 +311,12 @@ export default function CompaniesPage() {
     } else if (formMode === "edit" && editTarget) {
       updateCompany.mutate(
         { id: editTarget.id, payload },
-        { onSuccess: () => { setFormMode(null); setEditTarget(null); } },
+        {
+          onSuccess: () => {
+            setFormMode(null);
+            setEditTarget(null);
+          },
+        },
       );
     }
   };
@@ -278,7 +346,9 @@ export default function CompaniesPage() {
     <div className="p-3 sm:p-5 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[18px] font-semibold text-slate-800">Perusahaan</h1>
+          <h1 className="text-[18px] font-semibold text-slate-800">
+            Perusahaan
+          </h1>
           <p className="text-[11px] text-slate-400 font-mono mt-0.5">
             Kelola data perusahaan pengguna air tanah
           </p>
@@ -295,24 +365,53 @@ export default function CompaniesPage() {
       {/* KPI Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Total Perusahaan", value: companies.length, color: "#0891B2" },
-          { label: "Online", value: companies.filter((c) => c.status === "online").length, color: "#22C55E" },
-          { label: "Kuota Melebihi", value: companies.filter((c) => c.quotaUsed > c.quota).length, color: "#EF4444" },
-          { label: "Total Sensor", value: companies.reduce((a, c) => a + c.sensorCount, 0), color: "#8B5CF6" },
+          {
+            label: "Total Perusahaan",
+            value: companies.length,
+            color: "#0891B2",
+          },
+          {
+            label: "Online",
+            value: companies.filter((c) => c.status === "online").length,
+            color: "#22C55E",
+          },
+          {
+            label: "Kuota Melebihi",
+            value: companies.filter((c) => c.quotaUsed > c.quota).length,
+            color: "#EF4444",
+          },
+          {
+            label: "Total Sensor",
+            value: companies.reduce((a, c) => a + c.sensorCount, 0),
+            color: "#8B5CF6",
+          },
         ].map(({ label, value, color }) => (
-          <div key={label} className="bg-white rounded-xl border border-slate-100 shadow-sm px-4 py-3 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl" style={{ background: color }} />
-            <p className="text-[9px] font-mono text-slate-400 uppercase tracking-wider mb-1">{label}</p>
-            <p className="text-[22px] font-bold font-mono" style={{ color }}>{value}</p>
+          <div
+            key={label}
+            className="bg-white rounded-xl border border-slate-100 shadow-sm px-4 py-3 relative overflow-hidden"
+          >
+            <div
+              className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl"
+              style={{ background: color }}
+            />
+            <p className="text-[9px] font-mono text-slate-400 uppercase tracking-wider mb-1">
+              {label}
+            </p>
+            <p className="text-[22px] font-bold font-mono" style={{ color }}>
+              {value}
+            </p>
           </div>
         ))}
       </div>
 
       {/* Company cards */}
-      <div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
+      <Card padding={false}>
+        <div className="px-4 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center gap-2">
           <div className="relative flex-1 sm:flex-none">
-            <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search
+              size={12}
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+            />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -320,18 +419,25 @@ export default function CompaniesPage() {
               className="pl-8 pr-3 py-1.5 text-[11px] font-mono border border-slate-200 rounded-lg bg-white text-slate-700 w-full sm:w-52 focus:outline-none focus:border-cyan-400"
             />
           </div>
-          <span className="text-[10px] text-slate-400 font-mono">{data.length} perusahaan</span>
+          <span className="text-[10px] text-slate-400 font-mono">
+            {data.length} perusahaan
+          </span>
         </div>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-16 text-[11px] text-slate-400 font-mono">
             Memuat data perusahaan...
           </div>
+        ) : data.length === 0 ? (
+          <div className="col-span-full py-12 text-center text-[11px] text-slate-400 font-mono p-8">
+            Tidak ada perusahaan ditemukan
+          </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.map((c) => {
               const pct = getQuotaPercent(c.quotaUsed, c.quota);
-              const pctColor = pct >= 100 ? "#EF4444" : pct >= 85 ? "#F59E0B" : "#22C55E";
+              const pctColor =
+                pct >= 100 ? "#EF4444" : pct >= 85 ? "#F59E0B" : "#22C55E";
               const alerts = alertSensors(c.id);
               return (
                 <div
@@ -351,21 +457,55 @@ export default function CompaniesPage() {
                       <StatusPill status={c.status} />
                     </div>
                   </div>
-                  <h3 className="text-[13px] font-bold text-slate-800 leading-tight mb-0.5">{c.name}</h3>
-                  <p className="text-[10px] text-slate-400 font-mono mb-3">{c.region}</p>
+                  <h3 className="text-[13px] font-bold text-slate-800 leading-tight mb-0.5">
+                    {c.name}
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-mono mb-3">
+                    {c.region}
+                  </p>
 
                   <div className="grid grid-cols-3 gap-2 mb-3">
                     {[
-                      { label: "Sensor", value: String(c.sensorCount), valueClass: "" },
-                      { label: "Subsidence", value: `${c.avgSubsidence.toFixed(1)}`, unit: "cm/thn", valueClass: getSubsidenceColor(c.avgSubsidence) },
-                      { label: "Kuota", value: `${pct}%`, valueClass: pct >= 100 ? "text-red-600" : pct >= 85 ? "text-amber-600" : "text-emerald-600" },
+                      {
+                        label: "Sensor",
+                        value: String(c.sensorCount),
+                        valueClass: "",
+                      },
+                      {
+                        label: "Subsidence",
+                        value: `${c.avgSubsidence.toFixed(1)}`,
+                        unit: "cm/thn",
+                        valueClass: getSubsidenceColor(c.avgSubsidence),
+                      },
+                      {
+                        label: "Kuota",
+                        value: `${pct}%`,
+                        valueClass:
+                          pct >= 100
+                            ? "text-red-600"
+                            : pct >= 85
+                              ? "text-amber-600"
+                              : "text-emerald-600",
+                      },
                     ].map(({ label, value, unit, valueClass }) => (
-                      <div key={label} className="bg-slate-50 rounded-lg px-2 py-2 text-center">
-                        <p className={cn("text-[13px] font-bold font-mono", valueClass || "text-slate-800")}>
+                      <div
+                        key={label}
+                        className="bg-slate-50 rounded-lg px-2 py-2 text-center"
+                      >
+                        <p
+                          className={cn(
+                            "text-[13px] font-bold font-mono",
+                            valueClass || "text-slate-800",
+                          )}
+                        >
                           {value}
-                          <span className="text-[8px] text-slate-400 font-mono ml-0.5">{unit}</span>
+                          <span className="text-[8px] text-slate-400 font-mono ml-0.5">
+                            {unit}
+                          </span>
                         </p>
-                        <p className="text-[8px] text-slate-400 font-mono">{label}</p>
+                        <p className="text-[8px] text-slate-400 font-mono">
+                          {label}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -374,7 +514,10 @@ export default function CompaniesPage() {
                     <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all"
-                        style={{ width: `${Math.min(pct, 100)}%`, background: pctColor }}
+                        style={{
+                          width: `${Math.min(pct, 100)}%`,
+                          background: pctColor,
+                        }}
                       />
                     </div>
                     <div className="flex justify-between mt-1">
@@ -422,14 +565,22 @@ export default function CompaniesPage() {
                 </div>
               );
             })}
-            {data.length === 0 && !isLoading && (
-              <div className="col-span-full py-12 text-center text-[11px] text-slate-400 font-mono">
-                Tidak ada perusahaan ditemukan
-              </div>
-            )}
           </div>
         )}
-      </div>
+
+        {/* Pagination */}
+        {pagination && (
+          <Pagination
+            pagination={pagination}
+            onPageChange={setPage}
+            onLimitChange={(newLimit) => {
+              setLimit(newLimit);
+              setPage(1);
+            }}
+            isLoading={isLoading}
+          />
+        )}
+      </Card>
 
       {/* Detail slide-in */}
       {selected && (
@@ -443,8 +594,12 @@ export default function CompaniesPage() {
           >
             <div className="p-5 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <p className="text-[14px] font-bold text-slate-800">{selected.name}</p>
-                <p className="text-[10px] text-slate-400 font-mono">{selected.region}</p>
+                <p className="text-[14px] font-bold text-slate-800">
+                  {selected.name}
+                </p>
+                <p className="text-[10px] text-slate-400 font-mono">
+                  {selected.region}
+                </p>
               </div>
               <button
                 onClick={() => setSelected(null)}
@@ -458,43 +613,65 @@ export default function CompaniesPage() {
               <div className="grid grid-cols-2 gap-3">
                 {[
                   ["Total Sensor", selected.sensorCount],
-                  ["Avg Subsidence", `${selected.avgSubsidence.toFixed(2)} cm/thn`],
+                  [
+                    "Avg Subsidence",
+                    `${selected.avgSubsidence.toFixed(2)} cm/thn`,
+                  ],
                   ["Kuota Total", `${(selected.quota / 1000).toFixed(0)}k m³`],
-                  ["Kuota Terpakai", `${getQuotaPercent(selected.quotaUsed, selected.quota)}%`],
+                  [
+                    "Kuota Terpakai",
+                    `${getQuotaPercent(selected.quotaUsed, selected.quota)}%`,
+                  ],
                 ].map(([k, v]) => (
                   <div key={String(k)} className="bg-slate-50 rounded-xl p-3">
-                    <p className="text-[9px] font-mono text-slate-400 mb-1">{k}</p>
+                    <p className="text-[9px] font-mono text-slate-400 mb-1">
+                      {k}
+                    </p>
                     <p className="text-[13px] font-bold text-slate-800">{v}</p>
                   </div>
                 ))}
               </div>
               <div>
-                <p className="text-[11px] font-semibold text-slate-700 mb-2">Sensor Perusahaan</p>
+                <p className="text-[11px] font-semibold text-slate-700 mb-2">
+                  Sensor Perusahaan
+                </p>
                 <div className="space-y-2">
                   {companySensors(selected.id).map((s) => (
                     <div
                       key={s.id}
                       className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg"
                     >
-                      <span className="text-[11px] font-mono font-semibold text-slate-700">{s.code}</span>
-                      <span className="text-[10px] text-slate-400">{s.location}</span>
+                      <span className="text-[11px] font-mono font-semibold text-slate-700">
+                        {s.code}
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        {s.location}
+                      </span>
                       <StatusPill status={s.status} />
                     </div>
                   ))}
                   {companySensors(selected.id).length === 0 && (
-                    <p className="text-[10px] text-slate-400 font-mono">Belum ada sensor terdaftar</p>
+                    <p className="text-[10px] text-slate-400 font-mono">
+                      Belum ada sensor terdaftar
+                    </p>
                   )}
                 </div>
               </div>
               <div className="flex gap-2">
                 <button
-                  onClick={() => { openEdit(selected); setSelected(null); }}
+                  onClick={() => {
+                    openEdit(selected);
+                    setSelected(null);
+                  }}
                   className="flex-1 px-4 py-2 bg-cyan-600 text-white text-[12px] font-semibold rounded-xl hover:bg-cyan-700 transition-colors"
                 >
                   Edit Perusahaan
                 </button>
                 <button
-                  onClick={() => { openDelete(selected); setSelected(null); }}
+                  onClick={() => {
+                    openDelete(selected);
+                    setSelected(null);
+                  }}
                   className="px-4 py-2 bg-red-50 text-red-600 text-[12px] font-semibold rounded-xl hover:bg-red-100 transition-colors border border-red-200"
                 >
                   Hapus
@@ -510,7 +687,10 @@ export default function CompaniesPage() {
         <CompanyFormModal
           mode={formMode}
           initial={editTarget ?? undefined}
-          onClose={() => { setFormMode(null); setEditTarget(null); }}
+          onClose={() => {
+            setFormMode(null);
+            setEditTarget(null);
+          }}
           onSubmit={handleFormSubmit}
           isPending={createCompany.isPending || updateCompany.isPending}
         />

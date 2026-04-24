@@ -80,8 +80,13 @@ export const reportService = {
         scope === "kadis" ? KADIS_RECENT_REPORTS : ADMIN_RECENT_REPORTS
       ) as ReportFile[];
     }
-    const { data } = await api.get<{ data: ReportFile[] }>("/reports/files");
-    return data.data ?? [];
+    const { data: response } = await api.get<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: ReportFile[];
+    }>("/reports/files");
+    return response.data ?? [];
   },
 
   /**

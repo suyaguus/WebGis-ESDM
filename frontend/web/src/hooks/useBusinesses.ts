@@ -1,13 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { businessService } from "@/services/business.service";
-import type { CreateBusinessRequest, UpdateBusinessRequest } from "@/types/api";
+import type {
+  CreateBusinessRequest,
+  UpdateBusinessRequest,
+  PaginationParams,
+} from "@/types/api";
 
 const KEY = "businesses";
 
-export function useBusinesses() {
+export function useBusinesses(pagination?: PaginationParams) {
   return useQuery({
-    queryKey: [KEY],
-    queryFn: () => businessService.getAll(),
+    queryKey: [KEY, pagination],
+    queryFn: () => businessService.getAll(pagination),
   });
 }
 

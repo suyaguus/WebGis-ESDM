@@ -382,7 +382,8 @@ export default function UsersPage() {
   const totalPages = paginatedData?.totalPages ?? 1;
   const totalUsers = paginatedData?.total ?? 0;
 
-  const { data: companies = [] } = useCompanies();
+  const { data: companiesResponse = { data: [] } } = useCompanies();
+  const companies = companiesResponse.data ?? [];
   const activate = useActivateUser();
   const deactivate = useDeactivateUser();
   const createUser = useCreateUser();

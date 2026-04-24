@@ -16,6 +16,7 @@ import {
   Briefcase,
   AlertTriangle,
 } from "lucide-react";
+import { useAuthStore } from "../../../store";
 import { useCompanies, useUpdateCompany } from "../../../hooks/useCompanies";
 import {
   useBusinesses,
@@ -373,8 +374,24 @@ function DeleteConfirmModal({
 
 /* ── Main Page ── */
 export default function AdminPerusahaanCompanyPage() {
-  const { data: companies = [], isLoading: loadingCompany } = useCompanies();
-  const { data: businesses = [], isLoading: loadingBusiness } = useBusinesses();
+  const { user } = useAuthStore();
+  const userCompanyId = user?.companyId ?? "";
+
+  const { data: companiesResponse = { data: [] }, isLoading: loadingCompany } =
+    useCompanies();
+  const allCompanies = companiesResponse.data ?? [];
+
+  // Filter untuk hanya menampilkan perusahaan milik user
+  const companies = allCompanies.filter((c) => c.id === userCompanyId);
+
+  const {
+    data: businessesResponse = { data: [] },
+    isLoading: loadingBusiness,
+  } = useBusinesses();
+  const allBusinesses = businessesResponse.data ?? [];
+
+  // Filter untuk hanya menampilkan bisnis milik perusahaan user
+  const businesses = allBusinesses.filter((b) => b.companyId === userCompanyId);
   const updateCompany = useUpdateCompany();
   const createBusiness = useCreateBusiness();
   const updateBusiness = useUpdateBusiness();

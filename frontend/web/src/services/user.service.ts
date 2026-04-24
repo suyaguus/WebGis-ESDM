@@ -69,7 +69,10 @@ export const userService = {
     page: number = 1,
     limit: number = 5,
   ): Promise<PaginatedUsers> => {
-    const { data } = await api.get<{
+    const { data: response } = await api.get<{
+      success: boolean;
+      message: string;
+      metadata: any;
       data: {
         users: BackendUser[];
         total: number;
@@ -79,39 +82,57 @@ export const userService = {
       };
     }>("/users", { params: { page, limit } });
     return {
-      users: data.data.users.map(mapUser),
-      total: data.data.total,
-      page: data.data.page,
-      limit: data.data.limit,
-      totalPages: data.data.totalPages,
+      users: response.data.users.map(mapUser),
+      total: response.data.total,
+      page: response.data.page,
+      limit: response.data.limit,
+      totalPages: response.data.totalPages,
     };
   },
 
   getById: async (id: string): Promise<User> => {
-    const { data } = await api.get<{ data: BackendUser }>(`/users/${id}`);
-    return mapUser(data.data);
+    const { data: response } = await api.get<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendUser;
+    }>(`/users/${id}`);
+    return mapUser(response.data);
   },
 
   create: async (payload: CreateUserRequest): Promise<User> => {
-    const { data } = await api.post<{ data: BackendUser }>("/users", payload);
-    return mapUser(data.data);
+    const { data: response } = await api.post<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendUser;
+    }>("/users", payload);
+    return mapUser(response.data);
   },
 
   createAdminPerusahaan: async (
     payload: CreateAdminPerusahaanRequest,
   ): Promise<{ user: User; company: { id: string; name: string } }> => {
-    const { data } = await api.post<{
+    const { data: response } = await api.post<{
+      success: boolean;
+      message: string;
+      metadata: any;
       data: { user: BackendUser; company: { id: string; name: string } };
     }>("/users/admin-perusahaan", payload);
-    return { user: mapUser(data.data.user), company: data.data.company };
+    return {
+      user: mapUser(response.data.user),
+      company: response.data.company,
+    };
   },
 
   update: async (id: string, payload: UpdateUserRequest): Promise<User> => {
-    const { data } = await api.patch<{ data: BackendUser }>(
-      `/users/${id}`,
-      payload,
-    );
-    return mapUser(data.data);
+    const { data: response } = await api.patch<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendUser;
+    }>(`/users/${id}`, payload);
+    return mapUser(response.data);
   },
 
   deactivate: async (id: string): Promise<void> => {
@@ -127,10 +148,12 @@ export const userService = {
   },
 
   updateMe: async (payload: UpdateMeRequest): Promise<User> => {
-    const { data } = await api.patch<{ data: BackendUser }>(
-      "/users/me",
-      payload,
-    );
-    return mapUser(data.data);
+    const { data: response } = await api.patch<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendUser;
+    }>("/users/me", payload);
+    return mapUser(response.data);
   },
 };

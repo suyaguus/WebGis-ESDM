@@ -44,27 +44,42 @@ function mapReport(r: BackendReport): VerificationReport {
 
 export const verificationService = {
   getAll: async (): Promise<VerificationReport[]> => {
-    const { data } = await api.get<{ data: BackendReport[] }>("/reports");
-    return (data.data ?? []).map(mapReport);
+    const { data: response } = await api.get<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendReport[];
+    }>("/reports");
+    return (response.data ?? []).map(mapReport);
   },
 
   getById: async (id: string): Promise<VerificationReport> => {
-    const { data } = await api.get<{ data: BackendReport }>(`/reports/${id}`);
-    return mapReport(data.data);
+    const { data: response } = await api.get<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendReport;
+    }>(`/reports/${id}`);
+    return mapReport(response.data);
   },
 
   approve: async (id: string): Promise<VerificationReport> => {
-    const { data } = await api.patch<{ data: BackendReport }>(
-      `/reports/${id}/approve`,
-    );
-    return mapReport(data.data);
+    const { data: response } = await api.patch<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendReport;
+    }>(`/reports/${id}/approve`);
+    return mapReport(response.data);
   },
 
   reject: async (id: string, reason: string): Promise<VerificationReport> => {
-    const { data } = await api.patch<{ data: BackendReport }>(
-      `/reports/${id}/reject`,
-      { reason },
-    );
-    return mapReport(data.data);
+    const { data: response } = await api.patch<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendReport;
+    }>(`/reports/${id}/reject`, { reason });
+    return mapReport(response.data);
   },
 };

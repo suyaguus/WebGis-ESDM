@@ -12,6 +12,8 @@ import type {
   CreateSensorRequest,
   UpdateSensorRequest,
   BackendWell,
+  PaginationParams,
+  PaginatedResponse,
 } from "@/types/api";
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
@@ -40,7 +42,10 @@ function mapWellToSensor(w: BackendWell): Sensor {
 }
 
 export const sensorService = {
-  getAll: async (filter?: SensorFilter): Promise<Sensor[]> => {
+  getAll: async (
+    filter?: SensorFilter,
+    pagination?: PaginationParams,
+  ): Promise<PaginatedResponse<Sensor>> => {
     if (USE_MOCK) {
       await mockDelay();
       let result = [...MOCK_SENSORS];
@@ -57,10 +62,34 @@ export const sensorService = {
             s.location.toLowerCase().includes(q),
         );
       }
-      return result;
+      const limit = pagination?.limit ?? 10;
+      const page = pagination?.page ?? 1;
+      const start = (page - 1) * limit;
+      const data = result.slice(start, start + limit);
+      return {
+        data,
+        pagination: {
+          currentPage: page,
+          pageSize: limit,
+          totalRecords: result.length,
+          totalPages: Math.ceil(result.length / limit),
+          hasNextPage: page < Math.ceil(result.length / limit),
+          hasPrevPage: page > 1,
+        },
+      };
     }
-    const { data } = await api.get<{ data: BackendWell[] }>("/wells");
-    let result = data.data.map(mapWellToSensor);
+    const params = new URLSearchParams();
+    if (pagination?.page) params.append("page", String(pagination.page));
+    if (pagination?.limit) params.append("limit", String(pagination.limit));
+
+    const { data: response } = await api.get<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: PaginatedResponse<BackendWell>;
+    }>(`/wells?${params.toString()}`);
+
+    let result = response.data.data.map(mapWellToSensor);
     if (filter?.companyId)
       result = result.filter((s) => s.companyId === filter.companyId);
     if (filter?.status)
@@ -73,7 +102,10 @@ export const sensorService = {
           s.location.toLowerCase().includes(q),
       );
     }
-    return result;
+    return {
+      data: result,
+      pagination: response.data.pagination,
+    };
   },
 
   getByCompany: async (companyId: string): Promise<Sensor[]> => {
@@ -83,8 +115,13 @@ export const sensorService = {
         ? COMPANY_SENSORS
         : MOCK_SENSORS.filter((s) => s.companyId === companyId);
     }
-    const { data } = await api.get<{ data: BackendWell[] }>("/wells");
-    return data.data
+    const { data: response } = await api.get<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendWell[];
+    }>("/wells");
+    return response.data
       .filter((w) => w.company.id === companyId)
       .map(mapWellToSensor);
   },
@@ -98,21 +135,33 @@ export const sensorService = {
       if (!s) throw new Error(`Sensor ${id} tidak ditemukan`);
       return s;
     }
-    const { data } = await api.get<{ data: BackendWell }>(`/wells/${id}`);
-    return mapWellToSensor(data.data);
+    const { data: response } = await api.get<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendWell;
+    }>(`/wells/${id}`);
+    return mapWellToSensor(response.data);
   },
 
   create: async (payload: CreateSensorRequest): Promise<Sensor> => {
-    const { data } = await api.post<{ data: BackendWell }>("/wells", payload);
-    return mapWellToSensor(data.data);
+    const { data: response } = await api.post<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendWell;
+    }>("/wells", payload);
+    return mapWellToSensor(response.data);
   },
 
   update: async (id: string, payload: UpdateSensorRequest): Promise<Sensor> => {
-    const { data } = await api.patch<{ data: BackendWell }>(
-      `/wells/${id}`,
-      payload,
-    );
-    return mapWellToSensor(data.data);
+    const { data: response } = await api.patch<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendWell;
+    }>(`/wells/${id}`, payload);
+    return mapWellToSensor(response.data);
   },
 
   delete: async (id: string): Promise<void> => {
