@@ -24,8 +24,10 @@ const TYPE_OPTS: { key: FilterType; label: string }[] = [
 ];
 
 export default function PetaPage() {
-  const { data: sensors = [], isLoading } = useSensors();
-  const { data: companies = [] } = useCompanies();
+  const { data: sensorsResponse = { data: [] }, isLoading } = useSensors();
+  const sensors = sensorsResponse.data ?? [];
+  const { data: companiesResponse = { data: [] } } = useCompanies();
+  const companies = companiesResponse.data ?? [];
 
   const [search, setSearch] = useState("");
   const [statusF, setStatusF] = useState<FilterStatus>("all");

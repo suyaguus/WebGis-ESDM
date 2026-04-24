@@ -7,9 +7,11 @@ import { getQuotaPercent } from "../../../lib/utils";
 export default function AdminStatsRow() {
   const { user } = useAuthStore();
   const companyId = user?.companyId ?? "";
-  const { data: sensors = [], isLoading: loadingSensors } = useSensors({
-    companyId: companyId || undefined,
-  });
+  const { data: sensorsResponse = { data: [] }, isLoading: loadingSensors } =
+    useSensors({
+      companyId: companyId || undefined,
+    });
+  const sensors = sensorsResponse.data ?? [];
   const { data: company, isLoading: loadingCompany } = useCompany(companyId);
 
   const total = sensors.length;

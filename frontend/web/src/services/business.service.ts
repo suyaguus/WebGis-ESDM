@@ -3,6 +3,8 @@ import type {
   BackendBusiness,
   CreateBusinessRequest,
   UpdateBusinessRequest,
+  PaginationParams,
+  PaginatedResponse,
 } from "@/types/api";
 
 export interface Business {
@@ -30,35 +32,56 @@ function mapBusiness(b: BackendBusiness): Business {
 }
 
 export const businessService = {
-  getAll: async (): Promise<Business[]> => {
-    const { data } = await api.get<{ data: BackendBusiness[] }>("/businesses");
-    return data.data.map(mapBusiness);
+  getAll: async (
+    pagination?: PaginationParams,
+  ): Promise<PaginatedResponse<Business>> => {
+    const params = new URLSearchParams();
+    if (pagination?.page) params.append("page", String(pagination.page));
+    if (pagination?.limit) params.append("limit", String(pagination.limit));
+
+    const { data: response } = await api.get<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: PaginatedResponse<BackendBusiness>;
+    }>(`/businesses?${params.toString()}`);
+    return {
+      data: response.data.data.map(mapBusiness),
+      pagination: response.data.pagination,
+    };
   },
 
   getById: async (id: string): Promise<Business> => {
-    const { data } = await api.get<{ data: BackendBusiness }>(
-      `/businesses/${id}`,
-    );
-    return mapBusiness(data.data);
+    const { data: response } = await api.get<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendBusiness;
+    }>(`/businesses/${id}`);
+    return mapBusiness(response.data);
   },
 
   create: async (payload: CreateBusinessRequest): Promise<Business> => {
-    const { data } = await api.post<{ data: BackendBusiness }>(
-      "/businesses",
-      payload,
-    );
-    return mapBusiness(data.data);
+    const { data: response } = await api.post<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendBusiness;
+    }>("/businesses", payload);
+    return mapBusiness(response.data);
   },
 
   update: async (
     id: string,
     payload: UpdateBusinessRequest,
   ): Promise<Business> => {
-    const { data } = await api.patch<{ data: BackendBusiness }>(
-      `/businesses/${id}`,
-      payload,
-    );
-    return mapBusiness(data.data);
+    const { data: response } = await api.patch<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendBusiness;
+    }>(`/businesses/${id}`, payload);
+    return mapBusiness(response.data);
   },
 
   delete: async (id: string): Promise<void> => {

@@ -3,8 +3,12 @@ import { useSensors } from "@/hooks/useSensors";
 import { useCompanies } from "@/hooks/useCompanies";
 
 export default function StatsRow() {
-  const { data: sensors = [], isLoading: loadingSensors } = useSensors();
-  const { data: companies = [], isLoading: loadingCompanies } = useCompanies();
+  const { data: sensorsResponse, isLoading: loadingSensors } = useSensors();
+  const { data: companiesResponse, isLoading: loadingCompanies } =
+    useCompanies();
+
+  const sensors = sensorsResponse?.data ?? [];
+  const companies = companiesResponse?.data ?? [];
 
   const totalOnline = sensors.filter((s) => s.status === "online").length;
   const totalOffline = sensors.filter((s) => s.status === "offline").length;

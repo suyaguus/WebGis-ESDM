@@ -59,8 +59,13 @@ export const measurementService = {
         result = result.filter((m) => m.status === filter.status);
       return result;
     }
-    const { data } = await api.get<{ data: BackendReport[] }>("/reports");
-    let result = data.data.map(mapReportToMeasurement);
+    const { data: response } = await api.get<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendReport[];
+    }>("/reports");
+    let result = response.data.map(mapReportToMeasurement);
     if (filter?.status)
       result = result.filter((m) => m.status === filter.status);
     return result;
@@ -73,8 +78,13 @@ export const measurementService = {
       if (!m) throw new Error(`Pengukuran ${id} tidak ditemukan`);
       return m;
     }
-    const { data } = await api.get<{ data: BackendReport }>(`/reports/${id}`);
-    return mapReportToMeasurement(data.data);
+    const { data: response } = await api.get<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendReport;
+    }>(`/reports/${id}`);
+    return mapReportToMeasurement(response.data);
   },
 
   submit: async (payload: CreateMeasurementRequest): Promise<Measurement> => {
@@ -90,14 +100,15 @@ export const measurementService = {
     if (payload.photos) {
       payload.photos.forEach((f: File) => formData.append("photos", f));
     }
-    const { data } = await api.post<{ data: BackendReport }>(
-      "/reports",
-      formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      },
-    );
-    return mapReportToMeasurement(data.data);
+    const { data: response } = await api.post<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendReport;
+    }>("/reports", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return mapReportToMeasurement(response.data);
   },
 
   verify: async (
@@ -113,12 +124,14 @@ export const measurementService = {
         status: payload.status === "APPROVED" ? "verified" : "rejected",
       };
     }
-    const { data } = await api.patch<{ data: BackendReport }>(
-      `/reports/${id}`,
-      {
-        status: payload.status,
-      },
-    );
-    return mapReportToMeasurement(data.data);
+    const { data: response } = await api.patch<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendReport;
+    }>(`/reports/${id}`, {
+      status: payload.status,
+    });
+    return mapReportToMeasurement(response.data);
   },
 };

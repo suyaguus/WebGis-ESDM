@@ -9,7 +9,8 @@ type SortKey = "name" | "sensorCount" | "avgSubsidence" | "quotaUsed";
 export default function CompanyTable() {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortAsc, setSortAsc] = useState(true);
-  const { data: companies = [], isLoading } = useCompanies();
+  const { data: companiesResponse = { data: [] }, isLoading } = useCompanies();
+  const companies = companiesResponse.data ?? [];
 
   function handleSort(key: SortKey) {
     if (sortKey === key) setSortAsc((p) => !p);

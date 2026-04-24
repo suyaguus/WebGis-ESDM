@@ -6,6 +6,7 @@ import {
   BarChart3,
   Users,
   Building2,
+  Briefcase,
   Shield,
   FileText,
   Settings,
@@ -38,7 +39,6 @@ const NAV_ITEMS: NavItem[] = [
     section: "overview",
   },
   { key: "peta", label: "Peta Interaktif", icon: Map, section: "overview" },
-  { key: "sensor", label: "Semua Sensor", icon: Radio, section: "overview" },
   {
     key: "analytics",
     label: "Analytics",
@@ -52,6 +52,14 @@ const NAV_ITEMS: NavItem[] = [
     icon: Building2,
     section: "management",
   },
+  {
+    key: "business",
+    label: "Unit Usaha",
+    icon: Briefcase,
+    section: "management",
+  },
+  { key: "sensor", label: "Data Sumur", icon: Radio, section: "management" },
+
   { key: "roles", label: "Role & Akses", icon: Shield, section: "management" },
   {
     key: "verifikasi",
