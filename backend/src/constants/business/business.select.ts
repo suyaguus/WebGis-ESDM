@@ -18,6 +18,12 @@ export const BUSINESS_SELECT: Prisma.BusinessSelect = {
       createdBy: true,
     },
   },
+
+  _count: {
+    select: {
+      wells: true,
+    },
+  },
 };
 
 export const BUSINESS_SELECT_DELETE = {

@@ -70,7 +70,7 @@ export const login = async (req: Request<{}, {}, LoginBody>, res: Response) => {
       target: "Sistem",
       ip,
     });
-    return res.status(404).json({
+    return res.status(401).json({
       message: err instanceof Error ? err.message : "Unknown error",
     });
   }

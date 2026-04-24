@@ -2,6 +2,7 @@ import prisma from "../../config/prisma";
 import { REPORT_MESSAGES } from "../../constants/report/report.message";
 import { REPORT_SELECT } from "../../constants/report/report.select";
 import { CreateReportInput } from "./report.type";
+import { resolveCompanyId } from "../../utils/company-access";
 
 export const createReport = async (data: CreateReportInput, user: any) => {
   const well = await prisma.well.findUnique({
@@ -10,8 +11,11 @@ export const createReport = async (data: CreateReportInput, user: any) => {
 
   if (!well) throw new Error(REPORT_MESSAGES.WELL_NOT_FOUND);
 
-  if (user.role !== "super_admin" && well.companyId !== user.companyId) {
-    throw new Error(REPORT_MESSAGES.FORBIDDEN);
+  if (user.role !== "super_admin") {
+    const companyId = await resolveCompanyId(user);
+    if (!companyId || well.companyId !== companyId) {
+      throw new Error(REPORT_MESSAGES.FORBIDDEN);
+    }
   }
 
   return prisma.report.create({
@@ -31,12 +35,13 @@ export const getReports = async (user: any) => {
     });
   }
 
+  const companyId = await resolveCompanyId(user);
+  if (!companyId) return [];
+
   return prisma.report.findMany({
     where: {
       well: {
-        company: {
-          createdBy: user.id,
-        },
+        companyId,
       },
     },
     select: REPORT_SELECT,
@@ -51,11 +56,11 @@ export const getReportById = async (id: string, user: any) => {
 
   if (!report) throw new Error(REPORT_MESSAGES.NOT_FOUND);
 
-  if (
-    user.role !== "super_admin" &&
-    report.well.company.createdBy !== user.id
-  ) {
-    throw new Error(REPORT_MESSAGES.FORBIDDEN);
+  if (user.role !== "super_admin") {
+    const companyId = await resolveCompanyId(user);
+    if (!companyId || report.well.company.id !== companyId) {
+      throw new Error(REPORT_MESSAGES.FORBIDDEN);
+    }
   }
 
   return report;

@@ -17,9 +17,17 @@ export const create = async (req: Request, res: Response) => {
 };
 
 export const findAll = async (req: Request, res: Response) => {
-  const data = await businessService.getBusinesses(req.user);
+  try {
+    const { page, limit } = req.query;
+    const data = await businessService.getBusinesses(req.user, {
+      page: page as string | undefined,
+      limit: limit as string | undefined,
+    });
 
-  return successResponse(res, data, "Success", req.user);
+    return successResponse(res, data, "Success", req.user);
+  } catch (err) {
+    return errorResponse(res, err instanceof Error ? err.message : "Error");
+  }
 };
 
 export const findOne = async (req: Request<Params>, res: Response) => {

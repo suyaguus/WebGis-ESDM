@@ -73,12 +73,16 @@ model Business {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   company   Company  @relation(fields: [companyId], references: [id])
+  wells     Well[]
+
+  @@index([companyId])
 }
 
 model Well {
-  id        String @id @default(uuid())
-  name      String
-  companyId String
+  id         String  @id @default(uuid())
+  name       String
+  companyId  String
+  businessId String?
 
   latitude            Float?
   longitude           Float?
@@ -101,13 +105,15 @@ model Well {
   updatedAt DateTime @default(now()) @updatedAt
   isActive  Boolean  @default(true)
 
-  company Company @relation(fields: [companyId], references: [id])
-  creator User?   @relation("WellCreator", fields: [createdBy], references: [id])
+  company  Company   @relation(fields: [companyId], references: [id])
+  business Business? @relation(fields: [businessId], references: [id])
+  creator  User?     @relation("WellCreator", fields: [createdBy], references: [id])
 
   permits Permit[]
   reports Report[]
 
   @@index([companyId])
+  @@index([businessId])
   @@index([createdBy])
 }
 

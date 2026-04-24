@@ -15,9 +15,18 @@ export const create = async (req: Request, res: Response) => {
 };
 
 export const findAll = async (req: Request, res: Response) => {
-  const data = await wellService.getWells(req.user);
+  try {
+    const { page, limit } = req.query;
+    const data = await wellService.getWells(req.user, {
+      page: page as string | undefined,
+      limit: limit as string | undefined,
+    });
 
-  return successResponse(res, data, "Success", req.user);
+    return successResponse(res, data, "Success", req.user);
+  } catch (err) {
+    console.error("[Well.findAll] Error:", err);
+    return errorResponse(res, err instanceof Error ? err.message : "Error");
+  }
 };
 
 export const findOne = async (req: Request<Params>, res: Response) => {

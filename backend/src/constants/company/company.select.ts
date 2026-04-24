@@ -14,14 +14,6 @@ export const COMPANY_SELECT: Prisma.CompanySelect = {
   createdAt: true,
   updatedAt: true,
 
-  creator: {
-    select: {
-      id: true,
-      name: true,
-      role: true,
-    },
-  },
-
   businesses: {
     select: {
       id: true,
@@ -29,6 +21,11 @@ export const COMPANY_SELECT: Prisma.CompanySelect = {
       address: true,
       phone: true,
       createdAt: true,
+      _count: {
+        select: {
+          wells: true,
+        },
+      },
     },
   },
 

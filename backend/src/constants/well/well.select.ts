@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 export const WELL_SELECT: Prisma.WellSelect = {
   id: true,
   name: true,
+  businessId: true,
   latitude: true,
   longitude: true,
   locationDescription: true,
@@ -26,15 +27,13 @@ export const WELL_SELECT: Prisma.WellSelect = {
     select: {
       id: true,
       name: true,
-      createdBy: true,
     },
   },
-
-  creator: {
+  business: {
     select: {
       id: true,
       name: true,
-      role: true,
+      companyId: true,
     },
   },
 };
