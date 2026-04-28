@@ -41,7 +41,8 @@ export const getBusinesses = async (
   const { page, limit } = parsePaginationParams(paginationParams || {});
   const skip = calculateSkip(page, limit);
 
-  if (user.role === "super_admin") {
+  // super_admin and kepala_instansi can see all businesses
+  if (user.role === "super_admin" || user.role === "kepala_instansi") {
     const [businesses, total] = await Promise.all([
       prisma.business.findMany({
         select: BUSINESS_SELECT,

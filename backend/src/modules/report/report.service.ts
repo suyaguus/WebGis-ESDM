@@ -31,6 +31,15 @@ export const createReport = async (data: CreateReportInput, user: any) => {
 export const getReports = async (user: any) => {
   if (user.role === "super_admin") {
     return prisma.report.findMany({
+      orderBy: { createdAt: "desc" },
+      select: REPORT_SELECT,
+    });
+  }
+
+  if (user.role === "supervisor") {
+    return prisma.report.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
       select: REPORT_SELECT,
     });
   }
@@ -39,11 +48,8 @@ export const getReports = async (user: any) => {
   if (!companyId) return [];
 
   return prisma.report.findMany({
-    where: {
-      well: {
-        companyId,
-      },
-    },
+    where: { well: { companyId } },
+    orderBy: { createdAt: "desc" },
     select: REPORT_SELECT,
   });
 };

@@ -9,6 +9,8 @@ import businessRoutes from "./modules/business/business.routes";
 import auditRoutes from "./modules/audit/audit.routes";
 import kadisReportRoutes from "./modules/kadis-report/kadis-report.routes";
 import { requestLogger } from "./utils/logger";
+import prisma from "./config/prisma";
+import { WELL_SELECT_MINIMAL } from "./constants/well/well.select";
 
 const app = express();
 
@@ -46,6 +48,21 @@ app.use("/api/companies", companyRoutes);
 app.use("/api/businesses", businessRoutes);
 app.use("/api/audit", auditRoutes);
 app.use("/api/kadis-reports", kadisReportRoutes);
+
+// Public endpoint — no auth required, returns approved wells for the landing page map
+app.get("/api/public/wells", async (req, res) => {
+  try {
+    const wells = await prisma.well.findMany({
+      where: { status: "approved", isActive: true },
+      select: WELL_SELECT_MINIMAL,
+      orderBy: { updatedAt: "desc" },
+      take: 500,
+    });
+    res.json({ success: true, data: wells });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error" });
+  }
+});
 
 app.get("/api", (req, res) => {
   res.json({ message: "Welcome to the Web GIS API" });
