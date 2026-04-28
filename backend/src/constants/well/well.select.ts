@@ -42,3 +42,35 @@ export const WELL_SELECT: Prisma.WellSelect = {
     },
   },
 };
+
+// Optimized select untuk map/peta - minimal fields needed
+export const WELL_SELECT_MINIMAL: Prisma.WellSelect = {
+  id: true,
+  name: true,
+  businessId: true,
+  latitude: true,
+  longitude: true,
+  locationDescription: true,
+  wellType: true,
+  staticWaterLevel: true,
+  waterLevelTrend: true,
+  lastWaterLevelMeasurement: true,
+  isActive: true,
+  isVerified: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true,
+
+  company: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  business: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+};

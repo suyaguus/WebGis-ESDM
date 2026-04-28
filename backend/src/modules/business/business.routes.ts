@@ -17,7 +17,7 @@ router.post(
 router.get(
   "/",
   authMiddleware,
-  roleMiddleware("super_admin", "admin_perusahaan"),
+  roleMiddleware("super_admin", "admin_perusahaan", "kepala_instansi"),
   businessController.findAll,
 );
 

@@ -60,7 +60,9 @@ export const update = async (req: Request<Params>, res: Response) => {
 
     return successResponse(res, data, "Updated", req.user);
   } catch (err) {
-    return errorResponse(res, err instanceof Error ? err.message : "Error");
+    const errorMessage = err instanceof Error ? err.message : "Error";
+    console.error("[Well.update] Error for user", req.user?.id, "role", req.user?.role, "well", req.params.id, ":", errorMessage, err);
+    return errorResponse(res, errorMessage);
   }
 };
 

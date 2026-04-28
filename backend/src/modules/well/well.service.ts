@@ -1,5 +1,8 @@
 import prisma from "../../config/prisma";
-import { WELL_SELECT } from "../../constants/well/well.select";
+import {
+  WELL_SELECT,
+  WELL_SELECT_MINIMAL,
+} from "../../constants/well/well.select";
 import { WELL_MESSAGES } from "../../constants/well/well.message";
 import { CreateWellInput, UpdateWellInput } from "./well.type";
 import { resolveCompanyId } from "../../utils/company-access";
@@ -171,16 +174,29 @@ export const getWells = async (
   const { page, limit } = parsePaginationParams(paginationParams || {});
   const skip = calculateSkip(page, limit);
 
-  const validStatuses = ["draft", "pending_approval", "reviewed", "approved", "rejected"];
-  const where = statusFilter && validStatuses.includes(statusFilter)
-    ? { status: statusFilter as any }
-    : undefined;
+  const validStatuses = [
+    "draft",
+    "pending_approval",
+    "reviewed",
+    "approved",
+    "rejected",
+  ];
+  const where =
+    statusFilter && validStatuses.includes(statusFilter)
+      ? { status: statusFilter as any }
+      : undefined;
 
-  if (user.role === "super_admin") {
+  // Use minimal select for large data fetches (limit >= 500) - faster query with fewer fields
+  // This applies to maps, peta, and data list pages regardless of statusFilter
+  const useMinimalSelect = limit >= 500;
+  const selectConfig = useMinimalSelect ? WELL_SELECT_MINIMAL : WELL_SELECT;
+
+  // super_admin dan kepala_instansi: lihat semua wells
+  if (user.role === "super_admin" || user.role === "kepala_instansi") {
     const [wells, total] = await Promise.all([
       prisma.well.findMany({
         where,
-        select: WELL_SELECT,
+        select: selectConfig,
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
@@ -194,7 +210,7 @@ export const getWells = async (
     const [wells, total] = await Promise.all([
       prisma.well.findMany({
         where,
-        select: WELL_SELECT,
+        select: selectConfig,
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
@@ -211,7 +227,7 @@ export const getWells = async (
   const [wells, total] = await Promise.all([
     prisma.well.findMany({
       where: { companyId },
-      select: WELL_SELECT,
+      select: selectConfig,
       skip,
       take: limit,
       orderBy: { createdAt: "desc" },
@@ -283,7 +299,11 @@ export const updateWell = async (
 
   if (user.role !== "super_admin") {
     const companyId = await resolveCompanyId(user);
-    if (!companyId || well.company.id !== companyId) {
+    console.log("[updateWell] role:", user.role, "userId:", user.id, "resolvedCompanyId:", companyId, "well.company.id:", well.company?.id);
+    if (!companyId) {
+      throw new Error("User tidak memiliki perusahaan yang terdaftar");
+    }
+    if (!well.company || well.company.id !== companyId) {
       throw new Error(WELL_MESSAGES.FORBIDDEN);
     }
   }
@@ -396,7 +416,9 @@ export const approvePendingWell = async (id: string, user: any) => {
 
   if (!well) throw new Error(WELL_MESSAGES.NOT_FOUND);
   if (well.status !== "reviewed") {
-    throw new Error("Sumur harus sudah ditinjau supervisor sebelum dapat disetujui");
+    throw new Error(
+      "Sumur harus sudah ditinjau supervisor sebelum dapat disetujui",
+    );
   }
 
   const updated = await prisma.well.update({
@@ -439,7 +461,9 @@ export const rejectPendingWell = async (
 
   if (!well) throw new Error(WELL_MESSAGES.NOT_FOUND);
   if (!["draft", "pending_approval", "reviewed"].includes(well.status)) {
-    throw new Error("Sumur hanya dapat ditolak saat berstatus pengajuan, sedang ditinjau, atau sudah ditinjau");
+    throw new Error(
+      "Sumur hanya dapat ditolak saat berstatus pengajuan, sedang ditinjau, atau sudah ditinjau",
+    );
   }
 
   const updated = await prisma.well.update({
@@ -482,7 +506,9 @@ export const processWell = async (id: string, user: any) => {
 
   if (!well) throw new Error(WELL_MESSAGES.NOT_FOUND);
   if (well.status !== "draft") {
-    throw new Error("Sumur harus berstatus pengajuan (draft) untuk dikirim ke supervisor");
+    throw new Error(
+      "Sumur harus berstatus pengajuan (draft) untuk dikirim ke supervisor",
+    );
   }
 
   return prisma.well.update({
@@ -524,10 +550,15 @@ export const flagWell = async (id: string, note: string, user: any) => {
     throw new Error(WELL_MESSAGES.FORBIDDEN);
   }
 
-  const well = await prisma.well.findUnique({ where: { id }, select: WELL_SELECT });
+  const well = await prisma.well.findUnique({
+    where: { id },
+    select: WELL_SELECT,
+  });
   if (!well) throw new Error(WELL_MESSAGES.NOT_FOUND);
   if (well.status !== "pending_approval") {
-    throw new Error("Hanya sumur yang sedang ditinjau yang dapat dilaporkan ketidaksesuaiannya");
+    throw new Error(
+      "Hanya sumur yang sedang ditinjau yang dapat dilaporkan ketidaksesuaiannya",
+    );
   }
 
   return prisma.well.update({
@@ -550,7 +581,9 @@ export const reviewWell = async (id: string, user: any) => {
 
   if (!well) throw new Error(WELL_MESSAGES.NOT_FOUND);
   if (well.status !== "pending_approval") {
-    throw new Error("Sumur harus berstatus sedang ditinjau untuk dapat dikirim kembali ke super admin");
+    throw new Error(
+      "Sumur harus berstatus sedang ditinjau untuk dapat dikirim kembali ke super admin",
+    );
   }
 
   return prisma.well.update({
