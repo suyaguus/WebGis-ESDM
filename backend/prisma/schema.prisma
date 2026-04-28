@@ -29,6 +29,7 @@ model User {
   createdWells     Well[]            @relation("WellCreator")
   approvedReports  Report[]          @relation("ReportApprover")
   auditLogs        AuditLog[]
+  sentKadisReports KadisReport[]     @relation("KadisReportSender")
 
   @@index([companyId])
 }
@@ -100,6 +101,11 @@ model Well {
   staticWaterLevel          Float? // Kedalaman muka air tanah (m dari permukaan)
   waterLevelTrend           WaterLevelTrend?
   lastWaterLevelMeasurement DateTime?
+
+  // Status untuk workflow supervisor approval
+  status WellStatus @default(approved) // approved untuk existing data, pending_approval untuk dari supervisor
+
+  supervisorNote String?  // Catatan ketidaksesuaian dari supervisor
 
   createdBy  String?
   createdAt  DateTime @default(now())
@@ -207,9 +213,9 @@ enum PermitStatus {
 }
 
 enum WellType {
-  perusahaan
-  non_perusahaan
-  rumah_tangga
+  sumur_pantau
+  sumur_gali
+  sumur_bor
 }
 
 enum WaterLevelTrend {
@@ -219,12 +225,42 @@ enum WaterLevelTrend {
   unknown
 }
 
+enum WellStatus {
+  draft
+  pending_approval
+  reviewed
+  approved
+  rejected
+}
+
+model KadisReport {
+  id            String   @id @default(uuid())
+  title         String
+  companyId     String?
+  companyName   String
+  totalWells    Int
+  avgWaterLevel Float?
+  notes         String?
+  pdfContent    String?
+  sentBy        String
+  sentAt        DateTime @default(now())
+
+  sender User @relation("KadisReportSender", fields: [sentBy], references: [id])
+
+  @@index([sentAt])
+  @@index([sentBy])
+}
+
 model AuditLog {
   id        String   @id @default(uuid())
   userId    String?
   userName  String
-  action    String
-  target    String
+  action    String // create, update, delete, approve, reject
+  target    String // well, business, etc
+  targetId  String? // id dari well/business yang diubah
+  details   String? // JSON string untuk perubahan detail
+  oldData   String? // JSON string data lama (untuk update/reject)
+  newData   String? // JSON string data baru (untuk update)
   ip        String?
   severity  String   @default("info")
   createdAt DateTime @default(now())
@@ -232,6 +268,7 @@ model AuditLog {
   user User? @relation(fields: [userId], references: [id])
 
   @@index([userId])
+  @@index([targetId])
   @@index([createdAt])
   @@index([severity])
 }
