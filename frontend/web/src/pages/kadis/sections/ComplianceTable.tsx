@@ -6,7 +6,8 @@ import { useAppStore } from "../../../store";
 
 export default function KadisComplianceTable() {
   const { setActivePage } = useAppStore();
-  const { data: companies = [], isLoading } = useCompanies();
+  const { data: companiesResponse, isLoading } = useCompanies({ limit: 100 });
+  const companies = companiesResponse?.data ?? [];
 
   return (
     <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">

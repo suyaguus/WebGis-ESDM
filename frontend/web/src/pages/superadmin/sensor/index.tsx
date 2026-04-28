@@ -3,51 +3,52 @@ import {
   Search,
   Radio,
   ArrowUpDown,
-  AlertTriangle,
-  Wifi,
-  WifiOff,
-  Settings2,
   X,
-  MapPin,
   Plus,
   Trash2,
   Edit2,
   TrendingUp,
   TrendingDown,
   Minus,
+  FileEdit,
+  Clock,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
-import { StatusPill, Card, Badge, Pagination } from "../../../components/ui";
+import { Card, Badge, Pagination } from "../../../components/ui";
 import { useSensors, useCompanies, useBusinesses } from "../../../hooks";
 import {
   useUpdateSensor,
   useCreateSensor,
   useDeleteSensor,
-  useVerifyWell,
+  useProcessWell,
+  useApproveWell,
+  useRejectWell,
 } from "../../../hooks/useSensors";
-import { cn, getSubsidenceColor } from "../../../lib/utils";
-import {
-  formatGroundwaterLevel,
-  getWaterLevelTrendLabel,
-  getWaterLevelTrendColor,
-  convertMToCm,
-} from "../../../lib/groundwater";
-import type { Sensor, SensorStatus, SensorType } from "../../../types";
+import { cn } from "../../../lib/utils";
+import { getWaterLevelTrendLabel } from "../../../lib/groundwater";
+import type { Sensor } from "../../../types";
 import type { CreateSensorRequest } from "../../../types/api";
 
-type SortKey =
-  | "code"
-  | "location"
-  | "staticWaterLevel"
-  | "status"
-  | "type"
-  | "lastUpdate";
+type WellStatus = Sensor["wellStatus"];
+type SortKey = "code" | "location" | "staticWaterLevel" | "lastUpdate";
 
-const STATUS_ICON: Record<string, JSX.Element> = {
-  online: <Wifi size={12} className="text-emerald-500" />,
-  offline: <WifiOff size={12} className="text-slate-400" />,
-  alert: <AlertTriangle size={12} className="text-red-500" />,
-  maintenance: <Settings2 size={12} className="text-amber-500" />,
+const WELL_STATUS_CONFIG: Record<WellStatus, { label: string; cls: string; icon: React.ReactNode }> = {
+  draft:            { label: "Pengajuan",       cls: "bg-amber-50 text-amber-700 border-amber-200",        icon: <FileEdit size={10} /> },
+  pending_approval: { label: "Ditinjau Supervisor", cls: "bg-blue-50 text-blue-700 border-blue-200",      icon: <Clock size={10} /> },
+  reviewed:         { label: "Sudah Ditinjau",  cls: "bg-teal-50 text-teal-700 border-teal-200",           icon: <CheckCircle2 size={10} /> },
+  approved:         { label: "Disetujui",       cls: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: <CheckCircle2 size={10} /> },
+  rejected:         { label: "Ditolak",         cls: "bg-red-50 text-red-700 border-red-200",              icon: <XCircle size={10} /> },
 };
+
+function WellStatusBadge({ status }: { status: WellStatus }) {
+  const cfg = WELL_STATUS_CONFIG[status] ?? WELL_STATUS_CONFIG.draft;
+  return (
+    <span className={`inline-flex items-center gap-1 text-[9px] font-mono font-semibold px-2 py-0.5 rounded-full border ${cfg.cls}`}>
+      {cfg.icon} {cfg.label}
+    </span>
+  );
+}
 
 /* ── Helper Functions ── */
 const getSensorInputCls = (err?: string) =>
@@ -86,16 +87,20 @@ function CreateSensorModal({ onClose, businesses }: CreateSensorModalProps) {
   const [form, setForm] = useState<CreateSensorRequest>({
     name: "",
     businessId: "",
+    wellType: "sumur_pantau",
     latitude: undefined,
     longitude: undefined,
-    locationDescription: "",
-    wellType: "perusahaan",
+    locationDescription: undefined,
     depthMeter: undefined,
     diameterInch: undefined,
+    casingDiameter: undefined,
     pumpCapacity: undefined,
+    pumpDepth: undefined,
+    pipeDiameter: undefined,
     staticWaterLevelCm: undefined,
     waterLevelTrend: "stable",
     lastWaterLevelMeasurement: undefined,
+    isActive: true,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -104,16 +109,20 @@ function CreateSensorModal({ onClose, businesses }: CreateSensorModalProps) {
     setForm({
       name: "",
       businessId: "",
+      wellType: "sumur_pantau",
       latitude: undefined,
       longitude: undefined,
-      locationDescription: "",
-      wellType: "perusahaan",
+      locationDescription: undefined,
       depthMeter: undefined,
       diameterInch: undefined,
+      casingDiameter: undefined,
       pumpCapacity: undefined,
+      pumpDepth: undefined,
+      pipeDiameter: undefined,
       staticWaterLevelCm: undefined,
       waterLevelTrend: "stable",
       lastWaterLevelMeasurement: undefined,
+      isActive: true,
     });
     setErrors({});
   }, []);
@@ -140,6 +149,21 @@ function CreateSensorModal({ onClose, businesses }: CreateSensorModalProps) {
     return e;
   };
 
+  /**
+   * Convert datetime-local format (HH:mm) to ISO-8601 with timezone (HH:mm:ssZ)
+   * datetime-local input returns "2026-04-25T17:09" but Prisma needs "2026-04-25T17:09:00Z"
+   */
+  const formatDateTimeForBackend = (
+    value: string | undefined,
+  ): string | undefined => {
+    if (!value) return undefined;
+    // If value is "2026-04-25T17:09", add :00Z to make it "2026-04-25T17:09:00Z"
+    if (value.length === 16) return `${value}:00Z`;
+    // If value is "2026-04-25T17:09:00", add Z to make it "2026-04-25T17:09:00Z"
+    if (value.length === 19 && !value.includes("Z")) return `${value}Z`;
+    return value;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const errs = validate();
@@ -147,7 +171,13 @@ function CreateSensorModal({ onClose, businesses }: CreateSensorModalProps) {
       setErrors(errs);
       return;
     }
-    createSensor.mutate(form, { onSuccess: onClose });
+    const payload = {
+      ...form,
+      lastWaterLevelMeasurement: formatDateTimeForBackend(
+        form.lastWaterLevelMeasurement as string | undefined,
+      ),
+    };
+    createSensor.mutate(payload, { onSuccess: onClose });
   };
 
   return (
@@ -258,9 +288,9 @@ function CreateSensorModal({ onClose, businesses }: CreateSensorModalProps) {
               onBlur={() => clearError("wellType")}
               className={getSensorInputCls()}
             >
-              <option value="perusahaan">Perusahaan</option>
-              <option value="non_perusahaan">Non Perusahaan</option>
-              <option value="rumah_tangga">Rumah Tangga</option>
+              <option value="sumur_pantau">Sumur Pantau</option>
+              <option value="sumur_gali">Sumur Gali</option>
+              <option value="sumur_bor">Sumur Bor</option>
             </select>
           </SensorFieldWrapper>
 
@@ -312,7 +342,6 @@ function CreateSensorModal({ onClose, businesses }: CreateSensorModalProps) {
                   )
                 }
                 onBlur={() => clearError("staticWaterLevelCm")}
-                onFocus={() => handleFieldFocus("staticWaterLevelCm")}
                 placeholder="250.50"
                 className={getSensorInputCls()}
               />
@@ -322,7 +351,6 @@ function CreateSensorModal({ onClose, businesses }: CreateSensorModalProps) {
                 value={form.waterLevelTrend ?? "stable"}
                 onChange={(e) => setField("waterLevelTrend", e.target.value)}
                 onBlur={() => clearError("waterLevelTrend")}
-                onFocus={() => handleFieldFocus("waterLevelTrend")}
                 className={getSensorInputCls()}
               >
                 <option value="rising">Naik</option>
@@ -350,7 +378,6 @@ function CreateSensorModal({ onClose, businesses }: CreateSensorModalProps) {
                 )
               }
               onBlur={() => clearError("lastWaterLevelMeasurement")}
-              onFocus={() => handleFieldFocus("lastWaterLevelMeasurement")}
               className={getSensorInputCls()}
             />
           </SensorFieldWrapper>
@@ -478,7 +505,7 @@ function SensorEditModal({
     latitude: sensor.lat?.toString() ?? "",
     longitude: sensor.lng?.toString() ?? "",
     locationDescription: sensor.location || "",
-    wellType: "perusahaan" as const,
+    wellType: "sumur_pantau" as const,
     depthMeter: "",
     diameterInch: "",
     pumpCapacity: "",
@@ -499,7 +526,7 @@ function SensorEditModal({
       latitude: sensor.lat?.toString() ?? "",
       longitude: sensor.lng?.toString() ?? "",
       locationDescription: sensor.location || "",
-      wellType: "perusahaan" as const,
+      wellType: "sumur_pantau" as const,
       depthMeter: "",
       diameterInch: "",
       pumpCapacity: "",
@@ -534,6 +561,21 @@ function SensorEditModal({
     return e;
   };
 
+  /**
+   * Convert datetime-local format (HH:mm) to ISO-8601 with timezone (HH:mm:ssZ)
+   * datetime-local input returns "2026-04-25T17:09" but Prisma needs "2026-04-25T17:09:00Z"
+   */
+  const formatDateTimeForBackend = (
+    value: string | undefined,
+  ): string | undefined => {
+    if (!value) return undefined;
+    // If value is "2026-04-25T17:09", add :00Z to make it "2026-04-25T17:09:00Z"
+    if (value.length === 16) return `${value}:00Z`;
+    // If value is "2026-04-25T17:09:00", add Z to make it "2026-04-25T17:09:00Z"
+    if (value.length === 19 && !value.includes("Z")) return `${value}Z`;
+    return value;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const errs = validate();
@@ -559,7 +601,9 @@ function SensorEditModal({
         ? parseFloat(form.staticWaterLevelCm)
         : undefined,
       waterLevelTrend: form.waterLevelTrend || "stable",
-      lastWaterLevelMeasurement: form.lastWaterLevelMeasurement || undefined,
+      lastWaterLevelMeasurement: formatDateTimeForBackend(
+        form.lastWaterLevelMeasurement,
+      ),
     };
 
     updateSensor.mutate(
@@ -651,9 +695,9 @@ function SensorEditModal({
               onBlur={() => clearError("wellType")}
               className={getSensorInputCls()}
             >
-              <option value="perusahaan">Perusahaan</option>
-              <option value="non_perusahaan">Non Perusahaan</option>
-              <option value="rumah_tangga">Rumah Tangga</option>
+              <option value="sumur_pantau">Sumur Pantau</option>
+              <option value="sumur_gali">Sumur Gali</option>
+              <option value="sumur_bor">Sumur Bor</option>
             </select>
           </SensorFieldWrapper>
 
@@ -756,20 +800,40 @@ function DetailModal({
   sensor,
   companyName,
   onClose,
-  onEdit,
   onDelete,
-  onVerify,
   businesses,
 }: {
   sensor: Sensor;
   companyName: string;
   onClose: () => void;
-  onEdit: (s: Sensor) => void;
   onDelete: (s: Sensor) => void;
-  onVerify: (s: Sensor) => void;
   businesses: any[];
 }) {
   const [showEdit, setShowEdit] = useState(false);
+  const updateSensor = useUpdateSensor();
+  const processWell = useProcessWell();
+  const approveWell = useApproveWell();
+  const rejectWell = useRejectWell();
+
+  const handleToggleActive = () => {
+    updateSensor.mutate(
+      { id: sensor.id, payload: { isActive: !sensor.isActive } },
+      { onSuccess: onClose },
+    );
+  };
+
+  const handleProcess = () =>
+    processWell.mutate(sensor.id, { onSuccess: onClose });
+
+  const handleApprove = () =>
+    approveWell.mutate(sensor.id, { onSuccess: onClose });
+
+  const handleReject = () =>
+    rejectWell.mutate({ id: sensor.id }, { onSuccess: onClose });
+
+  const isPending =
+    processWell.isPending || approveWell.isPending || rejectWell.isPending;
+
   return (
     <div
       className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -792,7 +856,7 @@ function DetailModal({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <StatusPill status={sensor.status} />
+            <WellStatusBadge status={sensor.wellStatus} />
             <button
               onClick={onClose}
               className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors"
@@ -803,10 +867,6 @@ function DetailModal({
         </div>
         <div className="px-6 py-5 grid grid-cols-2 gap-4">
           {[
-            [
-              "Tipe Sensor",
-              sensor.type === "water" ? "Air Tanah (Groundwater)" : "GNSS",
-            ],
             ["Perusahaan", companyName],
             [
               "Koordinat",
@@ -828,68 +888,59 @@ function DetailModal({
             ],
             ["Terakhir Update", sensor.lastUpdate],
             [
-              "Status",
-              sensor.status.charAt(0).toUpperCase() + sensor.status.slice(1),
-            ],
-            [
-              "Verifikasi",
-              sensor.isVerified ? "Terverifikasi ✓" : "Menunggu Verifikasi",
+              "Status Pengajuan",
+              WELL_STATUS_CONFIG[sensor.wellStatus]?.label ?? sensor.wellStatus,
             ],
           ].map(([k, v]) => (
             <div key={k} className="bg-slate-50 rounded-xl px-3 py-2.5">
               <p className="text-[9px] text-slate-400 font-mono uppercase tracking-wider mb-1">
                 {k}
               </p>
-              <p
-                className={cn(
-                  "text-[12px] font-semibold",
-                  k === "Tren Muka Air" && sensor.waterLevelTrend
-                    ? getWaterLevelTrendColor(sensor.waterLevelTrend)
-                    : k === "Verifikasi" && !sensor.isVerified
-                      ? "text-amber-600"
-                      : k === "Verifikasi"
-                        ? "text-emerald-600"
-                        : "text-slate-800",
-                )}
-              >
-                {v}
-              </p>
+              <p className="text-[12px] font-semibold text-slate-800">{v}</p>
             </div>
           ))}
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex gap-2">
-          {!sensor.isVerified && (
+        <div className="px-6 py-4 border-t border-slate-100 space-y-3">
+          <div className="flex gap-2 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 text-[11px] font-mono rounded-lg border border-emerald-200">
+              <CheckCircle2 size={12} /> Terverifikasi
+            </span>
             <button
-              onClick={() => {
-                onVerify(sensor);
-                onClose();
-              }}
-              className="px-4 py-2 bg-emerald-50 text-emerald-600 text-[12px] font-semibold rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1.5"
+              onClick={() => setShowEdit(true)}
+              className="px-4 py-2 bg-cyan-50 text-cyan-600 text-[12px] font-semibold rounded-xl hover:bg-cyan-100 transition-colors flex items-center gap-1.5"
             >
-              <Radio size={12} /> Verifikasi
+              <Edit2 size={12} /> Edit Data
             </button>
-          )}
-          <button
-            onClick={() => {
-              onEdit(sensor);
-              setShowEdit(true);
-            }}
-            className="px-4 py-2 bg-cyan-50 text-cyan-600 text-[12px] font-semibold rounded-xl hover:bg-cyan-100 transition-colors flex items-center gap-1.5"
-          >
-            <Edit2 size={12} /> Edit Data
-          </button>
-          <button
-            onClick={() => onDelete(sensor)}
-            className="px-3 py-2 bg-red-50 text-red-600 text-[12px] font-semibold rounded-xl hover:bg-red-100 transition-colors flex items-center gap-1.5"
-          >
-            <Trash2 size={12} /> Hapus
-          </button>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-slate-50 text-slate-500 text-[12px] rounded-xl hover:bg-slate-100 transition-colors ml-auto"
-          >
-            Tutup
-          </button>
+            <button
+              onClick={() => onDelete(sensor)}
+              className="px-3 py-2 bg-red-50 text-red-600 text-[12px] font-semibold rounded-xl hover:bg-red-100 transition-colors flex items-center gap-1.5"
+            >
+              <Trash2 size={12} /> Hapus
+            </button>
+          </div>
+          <div className="flex gap-2">
+            {sensor.isActive ? (
+              <button
+                onClick={handleToggleActive}
+                className="flex-1 px-4 py-2 bg-red-50 text-red-600 text-[12px] font-semibold rounded-xl hover:bg-red-100 transition-colors"
+              >
+                Non-aktifkan Sumur
+              </button>
+            ) : (
+              <button
+                onClick={handleToggleActive}
+                className="flex-1 px-4 py-2 bg-emerald-50 text-emerald-600 text-[12px] font-semibold rounded-xl hover:bg-emerald-100 transition-colors"
+              >
+                Aktifkan Sumur
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-slate-50 text-slate-500 text-[12px] rounded-xl hover:bg-slate-100 transition-colors"
+            >
+              Tutup
+            </button>
+          </div>
         </div>
         {showEdit && (
           <SensorEditModal
@@ -906,7 +957,8 @@ function DetailModal({
 export default function SensorPage() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const { data: response, isLoading } = useSensors(undefined, { page, limit });
+  // Only fetch approved wells for Data Sumur
+  const { data: response, isLoading } = useSensors({ wellStatus: "approved" }, { page, limit });
   const { data: companiesResponse = { data: [] } } = useCompanies();
   const { data: businessesResponse = { data: [] } } = useBusinesses();
 
@@ -916,11 +968,9 @@ export default function SensorPage() {
   const businesses = businessesResponse.data ?? [];
 
   const deleteSensor = useDeleteSensor();
-  const verifySensor = useVerifyWell();
 
   const [search, setSearch] = useState("");
-  const [statusF, setStatusF] = useState<SensorStatus | "all">("all");
-  const [typeF, setTypeF] = useState<SensorType | "all">("all");
+  const [typeF, setTypeF] = useState<"all" | "sumur_pantau" | "sumur_gali" | "sumur_bor">("all");
   const [sortKey, setSortKey] = useState<SortKey>("code");
   const [sortAsc, setSortAsc] = useState(true);
   const [detail, setDetail] = useState<Sensor | null>(null);
@@ -929,8 +979,7 @@ export default function SensorPage() {
 
   const data = useMemo(() => {
     let d = [...sensors];
-    if (statusF !== "all") d = d.filter((s) => s.status === statusF);
-    if (typeF !== "all") d = d.filter((s) => s.type === typeF);
+    if (typeF !== "all") d = d.filter((s) => s.wellType === typeF);
     if (search)
       d = d.filter(
         (s) =>
@@ -949,7 +998,7 @@ export default function SensorPage() {
         : (bv as number) - (av as number);
     });
     return d;
-  }, [sensors, search, statusF, typeF, sortKey, sortAsc]);
+  }, [sensors, search, typeF, sortKey, sortAsc]);
 
   const sort = (k: SortKey) => {
     setSortKey(k);
@@ -973,10 +1022,10 @@ export default function SensorPage() {
   );
 
   const summary = {
-    online: sensors.filter((s) => s.status === "online").length,
-    alert: sensors.filter((s) => s.status === "alert").length,
-    maintenance: sensors.filter((s) => s.status === "maintenance").length,
-    offline: sensors.filter((s) => s.status === "offline").length,
+    total: pagination?.totalRecords ?? 0,
+    pantau: sensors.filter((s) => s.wellType === "sumur_pantau").length,
+    gali: sensors.filter((s) => s.wellType === "sumur_gali").length,
+    bor: sensors.filter((s) => s.wellType === "sumur_bor").length,
   };
 
   const getCompanyName = (companyId: string) =>
@@ -1004,57 +1053,24 @@ export default function SensorPage() {
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          {
-            label: "Online",
-            count: summary.online,
-            color: "#22C55E",
-            bg: "bg-emerald-50",
-            border: "border-emerald-200",
-          },
-          {
-            label: "Alert",
-            count: summary.alert,
-            color: "#EF4444",
-            bg: "bg-red-50",
-            border: "border-red-200",
-          },
-          {
-            label: "Maintenance",
-            count: summary.maintenance,
-            color: "#F59E0B",
-            bg: "bg-amber-50",
-            border: "border-amber-200",
-          },
-          {
-            label: "Offline",
-            count: summary.offline,
-            color: "#94A3B8",
-            bg: "bg-slate-50",
-            border: "border-slate-200",
-          },
+          { label: "Total Sumur",  count: summary.total,  color: "#F59E0B", bg: "bg-amber-50",   border: "border-amber-200" },
+          { label: "Sumur Pantau", count: summary.pantau, color: "#3B82F6", bg: "bg-blue-50",    border: "border-blue-200" },
+          { label: "Sumur Gali",   count: summary.gali,   color: "#22C55E", bg: "bg-emerald-50", border: "border-emerald-200" },
+          { label: "Sumur Bor",    count: summary.bor,    color: "#8B5CF6", bg: "bg-purple-50",  border: "border-purple-200" },
         ].map(({ label, count, color, bg, border }) => (
           <div
             key={label}
-            className={cn(
-              "rounded-xl border px-4 py-3 flex items-center gap-3",
-              bg,
-              border,
-            )}
+            className={cn("rounded-xl border px-4 py-3 flex items-center gap-3", bg, border)}
           >
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center"
               style={{ background: color + "20" }}
             >
-              <span
-                className="text-[14px] font-bold font-mono"
-                style={{ color }}
-              >
+              <span className="text-[14px] font-bold font-mono" style={{ color }}>
                 {count}
               </span>
             </div>
-            <span className="text-[11px] font-medium text-slate-600">
-              {label}
-            </span>
+            <span className="text-[11px] font-medium text-slate-600">{label}</span>
           </div>
         ))}
       </div>
@@ -1075,25 +1091,7 @@ export default function SensorPage() {
             />
           </div>
           <div className="flex gap-1">
-            {(
-              ["all", "online", "alert", "maintenance", "offline"] as const
-            ).map((s) => (
-              <button
-                key={s}
-                onClick={() => setStatusF(s)}
-                className={cn(
-                  "text-[9px] font-mono px-2.5 py-1 rounded-full border transition-all",
-                  statusF === s
-                    ? "bg-cyan-50 text-cyan-700 border-cyan-200"
-                    : "text-slate-400 border-transparent hover:bg-slate-50",
-                )}
-              >
-                {s === "all" ? "Semua" : s.charAt(0).toUpperCase() + s.slice(1)}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-1 ml-1">
-            {(["all", "water", "gnss"] as const).map((t) => (
+            {(["all", "sumur_pantau", "sumur_gali", "sumur_bor"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTypeF(t)}
@@ -1104,11 +1102,7 @@ export default function SensorPage() {
                     : "text-slate-400 border-transparent hover:bg-slate-50",
                 )}
               >
-                {t === "all"
-                  ? "Semua Tipe"
-                  : t === "water"
-                    ? "Air Tanah"
-                    : "GNSS"}
+                {t === "all" ? "Semua Tipe" : t === "sumur_pantau" ? "Sumur Pantau" : t === "sumur_gali" ? "Sumur Gali" : "Sumur Bor"}
               </button>
             ))}
           </div>
@@ -1126,15 +1120,13 @@ export default function SensorPage() {
             <table className="w-full" style={{ minWidth: "640px" }}>
               <thead className="bg-slate-50/60 border-b border-slate-100">
                 <tr>
-                  <Th label="Kode" k="code" />
-                  <Th label="Lokasi" k="location" />
-                  <Th label="Tipe" k="type" />
-                  <Th label="Tren Muka Air" k="staticWaterLevel" />
+                  <Th label="Nama Sumur" k="code" />
+                  <Th label="Nama Business" k="location" />
+                  <Th label="Nama Perusahaan" k="location" />
                   <th className="text-[9px] font-mono text-slate-400 uppercase tracking-wider px-4 py-3 text-left">
-                    Muka Air Tanah (cm)
+                    Tipe Sumur
                   </th>
-                  <Th label="Status" k="status" />
-                  <Th label="Update" k="lastUpdate" />
+                  <Th label="Tren Muka Air" k="staticWaterLevel" />
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
@@ -1148,11 +1140,18 @@ export default function SensorPage() {
                       {s.code}
                     </td>
                     <td className="px-4 py-3 text-[11px] text-slate-600">
-                      {s.location}
+                      {s.businessName ?? "-"}
+                    </td>
+                    <td className="px-4 py-3 text-[11px] text-slate-600">
+                      {s.companyName}
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant={s.type === "water" ? "info" : "neutral"}>
-                        {s.type === "water" ? "Air Tanah" : "GNSS"}
+                      <Badge variant="info">
+                        {s.wellType === "sumur_pantau"
+                          ? "Sumur Pantau"
+                          : s.wellType === "sumur_gali"
+                            ? "Sumur Gali"
+                            : "Sumur Bor"}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
@@ -1174,21 +1173,6 @@ export default function SensorPage() {
                           {getWaterLevelTrendLabel(s.waterLevelTrend)}
                         </span>
                       </div>
-                    </td>
-                    <td className="px-4 py-3 text-[11px] font-mono text-slate-600">
-                      {s.staticWaterLevel !== null &&
-                      s.staticWaterLevel !== undefined
-                        ? `${(s.staticWaterLevel * 100).toFixed(2)} cm`
-                        : "-"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5">
-                        {STATUS_ICON[s.status] ?? STATUS_ICON.offline}
-                        <StatusPill status={s.status} />
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-[10px] text-slate-400 font-mono">
-                      {s.lastUpdate}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
@@ -1226,11 +1210,7 @@ export default function SensorPage() {
           sensor={detail}
           companyName={getCompanyName(detail.companyId)}
           onClose={() => setDetail(null)}
-          onEdit={() => {}}
           onDelete={setDeleteTarget}
-          onVerify={(sensor) => {
-            verifySensor.mutate(sensor.id);
-          }}
           businesses={businesses}
         />
       )}

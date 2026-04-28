@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Bell,
   ChevronRight,
@@ -9,22 +9,19 @@ import {
   Save,
   Eye,
   EyeOff,
-  User,
-  Building2,
   LogOut,
 } from "lucide-react";
 import { useAppStore, useAuthStore } from "../../../store";
 import { getCurrentDate, getCurrentTime, cn } from "../../../lib/utils";
 import { MOCK_ALERTS } from "../../../constants/mockData";
 import { useUpdateMe } from "../../../hooks/useUsers";
-import { useUpdateCompany, useCompanies } from "../../../hooks/useCompanies";
-import type { CreateCompanyRequest } from "../../../types/api";
 import type { UpdateMeRequest } from "../../../services/user.service";
 
 const PAGE_META: Record<string, { label: string; section: string }> = {
   "ap-dashboard": { label: "Dashboard", section: "Overview" },
   "ap-peta": { label: "Peta Sensor", section: "Overview" },
-  "ap-sumur": { label: "Daftar Sumur", section: "Overview" },
+  "ap-sumur": { label: "Data Sumur", section: "Manajemen Sumur" },
+  "ap-dokumen": { label: "Pengajuan Sumur", section: "Manajemen Sumur" },
   "ap-perusahaan": { label: "Data Perusahaan", section: "Pengaturan" },
   "ap-tim": { label: "Tim Lapangan", section: "Operasional" },
   "ap-verifikasi": { label: "Verifikasi Data", section: "Operasional" },
@@ -149,7 +146,7 @@ function EditProfileModal({ initial, onClose }: EditProfileModalProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
       onClick={onClose}
     >
       <div
@@ -275,200 +272,14 @@ function EditProfileModal({ initial, onClose }: EditProfileModalProps) {
   );
 }
 
-/* ── Edit Perusahaan Modal ── */
-interface EditCompanyModalProps {
-  company: {
-    id: string;
-    name: string;
-    region: string;
-    email?: string;
-    phone?: string;
-    type?: string;
-  };
-  onClose: () => void;
-}
-
-function EditCompanyModal({ company, onClose }: EditCompanyModalProps) {
-  const updateCompany = useUpdateCompany();
-  const [form, setForm] = useState({
-    name: company.name,
-    address: company.region !== "-" ? company.region : "",
-    email: company.email ?? "",
-    phone: company.phone ?? "",
-    type: company.type ?? "",
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [success, setSuccess] = useState(false);
-
-  const set = (k: string, v: string) => {
-    setForm((p) => ({ ...p, [k]: v }));
-    setErrors((p) => {
-      const n = { ...p };
-      delete n[k];
-      return n;
-    });
-  };
-
-  const validate = () => {
-    const e: Record<string, string> = {};
-    if (!form.name.trim()) e.name = "Nama perusahaan wajib diisi";
-    if (form.email && !/\S+@\S+\.\S+/.test(form.email))
-      e.email = "Format email tidak valid";
-    return e;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length > 0) {
-      setErrors(errs);
-      return;
-    }
-
-    const payload: Partial<CreateCompanyRequest> = {
-      name: form.name,
-      address: form.address || undefined,
-      email: form.email || undefined,
-      phone: form.phone || undefined,
-      type: form.type || undefined,
-    };
-
-    updateCompany.mutate(
-      { id: company.id, payload },
-      {
-        onSuccess: () => {
-          setSuccess(true);
-          setTimeout(onClose, 1200);
-        },
-        onError: (err: any) => {
-          setErrors({
-            _global:
-              err?.response?.data?.message ??
-              "Gagal memperbarui data perusahaan",
-          });
-        },
-      },
-    );
-  };
-
-  return (
-    <div
-      className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <div>
-            <p className="text-[15px] font-bold text-slate-800">
-              Edit Data Perusahaan
-            </p>
-            <p className="text-[10px] text-slate-400 font-mono mt-0.5">
-              Perbarui informasi perusahaan Anda
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors"
-          >
-            <X size={14} className="text-slate-500" />
-          </button>
-        </div>
-        <form
-          onSubmit={handleSubmit}
-          className="px-6 py-5 space-y-4 max-h-[80vh] overflow-y-auto"
-        >
-          {errors._global && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[11px] text-red-600">
-              {errors._global}
-            </div>
-          )}
-          {success && (
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] text-emerald-700 font-semibold">
-              Data perusahaan berhasil diperbarui!
-            </div>
-          )}
-          <F label="Nama Perusahaan *" error={errors.name}>
-            <input
-              value={form.name}
-              onChange={(e) => set("name", e.target.value)}
-              placeholder="PT Maju Jaya Tbk"
-              className={inputCls(errors.name)}
-            />
-          </F>
-          <F label="Alamat">
-            <input
-              value={form.address}
-              onChange={(e) => set("address", e.target.value)}
-              placeholder="Jl. Raya No. 123"
-              className={inputCls()}
-            />
-          </F>
-          <div className="grid grid-cols-2 gap-3">
-            <F label="Email" error={errors.email}>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => set("email", e.target.value)}
-                placeholder="info@perusahaan.co.id"
-                className={inputCls(errors.email)}
-              />
-            </F>
-            <F label="Telepon">
-              <input
-                value={form.phone}
-                onChange={(e) => set("phone", e.target.value)}
-                placeholder="0721-xxxxxxx"
-                className={inputCls()}
-              />
-            </F>
-          </div>
-          <F label="Jenis Usaha">
-            <input
-              value={form.type}
-              onChange={(e) => set("type", e.target.value)}
-              placeholder="Industri / Komersial / dll"
-              className={inputCls()}
-            />
-          </F>
-          <div className="flex gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-xl hover:bg-slate-200 transition-colors"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              disabled={updateCompany.isPending}
-              className="flex-1 px-4 py-2 bg-amber-600 text-white text-[12px] font-semibold rounded-xl hover:bg-amber-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              <Save size={13} />
-              {updateCompany.isPending ? "Menyimpan..." : "Simpan Perubahan"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
 export default function AdminTopbar() {
   const { activePage, setMobileSidebarOpen } = useAppStore();
   const { user, clearAuth } = useAuthStore();
-  const { data: companies = [] } = useCompanies();
-  const company = companies[0] ?? null;
 
   const [time, setTime] = useState(getCurrentTime());
   const [showAlerts, setAlerts] = useState(false);
   const [refreshing, setRefresh] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
   const [showProfile, setProfile] = useState(false);
-  const [showCompany, setCompany] = useState(false);
-
-  const menuRef = useRef<HTMLDivElement>(null);
   const unread = COMPANY_ALERTS.filter((a) => !a.isRead).length;
   const meta = PAGE_META[activePage] ?? {
     label: activePage,
@@ -489,16 +300,6 @@ export default function AdminTopbar() {
     return () => clearInterval(t);
   }, []);
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setShowMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
   return (
     <>
       <header className="h-[60px] bg-white border-b border-slate-100 flex items-center px-4 gap-3 flex-shrink-0 shadow-sm relative z-20 min-w-0">
@@ -513,7 +314,7 @@ export default function AdminTopbar() {
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
           <span className="hidden sm:inline text-[11px] text-slate-400 flex-shrink-0">
-            {company?.name ?? user?.name ?? "Admin Perusahaan"}
+            {user?.name ?? "Admin Perusahaan"}
           </span>
           <ChevronRight
             size={11}
@@ -626,69 +427,23 @@ export default function AdminTopbar() {
             )}
           </div>
 
-          {/* Avatar + dropdown */}
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setShowMenu((p) => !p)}
-              className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-[10px] font-bold text-amber-700 cursor-pointer hover:ring-2 hover:ring-amber-300 transition-all flex-shrink-0 border border-amber-200"
-            >
-              {initials}
-            </button>
+          {/* Avatar - Click to edit profile */}
+          <button
+            onClick={() => setProfile(true)}
+            className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-[10px] font-bold text-amber-700 cursor-pointer hover:ring-2 hover:ring-amber-300 transition-all flex-shrink-0 border border-amber-200 hover:bg-amber-200"
+            title="Edit Profil"
+          >
+            {initials}
+          </button>
 
-            {showMenu && (
-              <div className="absolute right-0 top-10 w-60 bg-white border border-slate-100 rounded-xl shadow-xl z-50 overflow-hidden animate-slide-up">
-                <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50">
-                  <p className="text-[12px] font-bold text-slate-800 truncate">
-                    {user?.name ?? "-"}
-                  </p>
-                  <p className="text-[10px] text-slate-400 font-mono truncate">
-                    {user?.email ?? "-"}
-                  </p>
-                  <span className="inline-block mt-1 text-[9px] font-mono font-semibold bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    Admin Perusahaan
-                  </span>
-                </div>
-                <div className="py-1">
-                  <button
-                    onClick={() => {
-                      setShowMenu(false);
-                      setProfile(true);
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50 transition-colors text-left"
-                  >
-                    <User size={14} className="text-slate-400 flex-shrink-0" />
-                    Edit Profil &amp; Password
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowMenu(false);
-                      setCompany(true);
-                    }}
-                    disabled={!company}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50 transition-colors text-left disabled:opacity-40"
-                  >
-                    <Building2
-                      size={14}
-                      className="text-slate-400 flex-shrink-0"
-                    />
-                    Edit Data Perusahaan
-                  </button>
-                </div>
-                <div className="border-t border-slate-100 py-1">
-                  <button
-                    onClick={() => {
-                      setShowMenu(false);
-                      clearAuth();
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-[12px] font-medium text-red-600 hover:bg-red-50 transition-colors text-left"
-                  >
-                    <LogOut size={14} className="flex-shrink-0" />
-                    Keluar
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Logout button */}
+          <button
+            onClick={clearAuth}
+            className="w-8 h-8 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center hover:bg-red-100 transition-colors text-red-600 flex-shrink-0"
+            title="Keluar"
+          >
+            <LogOut size={13} />
+          </button>
         </div>
       </header>
 
@@ -697,9 +452,6 @@ export default function AdminTopbar() {
           initial={{ name: user?.name ?? "", phone: user?.phone ?? "" }}
           onClose={() => setProfile(false)}
         />
-      )}
-      {showCompany && company && (
-        <EditCompanyModal company={company} onClose={() => setCompany(false)} />
       )}
     </>
   );

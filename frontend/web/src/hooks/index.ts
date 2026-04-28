@@ -7,3 +7,4 @@ export * from "./useAnalytics";
 export * from "./useReports";
 export * from "./useUsers";
 export * from "./useMeasurements";
+export * from "./useKadisReports";

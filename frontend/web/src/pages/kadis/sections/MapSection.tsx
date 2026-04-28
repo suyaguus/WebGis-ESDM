@@ -9,22 +9,25 @@ const LAYER_OPTS = ["Peta Jalan", "Satelit", "Terrain"] as const;
 
 export default function KadisMapSection() {
   const [layer, setLayer] = useState<(typeof LAYER_OPTS)[number]>("Peta Jalan");
-  const { data: sensors = [] } = useSensors();
+  const { data = {} } = useSensors();
+  const sensors = data.data ?? [];
 
-  const alertCount = sensors.filter((s) => s.status === "alert").length;
-  const onlineCount = sensors.filter((s) => s.status === "online").length;
-  const maintenanceCount = sensors.filter(
-    (s) => s.status === "maintenance",
+  const activeSensors = sensors.filter((s) => s.status === "online").length;
+  const inactiveSensors = sensors.filter((s) => s.status === "offline").length;
+  const pendingApprovals = sensors.filter(
+    (s) => s.wellStatus === "pending_approval",
   ).length;
-  const offlineCount = sensors.filter((s) => s.status === "offline").length;
+  const rejectedSensors = sensors.filter(
+    (s) => s.wellStatus === "rejected",
+  ).length;
 
   return (
     <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
       <SectionHeader
-        title="Peta Sebaran Sensor Provinsi"
+        title="Peta Sebaran Sumur Provinsi"
         icon={<Map size={13} />}
         accent="#059669"
-        subtitle={`${sensors.length} SENSOR`}
+        subtitle={`${sensors.length} SUMUR`}
         action={
           <div className="flex gap-1 bg-slate-100 rounded-lg p-0.5">
             {LAYER_OPTS.map((l) => (
@@ -47,10 +50,18 @@ export default function KadisMapSection() {
 
       <div className="px-4 py-2 border-b border-slate-100 flex items-center gap-4 bg-slate-50/40 flex-shrink-0">
         {[
-          { label: "Online", count: onlineCount, color: "text-emerald-600" },
-          { label: "Alert", count: alertCount, color: "text-red-600" },
-          { label: "Maint", count: maintenanceCount, color: "text-amber-600" },
-          { label: "Offline", count: offlineCount, color: "text-slate-400" },
+          { label: "Aktif", count: activeSensors, color: "text-emerald-600" },
+          {
+            label: "Non-aktif",
+            count: inactiveSensors,
+            color: "text-slate-400",
+          },
+          {
+            label: "Pending",
+            count: pendingApprovals,
+            color: "text-amber-600",
+          },
+          { label: "Ditolak", count: rejectedSensors, color: "text-red-600" },
         ].map(({ label, count, color }) => (
           <div key={label} className="flex items-center gap-1.5">
             <Layers size={10} className={color} />

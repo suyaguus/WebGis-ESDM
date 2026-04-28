@@ -1,22 +1,20 @@
 import { StatCard } from "../../../components/ui";
 import { useSensors } from "../../../hooks";
 import { useMeasurements } from "../../../hooks/useMeasurements";
-import { useAuthStore } from "../../../store";
 
 export default function SurveyorStatsRow() {
-  const user = useAuthStore((s) => s.user);
-  const companyId = user?.companyId ?? "";
-  const { data: sensors = [] } = useSensors(
-    companyId ? { companyId } : undefined,
-  );
+  const { data = {} } = useSensors();
+  const sensors = data.data ?? [];
   const { data: measurements = [] } = useMeasurements();
 
-  const alertSensor = sensors.filter(
-    (s) => s.status === "alert" || s.status === "offline",
+  // Count inactive wells (status = offline means isActive = false)
+  const inactiveSensors = sensors.filter((s) => !s.isActive).length;
+
+  // Count pending wells awaiting approval
+  const pendingApprovals = sensors.filter(
+    (s) => s.wellStatus === "pending_approval",
   ).length;
-  const pendingVerif = measurements.filter(
-    (m) => m.status === "pending",
-  ).length;
+
   const now = new Date();
   const thisMonth = measurements.filter((m) => {
     const d = new Date(m.submittedAt);
@@ -28,25 +26,25 @@ export default function SurveyorStatsRow() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <StatCard
-        label="Sensor Ditugaskan"
+        label="Total Sumur"
         value={sensors.length}
         sub={
-          alertSensor > 0 ? `${alertSensor} perlu perhatian` : "Semua normal"
+          inactiveSensors > 0 ? `${inactiveSensors} non-aktif` : "Semua aktif"
         }
-        color={alertSensor > 0 ? "red" : "blue"}
-        trendDown={alertSensor > 0}
+        color={inactiveSensors > 0 ? "amber" : "green"}
+        trendDown={inactiveSensors > 0}
+      />
+      <StatCard
+        label="Menunggu Persetujuan"
+        value={pendingApprovals}
+        sub="Pengajuan ke super admin"
+        color={pendingApprovals > 0 ? "orange" : "blue"}
       />
       <StatCard
         label="Total Pengukuran"
         value={measurements.length}
         sub="Semua riwayat"
         color="blue"
-      />
-      <StatCard
-        label="Pending Verifikasi"
-        value={pendingVerif}
-        sub="Menunggu persetujuan admin"
-        color={pendingVerif > 0 ? "amber" : "green"}
       />
       <StatCard
         label="Pengukuran Bulan Ini"

@@ -162,7 +162,7 @@ export default function SensorMap({
       zoomAnimation: false,
     });
 
-    L.control.zoom({ position: "topright" }).addTo(mapRef.current);
+    L.control.zoom({ position: "bottomleft" }).addTo(mapRef.current);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap",

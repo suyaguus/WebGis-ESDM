@@ -38,6 +38,11 @@ function mapCompany(c: BackendCompany): Company {
     quota: c.quota,
     quotaUsed: c.quotaUsed,
     avgSubsidence,
+    businesses: (c.businesses ?? []).map((b) => ({
+      id: b.id,
+      name: b.name,
+      address: b.address,
+    })),
   };
 }
 
