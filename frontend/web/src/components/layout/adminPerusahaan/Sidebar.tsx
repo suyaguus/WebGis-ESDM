@@ -49,7 +49,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: "ap-sumur", label: "Data Sumur", icon: Droplets, section: "sumur" },
   {
     key: "ap-dokumen",
-    label: "Pengajuan Dokumen",
+    label: "Pengajuan Sumur",
     icon: FileBadge,
     section: "sumur",
   },

@@ -55,10 +55,11 @@ export interface LoginResponse {
 export interface BackendWell {
   id: string;
   name: string;
+  businessId: string | null;
   latitude: number | null;
   longitude: number | null;
   locationDescription: string | null;
-  wellType: "perusahaan" | "non_perusahaan" | "rumah_tangga";
+  wellType: "sumur_pantau" | "sumur_gali" | "sumur_bor";
   depthMeter: number | null;
   diameterInch: number | null;
   casingDiameter: number | null;
@@ -70,13 +71,20 @@ export interface BackendWell {
   lastWaterLevelMeasurement: string | null; // ISO datetime
   isActive: boolean;
   isVerified: boolean;
+  status: "draft" | "pending_approval" | "reviewed" | "approved" | "rejected";
+  supervisorNote: string | null;
+  createdBy: string | null;
   createdAt: string;
   updatedAt: string;
   company: {
     id: string;
     name: string;
-    createdBy: string | null;
   };
+  business: {
+    id: string;
+    name: string;
+    companyId: string;
+  } | null;
   creator: {
     id: string;
     name: string;
@@ -170,6 +178,7 @@ export interface BackendUser {
 
 export interface SensorFilter {
   status?: string;
+  wellStatus?: string;
   type?: string;
   companyId?: string;
   search?: string;
@@ -177,8 +186,8 @@ export interface SensorFilter {
 
 export interface CreateSensorRequest {
   name: string;
-  businessId: string;
-  wellType: "perusahaan" | "non_perusahaan" | "rumah_tangga";
+  businessId?: string;
+  wellType: "sumur_pantau" | "sumur_gali" | "sumur_bor";
   latitude?: number;
   longitude?: number;
   locationDescription?: string;

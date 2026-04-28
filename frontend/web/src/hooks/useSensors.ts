@@ -72,3 +72,58 @@ export function useVerifyWell() {
     onSuccess: () => qc.invalidateQueries({ queryKey: [SENSORS_KEY] }),
   });
 }
+
+export function useProcessWell() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => sensorService.process(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [SENSORS_KEY] }),
+  });
+}
+
+export function useApproveWell() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => sensorService.approve(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [SENSORS_KEY] }),
+  });
+}
+
+export function useRejectWell() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
+      sensorService.reject(id, reason ?? ""),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [SENSORS_KEY] }),
+  });
+}
+
+export function useSupervisorWells(page: number = 1, limit: number = 10) {
+  return useQuery({
+    queryKey: ["supervisorWells", page, limit],
+    queryFn: () => sensorService.getSupervisorWells(page, limit),
+  });
+}
+
+export function useReviewWell() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => sensorService.review(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [SENSORS_KEY] });
+      qc.invalidateQueries({ queryKey: ["supervisorWells"] });
+    },
+  });
+}
+
+export function useFlagWell() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, note }: { id: string; note: string }) =>
+      sensorService.flag(id, note),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [SENSORS_KEY] });
+      qc.invalidateQueries({ queryKey: ["supervisorWells"] });
+    },
+  });
+}

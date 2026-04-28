@@ -13,12 +13,26 @@ export interface Sensor {
   lat: number | null;
   lng: number | null;
   status: SensorStatus;
-  staticWaterLevel: number | null; // Muka air tanah (m)
+  staticWaterLevel: number | null;
   waterLevelTrend?: "rising" | "falling" | "stable" | "unknown";
-  lastWaterLevelMeasurement?: string; // ISO datetime
-  isActive: boolean; // Active/inactive status for visibility on maps (admin_perusahaan control)
-  isVerified: boolean; // Verification status (super_admin approval)
+  lastWaterLevelMeasurement?: string | null;
+  isActive: boolean;
+  isVerified: boolean;
+  wellStatus: "draft" | "pending_approval" | "reviewed" | "approved" | "rejected";
+  supervisorNote: string | null;
   companyId: string;
+  companyName: string;
+  businessId: string | null;
+  businessName: string | null;
+  wellType: "sumur_pantau" | "sumur_gali" | "sumur_bor";
+  depthMeter: number | null;
+  diameterInch: number | null;
+  casingDiameter: number | null;
+  pumpCapacity: number | null;
+  pumpDepth: number | null;
+  pipeDiameter: number | null;
+  createdBy: string | null;
+  createdAt: string;
   lastUpdate: string;
 }
 
@@ -34,6 +48,7 @@ export interface Company {
   quota: number;
   quotaUsed: number;
   avgSubsidence: number;
+  businesses?: { id: string; name: string; address: string | null }[];
 }
 
 export interface Alert {

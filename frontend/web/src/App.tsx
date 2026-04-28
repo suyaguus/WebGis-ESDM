@@ -25,6 +25,7 @@ import KirimKadisPage from "@/pages/superadmin/kirim-kadis/index";
 import ConfigPage from "@/pages/superadmin/config/index";
 import ServerPage from "@/pages/superadmin/server/index";
 import AuditPage from "@/pages/superadmin/audit/index";
+import SubmissionsPage from "@/pages/superadmin/submissions/index";
 
 /* ── Admin Perusahaan ── */
 import AdminAppShell from "@/components/layout/adminPerusahaan/AppShell";
@@ -132,6 +133,8 @@ function SuperAdminApp() {
         return <ServerPage />;
       case "audit":
         return <AuditPage />;
+      case "submissions":
+        return <SubmissionsPage />;
       default:
         return <SuperAdminDashboard />;
     }

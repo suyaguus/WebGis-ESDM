@@ -3,7 +3,6 @@ import {
   Briefcase,
   MapPin,
   Phone,
-  Mail,
   Plus,
   Trash2,
   Edit2,
@@ -11,8 +10,9 @@ import {
   AlertTriangle,
   CheckCircle,
   Building2,
+  Droplets,
 } from "lucide-react";
-import { Card, StatusPill } from "../../../components/ui";
+import { Card } from "../../../components/ui";
 import {
   useBusinesses,
   useCreateBusiness,
@@ -20,6 +20,7 @@ import {
   useDeleteBusiness,
 } from "../../../hooks/useBusinesses";
 import { useCompanies } from "../../../hooks/useCompanies";
+import { useSensors } from "../../../hooks";
 import { useAuthStore } from "../../../store";
 import { cn } from "../../../lib/utils";
 import type {
@@ -28,13 +29,10 @@ import type {
 } from "../../../types/api";
 import type { Business } from "../../../services/business.service";
 
+/* ── Business Form Modal ── */
 interface BusinessModalProps {
   title: string;
-  initial?: {
-    name: string;
-    address?: string;
-    phone?: string;
-  };
+  initial?: { name: string; address?: string; phone?: string };
   onClose: () => void;
   onSubmit: (data: { name: string; address?: string; phone?: string }) => void;
   isPending: boolean;
@@ -63,17 +61,10 @@ function BusinessModal({
     });
   };
 
-  const validate = () => {
-    const e: Record<string, string> = {};
-    if (!form.name.trim()) e.name = "Nama unit usaha wajib diisi";
-    return e;
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length) {
-      setErrors(errs);
+    if (!form.name.trim()) {
+      setErrors({ name: "Nama unit usaha wajib diisi" });
       return;
     }
     onSubmit({
@@ -114,7 +105,6 @@ function BusinessModal({
             <X size={14} className="text-slate-500" />
           </button>
         </div>
-
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           <div>
             <label className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">
@@ -130,7 +120,6 @@ function BusinessModal({
               <p className="text-[10px] text-red-500 mt-1">{errors.name}</p>
             )}
           </div>
-
           <div>
             <label className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">
               Alamat
@@ -142,7 +131,6 @@ function BusinessModal({
               className={inputCls()}
             />
           </div>
-
           <div>
             <label className="block text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">
               Telepon
@@ -154,7 +142,6 @@ function BusinessModal({
               className={inputCls()}
             />
           </div>
-
           <div className="flex gap-2 pt-3">
             <button
               type="submit"
@@ -177,19 +164,18 @@ function BusinessModal({
   );
 }
 
-interface DeleteConfirmModalProps {
-  business: Business;
-  onClose: () => void;
-  onConfirm: () => void;
-  isPending: boolean;
-}
-
+/* ── Delete Confirm Modal ── */
 function DeleteConfirmModal({
   business,
   onClose,
   onConfirm,
   isPending,
-}: DeleteConfirmModalProps) {
+}: {
+  business: Business;
+  onClose: () => void;
+  onConfirm: () => void;
+  isPending: boolean;
+}) {
   return (
     <div
       className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -212,7 +198,6 @@ function DeleteConfirmModal({
             Tindakan ini tidak dapat dibatalkan
           </p>
         </div>
-
         <div className="px-6 py-4">
           <p className="text-[13px] text-slate-700 mb-2">
             Apakah Anda yakin ingin menghapus unit usaha:
@@ -228,7 +213,6 @@ function DeleteConfirmModal({
             )}
           </div>
         </div>
-
         <div className="px-6 py-4 border-t border-slate-100 flex gap-2">
           <button
             onClick={onClose}
@@ -249,21 +233,133 @@ function DeleteConfirmModal({
   );
 }
 
+/* ── Business Detail Modal ── */
+function BusinessDetailModal({
+  business,
+  wells,
+  onClose,
+}: {
+  business: Business;
+  wells: { code: string; wellType: "sumur_pantau" | "sumur_gali" | "sumur_bor" }[];
+  onClose: () => void;
+}) {
+  const wellTypeLabel = (t: string) =>
+    t === "sumur_pantau"
+      ? "Sumur Pantau"
+      : t === "sumur_gali"
+        ? "Sumur Gali"
+        : "Sumur Bor";
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <div>
+            <p className="text-[15px] font-bold text-slate-800">
+              {business.name}
+            </p>
+            <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+              Detail unit usaha
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors"
+          >
+            <X size={14} className="text-slate-500" />
+          </button>
+        </div>
+        <div className="px-6 py-4 max-h-[70vh] overflow-y-auto space-y-4">
+          {/* Info unit usaha */}
+          <div className="space-y-2">
+            {[
+              { label: "Nama Unit Usaha", value: business.name },
+              { label: "Alamat", value: business.address || "-" },
+              { label: "Telepon", value: business.phone || "-" },
+            ].map(({ label, value }) => (
+              <div key={label} className="bg-slate-50 rounded-xl px-3 py-2.5">
+                <p className="text-[9px] text-slate-400 font-mono uppercase tracking-wider mb-1">
+                  {label}
+                </p>
+                <p className="text-[12px] font-semibold text-slate-800">
+                  {value}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Daftar sumur */}
+          <div>
+            <p className="text-[9px] font-mono text-slate-400 uppercase tracking-wider mb-2">
+              Data Sumur ({wells.length})
+            </p>
+          {wells.length === 0 ? (
+            <div className="text-center py-6 bg-slate-50 rounded-xl">
+              <Droplets size={24} className="text-slate-300 mx-auto mb-2" />
+              <p className="text-[12px] text-slate-400 font-mono">
+                Belum ada sumur terdaftar
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {wells.map((w) => (
+                <div
+                  key={w.code}
+                  className="flex items-center justify-between px-3 py-2.5 bg-slate-50 rounded-xl"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-cyan-50 border border-cyan-100 flex items-center justify-center flex-shrink-0">
+                      <Droplets size={13} className="text-cyan-500" />
+                    </div>
+                    <p className="text-[12px] font-semibold text-slate-800">
+                      {w.code}
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-mono text-violet-600 bg-violet-50 border border-violet-100 px-2 py-0.5 rounded-full">
+                    {wellTypeLabel(w.wellType)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          </div>
+        </div>
+        <div className="px-6 pb-4">
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-2 bg-slate-100 text-slate-600 text-[12px] font-semibold rounded-xl hover:bg-slate-200 transition-colors"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Main Page ── */
 export default function BusinessPage() {
-  const { data: businessesResponse = { data: [] }, isLoading } =
-    useBusinesses();
-  const allBusinesses = businessesResponse.data ?? [];
-
-  const { data: companiesResponse = { data: [] } } = useCompanies();
-  const allCompanies = companiesResponse.data ?? [];
-
   const { user } = useAuthStore();
   const userCompanyId = user?.companyId ?? "";
 
-  // Filter untuk hanya menampilkan bisnis milik perusahaan user
+  const { data: businessesResponse = { data: [] }, isLoading } = useBusinesses();
+  const allBusinesses = businessesResponse.data ?? [];
   const businesses = allBusinesses.filter((b) => b.companyId === userCompanyId);
 
+  const { data: companiesResponse = { data: [] } } = useCompanies();
+  const allCompanies = companiesResponse.data ?? [];
   const userCompany = allCompanies.find((c) => c.id === userCompanyId);
+
+  const { data: sensorsResponse = { data: [] } } = useSensors({
+    companyId: userCompanyId || undefined,
+  });
+  const allSensors = sensorsResponse.data ?? [];
 
   const createBusiness = useCreateBusiness();
   const updateBusiness = useUpdateBusiness();
@@ -271,9 +367,8 @@ export default function BusinessPage() {
 
   const [showAdd, setShowAdd] = useState(false);
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
-  const [deletingBusiness, setDeletingBusiness] = useState<Business | null>(
-    null,
-  );
+  const [deletingBusiness, setDeletingBusiness] = useState<Business | null>(null);
+  const [detailBusiness, setDetailBusiness] = useState<Business | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -281,11 +376,7 @@ export default function BusinessPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleCreateBusiness = (data: {
-    name: string;
-    address?: string;
-    phone?: string;
-  }) => {
+  const handleCreateBusiness = (data: { name: string; address?: string; phone?: string }) => {
     createBusiness.mutate(data as CreateBusinessRequest, {
       onSuccess: () => {
         setShowAdd(false);
@@ -294,11 +385,7 @@ export default function BusinessPage() {
     });
   };
 
-  const handleUpdateBusiness = (data: {
-    name: string;
-    address?: string;
-    phone?: string;
-  }) => {
+  const handleUpdateBusiness = (data: { name: string; address?: string; phone?: string }) => {
     if (!editingBusiness) return;
     updateBusiness.mutate(
       { id: editingBusiness.id, payload: data as UpdateBusinessRequest },
@@ -343,6 +430,7 @@ export default function BusinessPage() {
       bg: "bg-violet-50",
       border: "border-violet-200",
       iconColor: "text-violet-500",
+      isText: false,
     },
     {
       label: "Perusahaan",
@@ -386,7 +474,7 @@ export default function BusinessPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-        {stats.map((s: any) => {
+        {stats.map((s) => {
           const Icon = s.icon;
           return (
             <div
@@ -400,12 +488,7 @@ export default function BusinessPage() {
                 </p>
               </div>
               {s.isText ? (
-                <p
-                  className={cn(
-                    "text-[13px] font-bold font-mono truncate",
-                    s.color,
-                  )}
-                >
+                <p className={cn("text-[13px] font-bold font-mono truncate", s.color)}>
                   {s.value}
                 </p>
               ) : (
@@ -440,68 +523,74 @@ export default function BusinessPage() {
           </div>
         ) : (
           <div className="divide-y divide-slate-50">
-            {businesses.map((business) => (
-              <div
-                key={business.id}
-                className="px-5 py-4 hover:bg-slate-50/60 transition-colors group"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <div className="w-10 h-10 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Briefcase size={16} className="text-violet-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[14px] font-bold text-slate-800 truncate">
-                        {business.name}
-                      </p>
-                      <div className="flex items-center gap-2 flex-wrap mt-1.5">
-                        {business.address && (
-                          <span className="flex items-center gap-1.5 text-[10px] text-slate-500 font-mono bg-slate-50 px-2 py-1 rounded-lg">
-                            <MapPin
-                              size={11}
-                              className="text-slate-400 flex-shrink-0"
-                            />
-                            <span className="truncate max-w-[200px]">
-                              {business.address}
+            {businesses.map((business) => {
+              const wellCount = allSensors.filter(
+                (s) => s.businessId === business.id,
+              ).length;
+              return (
+                <div
+                  key={business.id}
+                  className="px-5 py-4 hover:bg-slate-50/60 transition-colors group"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Briefcase size={16} className="text-violet-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[14px] font-bold text-slate-800 truncate">
+                          {business.name}
+                        </p>
+                        <div className="flex items-center gap-2 flex-wrap mt-1.5">
+                          <span className="flex items-center gap-1 text-[10px] font-mono text-cyan-600 bg-cyan-50 border border-cyan-100 px-2 py-0.5 rounded-lg">
+                            <Droplets size={10} />
+                            {wellCount} sumur
+                          </span>
+                          {business.address && (
+                            <span className="flex items-center gap-1.5 text-[10px] text-slate-500 font-mono bg-slate-50 px-2 py-1 rounded-lg">
+                              <MapPin size={11} className="text-slate-400 flex-shrink-0" />
+                              <span className="truncate max-w-[200px]">
+                                {business.address}
+                              </span>
                             </span>
-                          </span>
-                        )}
-                        {business.phone && (
-                          <span className="flex items-center gap-1.5 text-[10px] text-slate-500 font-mono bg-slate-50 px-2 py-1 rounded-lg">
-                            <Phone
-                              size={11}
-                              className="text-slate-400 flex-shrink-0"
-                            />
-                            {business.phone}
-                          </span>
-                        )}
-                        {!business.address && !business.phone && (
-                          <span className="text-[10px] text-slate-300 italic font-mono bg-slate-50 px-2 py-1 rounded-lg">
-                            Belum ada detail
-                          </span>
-                        )}
+                          )}
+                          {business.phone && (
+                            <span className="flex items-center gap-1.5 text-[10px] text-slate-500 font-mono bg-slate-50 px-2 py-1 rounded-lg">
+                              <Phone size={11} className="text-slate-400 flex-shrink-0" />
+                              {business.phone}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <button
+                        onClick={() => setDetailBusiness(business)}
+                        className="px-2.5 py-1 text-[10px] font-mono text-violet-600 bg-violet-50 border border-violet-100 rounded-lg hover:bg-violet-100 transition-colors"
+                      >
+                        Detail
+                      </button>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => setEditingBusiness(business)}
+                          className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-violet-100 hover:text-violet-600 text-slate-500 transition-colors"
+                          title="Edit"
+                        >
+                          <Edit2 size={13} />
+                        </button>
+                        <button
+                          onClick={() => setDeletingBusiness(business)}
+                          className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-red-100 hover:text-red-600 text-slate-500 transition-colors"
+                          title="Hapus"
+                        >
+                          <Trash2 size={13} />
+                        </button>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                    <button
-                      onClick={() => setEditingBusiness(business)}
-                      className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-violet-100 hover:text-violet-600 text-slate-500 transition-colors"
-                      title="Edit"
-                    >
-                      <Edit2 size={13} />
-                    </button>
-                    <button
-                      onClick={() => setDeletingBusiness(business)}
-                      className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-red-100 hover:text-red-600 text-slate-500 transition-colors"
-                      title="Hapus"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </Card>
@@ -515,7 +604,6 @@ export default function BusinessPage() {
           isPending={createBusiness.isPending}
         />
       )}
-
       {editingBusiness && (
         <BusinessModal
           title="Edit Unit Usaha"
@@ -529,13 +617,19 @@ export default function BusinessPage() {
           isPending={updateBusiness.isPending}
         />
       )}
-
       {deletingBusiness && (
         <DeleteConfirmModal
           business={deletingBusiness}
           onClose={() => setDeletingBusiness(null)}
           onConfirm={handleDeleteBusiness}
           isPending={deleteBusiness.isPending}
+        />
+      )}
+      {detailBusiness && (
+        <BusinessDetailModal
+          business={detailBusiness}
+          wells={allSensors.filter((s) => s.businessId === detailBusiness.id)}
+          onClose={() => setDetailBusiness(null)}
         />
       )}
     </div>

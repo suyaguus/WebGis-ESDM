@@ -14,9 +14,9 @@ import {
   ScrollText,
   ChevronRight,
   X,
-  ClipboardCheck,
   SendHorizonal,
   LogOut,
+  Clock,
 } from "lucide-react";
 import { cn } from "../../../lib/utils";
 import { useAppStore, useAuthStore } from "../../../store";
@@ -62,9 +62,9 @@ const NAV_ITEMS: NavItem[] = [
 
   { key: "roles", label: "Role & Akses", icon: Shield, section: "management" },
   {
-    key: "verifikasi",
-    label: "Verifikasi Data",
-    icon: ClipboardCheck,
+    key: "submissions",
+    label: "Pengajuan Sumur",
+    icon: Clock,
     section: "verifikasi",
   },
   { key: "reports", label: "Laporan", icon: FileText, section: "verifikasi" },

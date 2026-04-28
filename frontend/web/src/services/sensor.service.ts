@@ -24,21 +24,38 @@ function mapWellToSensor(w: BackendWell): Sensor {
   return {
     id: w.id,
     code: w.name,
-    type: w.wellType === "perusahaan" ? "water" : "water",
+    type: "water",
     location: w.locationDescription ?? w.company.name,
     lat: w.latitude ?? null,
     lng: w.longitude ?? null,
     status: w.isActive ? "online" : "offline",
     staticWaterLevel: w.staticWaterLevel ?? null,
-    waterLevelTrend: w.waterLevelTrend,
+    waterLevelTrend: w.waterLevelTrend ?? undefined,
+    lastWaterLevelMeasurement: w.lastWaterLevelMeasurement ?? null,
     isActive: w.isActive,
     isVerified: w.isVerified,
+    wellStatus: w.status,
     companyId: w.company.id,
-    lastUpdate:
-      new Date(w.updatedAt).toLocaleTimeString("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }) + " WIB",
+    companyName: w.company.name,
+    businessId: w.business?.id ?? null,
+    businessName: w.business?.name ?? null,
+    wellType: w.wellType,
+    depthMeter: w.depthMeter ?? null,
+    diameterInch: w.diameterInch ?? null,
+    casingDiameter: w.casingDiameter ?? null,
+    pumpCapacity: w.pumpCapacity ?? null,
+    pumpDepth: w.pumpDepth ?? null,
+    pipeDiameter: w.pipeDiameter ?? null,
+    supervisorNote: w.supervisorNote ?? null,
+    createdBy: w.createdBy ?? null,
+    createdAt: w.createdAt,
+    lastUpdate: new Date(w.updatedAt).toLocaleString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }) + " WIB",
   };
 }
 
@@ -82,6 +99,7 @@ export const sensorService = {
     const params = new URLSearchParams();
     if (pagination?.page) params.append("page", String(pagination.page));
     if (pagination?.limit) params.append("limit", String(pagination.limit));
+    if (filter?.wellStatus) params.append("status", filter.wellStatus);
 
     const { data: response } = await api.get<{
       success: boolean;
@@ -176,6 +194,101 @@ export const sensorService = {
       metadata: any;
       data: BackendWell;
     }>(`/wells/${id}/verify`);
+    return mapWellToSensor(response.data);
+  },
+
+  // Get pending wells for super_admin
+  getPending: async (
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PaginatedResponse<Sensor>> => {
+    const { data: response } = await api.get<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: PaginatedResponse<BackendWell>;
+    }>("/wells/pending/list", {
+      params: { page, limit },
+    });
+
+    return {
+      data: response.data.data.map(mapWellToSensor),
+      pagination: response.data.pagination,
+    };
+  },
+
+  // Process a draft well (draft → pending_approval)
+  process: async (id: string): Promise<Sensor> => {
+    const { data: response } = await api.patch<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendWell;
+    }>(`/wells/${id}/process`);
+    return mapWellToSensor(response.data);
+  },
+
+  // Approve a pending well
+  approve: async (id: string): Promise<Sensor> => {
+    const { data: response } = await api.patch<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendWell;
+    }>(`/wells/${id}/approve`);
+    return mapWellToSensor(response.data);
+  },
+
+  // Reject a pending well
+  reject: async (id: string, reason: string): Promise<Sensor> => {
+    const { data: response } = await api.patch<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendWell;
+    }>(`/wells/${id}/reject`, { reason });
+    return mapWellToSensor(response.data);
+  },
+
+  // Get wells assigned to supervisor for review (pending_approval)
+  getSupervisorWells: async (
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PaginatedResponse<Sensor>> => {
+    const { data: response } = await api.get<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: PaginatedResponse<BackendWell>;
+    }>("/wells/supervisor/list", {
+      params: { page, limit },
+    });
+
+    return {
+      data: response.data.data.map(mapWellToSensor),
+      pagination: response.data.pagination,
+    };
+  },
+
+  // Supervisor marks well as reviewed (pending_approval → reviewed)
+  review: async (id: string): Promise<Sensor> => {
+    const { data: response } = await api.patch<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendWell;
+    }>(`/wells/${id}/review`);
+    return mapWellToSensor(response.data);
+  },
+
+  // Supervisor flags well with note (data tidak sesuai) — stays pending_approval
+  flag: async (id: string, note: string): Promise<Sensor> => {
+    const { data: response } = await api.patch<{
+      success: boolean;
+      message: string;
+      metadata: any;
+      data: BackendWell;
+    }>(`/wells/${id}/flag`, { note });
     return mapWellToSensor(response.data);
   },
 };
