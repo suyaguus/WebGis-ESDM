@@ -8,8 +8,9 @@ import type { Sensor } from "../../../types";
 const LAYERS = ["Street", "Satellite", "Terrain", "Heatmap"];
 
 const LEGEND = [
-  { color: "#3B82F6", label: "Sensor Air Tanah" },
-  { color: "#F59E0B", label: "Sensor GNSS" },
+  { color: "#3B82F6", label: "Sumur Pantau" },
+  { color: "#8B5CF6", label: "Sumur Gali" },
+  { color: "#06B6D4", label: "Sumur Bor" },
   { color: "#EF4444", label: "Alert / Kritis" },
   { color: "#94A3B8", label: "Offline / Maint" },
 ];
@@ -17,7 +18,11 @@ const LEGEND = [
 export default function MapSection() {
   const [activeLayer, setActiveLayer] = useState("Street");
   const [selectedSensor, setSelectedSensor] = useState<Sensor | null>(null);
-  const { data: sensorsResponse = { data: [] }, isLoading } = useSensors();
+  const { data: sensorsResponse = { data: [] }, isLoading } = useSensors(
+    undefined,
+    { page: 1, limit: 500 },
+    { refetchInterval: 15_000, refetchOnWindowFocus: true, staleTime: 0 },
+  );
   const sensors = sensorsResponse.data ?? [];
 
   return (
@@ -52,7 +57,7 @@ export default function MapSection() {
 
       <div
         className="relative flex-1 min-w-0 min-h-[240px]"
-        style={{ height: "clamp(240px, 62vw, 380px)" }}
+        style={{ height: "clamp(320px, 70vw, 500px)" }}
       >
         <SensorMap
           sensors={sensors}

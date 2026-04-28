@@ -30,6 +30,25 @@ export const formatGroundwaterLevel = (
 };
 
 /**
+ * Get label untuk water level trend
+ */
+export const getWaterLevelTrendLabel = (
+  trend: "rising" | "falling" | "stable" | "unknown" | null | undefined,
+): string => {
+  switch (trend) {
+    case "rising":
+      return "Naik";
+    case "falling":
+      return "Turun";
+    case "stable":
+      return "Stabil";
+    case "unknown":
+    default:
+      return "Tidak Diketahui";
+  }
+};
+
+/**
  * Get color untuk water level trend
  */
 export const getWaterLevelTrendColor = (
@@ -49,20 +68,19 @@ export const getWaterLevelTrendColor = (
 };
 
 /**
- * Get label untuk water level trend
+ * Get readable label untuk well type
  */
-export const getWaterLevelTrendLabel = (
-  trend: "rising" | "falling" | "stable" | "unknown" | null | undefined,
+export const getWellTypeLabel = (
+  wellType: "sumur_pantau" | "sumur_gali" | "sumur_bor" | null | undefined,
 ): string => {
-  switch (trend) {
-    case "rising":
-      return "Naik";
-    case "falling":
-      return "Turun";
-    case "stable":
-      return "Stabil";
-    case "unknown":
+  switch (wellType) {
+    case "sumur_pantau":
+      return "Sumur Pantau";
+    case "sumur_gali":
+      return "Sumur Gali";
+    case "sumur_bor":
+      return "Sumur Bor";
     default:
-      return "Tidak Diketahui";
+      return "-";
   }
 };

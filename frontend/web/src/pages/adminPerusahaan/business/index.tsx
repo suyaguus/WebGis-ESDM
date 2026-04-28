@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Briefcase,
   MapPin,
@@ -240,7 +240,10 @@ function BusinessDetailModal({
   onClose,
 }: {
   business: Business;
-  wells: { code: string; wellType: "sumur_pantau" | "sumur_gali" | "sumur_bor" }[];
+  wells: {
+    code: string;
+    wellType: "sumur_pantau" | "sumur_gali" | "sumur_bor";
+  }[];
   onClose: () => void;
 }) {
   const wellTypeLabel = (t: string) =>
@@ -299,35 +302,35 @@ function BusinessDetailModal({
             <p className="text-[9px] font-mono text-slate-400 uppercase tracking-wider mb-2">
               Data Sumur ({wells.length})
             </p>
-          {wells.length === 0 ? (
-            <div className="text-center py-6 bg-slate-50 rounded-xl">
-              <Droplets size={24} className="text-slate-300 mx-auto mb-2" />
-              <p className="text-[12px] text-slate-400 font-mono">
-                Belum ada sumur terdaftar
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {wells.map((w) => (
-                <div
-                  key={w.code}
-                  className="flex items-center justify-between px-3 py-2.5 bg-slate-50 rounded-xl"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-cyan-50 border border-cyan-100 flex items-center justify-center flex-shrink-0">
-                      <Droplets size={13} className="text-cyan-500" />
+            {wells.length === 0 ? (
+              <div className="text-center py-6 bg-slate-50 rounded-xl">
+                <Droplets size={24} className="text-slate-300 mx-auto mb-2" />
+                <p className="text-[12px] text-slate-400 font-mono">
+                  Belum ada sumur terdaftar
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {wells.map((w) => (
+                  <div
+                    key={w.code}
+                    className="flex items-center justify-between px-3 py-2.5 bg-slate-50 rounded-xl"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-cyan-50 border border-cyan-100 flex items-center justify-center flex-shrink-0">
+                        <Droplets size={13} className="text-cyan-500" />
+                      </div>
+                      <p className="text-[12px] font-semibold text-slate-800">
+                        {w.code}
+                      </p>
                     </div>
-                    <p className="text-[12px] font-semibold text-slate-800">
-                      {w.code}
-                    </p>
+                    <span className="text-[10px] font-mono text-violet-600 bg-violet-50 border border-violet-100 px-2 py-0.5 rounded-full">
+                      {wellTypeLabel(w.wellType)}
+                    </span>
                   </div>
-                  <span className="text-[10px] font-mono text-violet-600 bg-violet-50 border border-violet-100 px-2 py-0.5 rounded-full">
-                    {wellTypeLabel(w.wellType)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
           </div>
         </div>
         <div className="px-6 pb-4">
@@ -348,7 +351,8 @@ export default function BusinessPage() {
   const { user } = useAuthStore();
   const userCompanyId = user?.companyId ?? "";
 
-  const { data: businessesResponse = { data: [] }, isLoading } = useBusinesses();
+  const { data: businessesResponse = { data: [] }, isLoading } =
+    useBusinesses();
   const allBusinesses = businessesResponse.data ?? [];
   const businesses = allBusinesses.filter((b) => b.companyId === userCompanyId);
 
@@ -367,7 +371,9 @@ export default function BusinessPage() {
 
   const [showAdd, setShowAdd] = useState(false);
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
-  const [deletingBusiness, setDeletingBusiness] = useState<Business | null>(null);
+  const [deletingBusiness, setDeletingBusiness] = useState<Business | null>(
+    null,
+  );
   const [detailBusiness, setDetailBusiness] = useState<Business | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -376,7 +382,11 @@ export default function BusinessPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleCreateBusiness = (data: { name: string; address?: string; phone?: string }) => {
+  const handleCreateBusiness = (data: {
+    name: string;
+    address?: string;
+    phone?: string;
+  }) => {
     createBusiness.mutate(data as CreateBusinessRequest, {
       onSuccess: () => {
         setShowAdd(false);
@@ -385,7 +395,11 @@ export default function BusinessPage() {
     });
   };
 
-  const handleUpdateBusiness = (data: { name: string; address?: string; phone?: string }) => {
+  const handleUpdateBusiness = (data: {
+    name: string;
+    address?: string;
+    phone?: string;
+  }) => {
     if (!editingBusiness) return;
     updateBusiness.mutate(
       { id: editingBusiness.id, payload: data as UpdateBusinessRequest },
@@ -488,7 +502,12 @@ export default function BusinessPage() {
                 </p>
               </div>
               {s.isText ? (
-                <p className={cn("text-[13px] font-bold font-mono truncate", s.color)}>
+                <p
+                  className={cn(
+                    "text-[13px] font-bold font-mono truncate",
+                    s.color,
+                  )}
+                >
                   {s.value}
                 </p>
               ) : (
@@ -499,6 +518,58 @@ export default function BusinessPage() {
             </div>
           );
         })}
+      </div>
+
+      {/* KPI Row - Business Summary */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {(() => {
+          const totalWells = allSensors.length;
+          const wellsWithLevel = allSensors.filter(
+            (s) => s.staticWaterLevel !== null,
+          );
+          const avgWaterLevel =
+            wellsWithLevel.length > 0
+              ? wellsWithLevel.reduce(
+                  (s, w) => s + (w.staticWaterLevel ?? 0),
+                  0,
+                ) / wellsWithLevel.length
+              : null;
+
+          return [
+            {
+              label: "Total Unit Usaha",
+              value: String(businesses.length),
+              color: "#8B5CF6",
+            },
+            {
+              label: "Total Sumur",
+              value: String(totalWells),
+              color: "#0891B2",
+            },
+            {
+              label: "Rata-rata Muka Air",
+              value:
+                avgWaterLevel !== null ? `${avgWaterLevel.toFixed(2)} m` : "-",
+              color: "#3B82F6",
+            },
+          ].map(({ label, value, color }) => (
+            <div
+              key={label}
+              className="bg-white rounded-xl border border-slate-100 shadow-sm px-4 py-3 relative overflow-hidden"
+            >
+              <div
+                className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl"
+                style={{ background: color }}
+              />
+              <p className="text-[9px] font-mono text-slate-400 uppercase tracking-wider mb-1">
+                {label}
+              </p>
+              <p className="text-[20px] font-bold font-mono" style={{ color }}>
+                {value}
+              </p>
+            </div>
+          ));
+        })()}
       </div>
 
       {/* Business List */}
@@ -548,7 +619,10 @@ export default function BusinessPage() {
                           </span>
                           {business.address && (
                             <span className="flex items-center gap-1.5 text-[10px] text-slate-500 font-mono bg-slate-50 px-2 py-1 rounded-lg">
-                              <MapPin size={11} className="text-slate-400 flex-shrink-0" />
+                              <MapPin
+                                size={11}
+                                className="text-slate-400 flex-shrink-0"
+                              />
                               <span className="truncate max-w-[200px]">
                                 {business.address}
                               </span>
@@ -556,7 +630,10 @@ export default function BusinessPage() {
                           )}
                           {business.phone && (
                             <span className="flex items-center gap-1.5 text-[10px] text-slate-500 font-mono bg-slate-50 px-2 py-1 rounded-lg">
-                              <Phone size={11} className="text-slate-400 flex-shrink-0" />
+                              <Phone
+                                size={11}
+                                className="text-slate-400 flex-shrink-0"
+                              />
                               {business.phone}
                             </span>
                           )}

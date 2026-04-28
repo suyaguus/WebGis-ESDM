@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import PublicSensorMap from '@/components/map/PublicSensorMap';
-import { MOCK_SENSORS } from '@/constants/mockData';
+import { usePublicSensors } from '@/hooks/useSensors';
 
 interface LandingPageProps {
   onNavigate: (page: 'home' | 'info' | 'contact') => void;
@@ -8,24 +8,46 @@ interface LandingPageProps {
   onRegister: () => void;
 }
 
+const LEGEND_ITEMS = [
+  { color: '#3B82F6', label: 'Sumur Pantau' },
+  { color: '#8B5CF6', label: 'Sumur Gali' },
+  { color: '#06B6D4', label: 'Sumur Bor' },
+  { color: '#94A3B8', label: 'Offline' },
+];
+
 export default function LandingPage({ onNavigate, onLogin, onRegister }: LandingPageProps) {
-  const totalSensors = MOCK_SENSORS.length;
-  const waterSensors = MOCK_SENSORS.filter((sensor) => sensor.type === 'water').length;
-  const gnssSensors = MOCK_SENSORS.filter((sensor) => sensor.type === 'gnss').length;
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+  const { data: allSensors = [] } = usePublicSensors();
 
+  // Backend already filters to approved+active; keep filter as safety net
+  const approvedSensors = useMemo(
+    () => allSensors.filter((s) => s.wellStatus === 'approved'),
+    [allSensors],
+  );
+
+  const pantauCount = useMemo(
+    () => approvedSensors.filter((s) => s.wellType === 'sumur_pantau').length,
+    [approvedSensors],
+  );
+  const galiCount = useMemo(
+    () => approvedSensors.filter((s) => s.wellType === 'sumur_gali').length,
+    [approvedSensors],
+  );
+  const borCount = useMemo(
+    () => approvedSensors.filter((s) => s.wellType === 'sumur_bor').length,
+    [approvedSensors],
+  );
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-slate-100 animate-fade-in">
-      <PublicSensorMap sensors={MOCK_SENSORS} className="h-full w-full" />
+      <PublicSensorMap sensors={approvedSensors} className="h-full w-full" />
 
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-900/30 via-transparent to-slate-900/20" />
 
@@ -74,12 +96,9 @@ export default function LandingPage({ onNavigate, onLogin, onRegister }: Landing
           transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
-        <div className="flex flex-col gap-2 sm:gap-2.5 w-fit" style={{ transition: 'gap 300ms ease-out' }}>
-          {/* Left Box - Peta Publik */}
-          <div
-            className="rounded-lg sm:rounded-xl border border-slate-200/80 bg-white/82 p-3 sm:p-4 text-slate-800 backdrop-blur-md shadow-[0_14px_30px_rgba(15,23,42,0.14)] w-full sm:w-auto sm:max-w-xs"
-            style={{ transition: 'padding 300ms ease-out, border-radius 300ms ease-out' }}
-          >
+        <div className="flex flex-col gap-2 sm:gap-2.5 w-fit">
+          {/* Info box */}
+          <div className="rounded-lg sm:rounded-xl border border-slate-200/80 bg-white/82 p-3 sm:p-4 text-slate-800 backdrop-blur-md shadow-[0_14px_30px_rgba(15,23,42,0.14)] w-full sm:w-auto sm:max-w-xs">
             <p className="text-[9px] sm:text-[10px] font-mono tracking-[0.2em] text-cyan-700 font-semibold">PETA PUBLIK</p>
             <h1 className="mt-1.5 sm:mt-2 text-sm sm:text-base font-semibold leading-tight">
               Pantau sensor langsung
@@ -89,26 +108,33 @@ export default function LandingPage({ onNavigate, onLogin, onRegister }: Landing
             </p>
           </div>
 
-          {/* Right Box - Legend */}
-          <div
-            className="rounded-lg sm:rounded-xl border border-slate-200/80 bg-white/82 p-3 sm:p-4 text-slate-800 backdrop-blur-md shadow-[0_14px_30px_rgba(15,23,42,0.14)] w-full sm:w-auto sm:max-w-xs"
-            style={{ transition: 'padding 300ms ease-out, border-radius 300ms ease-out' }}
-          >
+          {/* Legend box */}
+          <div className="rounded-lg sm:rounded-xl border border-slate-200/80 bg-white/82 p-3 sm:p-4 text-slate-800 backdrop-blur-md shadow-[0_14px_30px_rgba(15,23,42,0.14)] w-full sm:w-auto sm:max-w-xs">
             <p className="text-[9px] sm:text-[10px] font-mono tracking-widest text-slate-500 font-semibold mb-2">LEGENDA</p>
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] sm:text-xs font-semibold text-slate-700">Total:</span>
-                <span className="text-sm sm:text-base font-bold text-slate-800">{totalSensors}</span>
+            <div className="space-y-1.5 mb-2">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-[10px] sm:text-xs text-slate-500">Total Sumur</span>
+                <span className="text-sm sm:text-base font-bold text-slate-800">{approvedSensors.length}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0"></div>
-                <span className="text-[10px] sm:text-xs font-semibold text-slate-700">Air Tanah:</span>
-                <span className="text-sm sm:text-base font-bold text-slate-800">{waterSensors}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"></div>
-                <span className="text-[10px] sm:text-xs font-semibold text-slate-700">Subsidence:</span>
-                <span className="text-sm sm:text-base font-bold text-slate-800">{gnssSensors}</span>
+            </div>
+            <div className="space-y-1">
+              {[
+                { color: '#3B82F6', label: 'Sumur Pantau', count: pantauCount },
+                { color: '#8B5CF6', label: 'Sumur Gali',   count: galiCount   },
+                { color: '#06B6D4', label: 'Sumur Bor',    count: borCount    },
+              ].map(({ color, label, count }) => (
+                <div key={label} className="flex items-center gap-2">
+                  <div
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ background: color }}
+                  />
+                  <span className="text-[10px] sm:text-xs text-slate-600 flex-1">{label}</span>
+                  <span className="text-[10px] sm:text-xs font-bold text-slate-800">{count}</span>
+                </div>
+              ))}
+              <div className="flex items-center gap-2 pt-0.5 border-t border-slate-100 mt-1">
+                <div className="w-2 h-2 rounded-full flex-shrink-0 bg-slate-400" />
+                <span className="text-[10px] sm:text-xs text-slate-400 flex-1">Offline</span>
               </div>
             </div>
           </div>

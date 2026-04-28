@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ClipboardEdit,
@@ -11,10 +11,12 @@ import {
   Gauge,
   Waves,
   ChevronDown,
+  X,
 } from "lucide-react";
 import { Card, SectionHeader } from "../../../components/ui";
 import { cn } from "../../../lib/utils";
 import { sensorService } from "../../../services/sensor.service";
+import { useSubmitMeasurement } from "../../../hooks";
 import type { Sensor } from "../../../types";
 
 type KondisiFisik = "baik" | "rusak_ringan" | "rusak_berat";
@@ -55,9 +57,12 @@ export default function InputPengukuranPage() {
   const [kualitasAir, setKualitasAir] = useState("");
   const [kondisi, setKondisi] = useState<KondisiFisik>("baik");
   const [catatan, setCatatan] = useState("");
-  const [fotoCount, setFotoCount] = useState(0);
+  const [files, setFiles] = useState<File[]>([]);
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
+  const [errorMsg, setErrorMsg] = useState("");
   const [showHistory, setShowHistory] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const submitMeasurement = useSubmitMeasurement();
 
   // Fetch wells from API instead of using mock data
   const { data: wellsData = {} } = useQuery({
@@ -69,22 +74,52 @@ export default function InputPengukuranPage() {
   const selectedSensor = wells.find((s) => s.id === selectedSensorId);
   const isGNSS = selectedSensor?.type === "gnss";
 
+  const fotoCount = files.length;
+
   const isFormValid =
     selectedSensorId !== "" &&
     kondisi !== undefined &&
-    (isGNSS || (waterLevel !== "" && debit !== "")) &&
-    fotoCount >= 1;
+    (isGNSS || waterLevel !== "");
 
-  const handleFotoAdd = () => setFotoCount((p) => Math.min(p + 1, 8));
+  const handleFotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = Array.from(e.target.files ?? []);
+    setFiles((prev) => [...prev, ...picked].slice(0, 8));
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleFotoRemove = (idx: number) => {
-    void idx;
-    setFotoCount((p) => Math.max(p - 1, 0));
+    setFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const handleSubmit = () => {
-    if (!isFormValid) return;
+    if (!isFormValid || submitState !== "idle") return;
     setSubmitState("submitting");
-    setTimeout(() => setSubmitState("success"), 1800);
+    setErrorMsg("");
+
+    const kualitas = kualitasAir
+      ? (kualitasAir.toUpperCase() as "BAIK" | "SEDANG" | "BURUK")
+      : undefined;
+
+    const kondisiNote = kondisi !== "baik" ? `[${kondisi.toUpperCase()}] ` : "";
+    const descParts = [kondisiNote + catatan].filter(Boolean);
+
+    submitMeasurement.mutate(
+      {
+        wellId: selectedSensorId,
+        waterDepth: parseFloat(waterLevel) || 0,
+        waterUsage: debit ? parseFloat(debit) : undefined,
+        waterQuality: kualitas,
+        description: descParts.join(" ") || undefined,
+        photos: files.length > 0 ? files : undefined,
+      },
+      {
+        onSuccess: () => setSubmitState("success"),
+        onError: (err) => {
+          setSubmitState("error");
+          setErrorMsg(err instanceof Error ? err.message : "Gagal mengirim pengukuran");
+        },
+      },
+    );
   };
 
   const handleReset = () => {
@@ -97,8 +132,9 @@ export default function InputPengukuranPage() {
     setKualitasAir("");
     setKondisi("baik");
     setCatatan("");
-    setFotoCount(0);
+    setFiles([]);
     setSubmitState("idle");
+    setErrorMsg("");
   };
 
   return (
@@ -140,7 +176,7 @@ export default function InputPengukuranPage() {
               Pengukuran berhasil dikirim!
             </p>
             <p className="text-[11px] text-emerald-600 font-mono mt-0.5">
-              Sensor {selectedSensor?.code} · {fotoCount} foto · Menunggu
+              Sensor {selectedSensor?.code} · {fotoCount > 0 ? `${fotoCount} foto · ` : ""}Menunggu
               verifikasi Admin
             </p>
           </div>
@@ -522,46 +558,55 @@ export default function InputPengukuranPage() {
             />
             <div className="p-4">
               <p className="text-[10px] text-slate-400 font-mono mb-3">
-                Minimal 1 foto · Wajib: foto sensor, kondisi fisik, dan sekitar
-                lokasi
+                Opsional · Maksimal 8 foto (sensor, kondisi fisik, sekitar lokasi)
               </p>
+              {/* hidden real file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleFotoSelect}
+              />
               <div className="grid grid-cols-4 gap-2 mb-3">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      "aspect-square rounded-lg border-2 border-dashed flex items-center justify-center transition-colors",
-                      i < fotoCount
-                        ? "border-blue-300 bg-blue-50 cursor-pointer hover:bg-red-50 hover:border-red-300 group"
-                        : "border-slate-200 bg-slate-50",
-                    )}
-                    onClick={() =>
-                      i < fotoCount ? handleFotoRemove(i) : undefined
-                    }
-                  >
-                    {i < fotoCount ? (
-                      <div className="flex flex-col items-center gap-1">
-                        <Camera
-                          size={14}
-                          className="text-blue-500 group-hover:text-red-400 transition-colors"
-                        />
-                        <span className="text-[8px] font-mono text-blue-500 group-hover:text-red-400 transition-colors">
-                          Foto {i + 1}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-slate-300 text-lg">+</span>
-                    )}
-                  </div>
-                ))}
+                {Array.from({ length: 8 }).map((_, i) => {
+                  const hasFile = i < files.length;
+                  const file = files[i];
+                  return (
+                    <div
+                      key={i}
+                      className={cn(
+                        "aspect-square rounded-lg border-2 border-dashed flex items-center justify-center transition-colors relative overflow-hidden",
+                        hasFile
+                          ? "border-blue-300 bg-blue-50"
+                          : "border-slate-200 bg-slate-50",
+                      )}
+                    >
+                      {hasFile && file ? (
+                        <>
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`foto ${i + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            onClick={() => handleFotoRemove(i)}
+                            className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center"
+                          >
+                            <X size={9} className="text-white" />
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-slate-300 text-lg">+</span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               <button
-                onClick={handleFotoAdd}
-                disabled={
-                  fotoCount >= 8 ||
-                  !selectedSensorId ||
-                  submitState === "success"
-                }
+                onClick={() => fileInputRef.current?.click()}
+                disabled={fotoCount >= 8 || !selectedSensorId || submitState === "success"}
                 className={cn(
                   "w-full flex items-center justify-center gap-2 py-2.5 text-[11px] font-mono font-semibold rounded-xl border-2 border-dashed transition-all",
                   fotoCount < 8 && selectedSensorId && submitState !== "success"
@@ -570,13 +615,8 @@ export default function InputPengukuranPage() {
                 )}
               >
                 <Upload size={13} />
-                {fotoCount >= 8 ? "Foto penuh (maks 8)" : "Tambah Foto"}
+                {fotoCount >= 8 ? "Foto penuh (maks 8)" : "Pilih Foto"}
               </button>
-              {fotoCount === 0 && (
-                <p className="text-[9px] font-mono text-red-500 mt-1.5 text-center">
-                  * Minimal 1 foto wajib diunggah
-                </p>
-              )}
             </div>
           </Card>
 
@@ -606,10 +646,10 @@ export default function InputPengukuranPage() {
           {/* Submit */}
           <button
             onClick={handleSubmit}
-            disabled={!isFormValid || submitState !== "idle"}
+            disabled={!isFormValid || submitState === "submitting" || submitState === "success"}
             className={cn(
               "w-full py-3.5 text-[13px] font-semibold rounded-xl transition-all flex items-center justify-center gap-2",
-              isFormValid && submitState === "idle"
+              isFormValid && (submitState === "idle" || submitState === "error")
                 ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg"
                 : submitState === "submitting"
                   ? "bg-blue-400 text-white cursor-not-allowed"
@@ -618,7 +658,7 @@ export default function InputPengukuranPage() {
                     : "bg-slate-100 text-slate-400 cursor-not-allowed",
             )}
           >
-            {submitState === "idle" && (
+            {(submitState === "idle" || submitState === "error") && (
               <>
                 <ClipboardEdit size={15} /> Submit Pengukuran
               </>
@@ -638,9 +678,15 @@ export default function InputPengukuranPage() {
           {!isFormValid && submitState === "idle" && (
             <p className="text-[10px] text-slate-400 font-mono text-center -mt-2">
               Lengkapi: sensor {selectedSensorId ? "✓" : "✗"} · data pengukuran{" "}
-              {isGNSS || waterLevel ? "✓" : "✗"} · foto{" "}
-              {fotoCount >= 1 ? "✓" : "✗"}
+              {isGNSS || waterLevel ? "✓" : "✗"}
             </p>
+          )}
+          {submitState === "error" && errorMsg && (
+            <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 -mt-2">
+              <AlertTriangle size={14} className="text-red-500 flex-shrink-0" />
+              <p className="text-[11px] text-red-700 font-mono">{errorMsg}</p>
+              <button onClick={() => { setSubmitState("idle"); setErrorMsg(""); }} className="ml-auto text-[10px] text-red-600 hover:text-red-800">✕</button>
+            </div>
           )}
         </div>
 
@@ -715,9 +761,9 @@ export default function InputPengukuranPage() {
                   { label: "Sensor dipilih", ok: !!selectedSensorId },
                   {
                     label: "Data pengukuran",
-                    ok: isGNSS || (waterLevel !== "" && debit !== ""),
+                    ok: isGNSS || waterLevel !== "",
                   },
-                  { label: "Minimal 1 foto", ok: fotoCount >= 1 },
+                  { label: "Foto (opsional)", ok: fotoCount >= 1 },
                 ].map(({ label, ok }) => (
                   <div key={label} className="flex items-center gap-2">
                     <span

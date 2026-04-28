@@ -81,7 +81,7 @@ export default function AdminDashboard() {
 
       {/* ── Quick actions ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {QUICK_ACTIONS.map(({ key, label, icon, color }) => (
+        {/* {QUICK_ACTIONS.map(({ key, label, icon, color }) => (
           <button
             key={key}
             onClick={() => setActivePage(key)}
@@ -97,27 +97,24 @@ export default function AdminDashboard() {
             />
             <span className="truncate">{label}</span>
           </button>
-        ))}
+        ))} */}
       </div>
 
       {/* ── Stats row ── */}
       <AdminStatsRow />
 
-      {/* ── Map + Alert panel ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
+      {/* ── Map full-width ── */}
+      <div className="grid grid-cols-1 gap-4">
         <AdminMapSection />
-        <AdminAlertPanel />
       </div>
 
-      {/* ── Sensor list + Trend + Activity ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1fr_1fr_280px] gap-4">
-        <AdminSensorList />
+      {/* ── Trend Chart full-width ── */}
+      <div className="grid grid-cols-1 gap-4">
         <AdminTrendSection />
-        <AdminActivityLog />
       </div>
 
       {/* ── Quota bar full-width ── */}
-      <div className="bg-white rounded-xl border border-slate-100 shadow-sm px-5 py-4">
+      {/* <div className="bg-white rounded-xl border border-slate-100 shadow-sm px-5 py-4">
         <div className="flex items-center justify-between mb-3">
           <div>
             <p className="text-[13px] font-semibold text-slate-800">
@@ -171,7 +168,7 @@ export default function AdminDashboard() {
             </p>
           </div>
         )}
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ClipboardEdit, Map, Radio, FileText } from "lucide-react";
 import { useAppStore } from "../../store";
 import { useAuthStore } from "../../store";
@@ -41,6 +42,7 @@ export default function SurveyorDashboard() {
   const { setActivePage } = useAppStore();
   const user = useAuthStore((s) => s.user);
   const { data: measurements = [] } = useMeasurements();
+  const [selectedWellId, setSelectedWellId] = useState<string | null>(null);
 
   const pendingVerif = measurements.filter(
     (m) => m.status === "pending",
@@ -89,7 +91,7 @@ export default function SurveyorDashboard() {
       )}
 
       {/* Quick actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {QUICK_ACTIONS.map(({ key, label, icon: Icon, color, primary }) => (
           <button
             key={key}
@@ -104,24 +106,30 @@ export default function SurveyorDashboard() {
             <span className="truncate">{label}</span>
           </button>
         ))}
-      </div>
+      </div> */}
 
       {/* Stats row */}
-      <SurveyorStatsRow />
+      {/* <SurveyorStatsRow /> */}
 
       {/* Main content grid */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
         {/* Left */}
         <div className="space-y-4">
-          <SurveyorTaskList />
-          <RecentMeasurements />
+          <SurveyorTaskList
+            selectedWellId={selectedWellId}
+            onSelect={setSelectedWellId}
+          />
+          {/* <RecentMeasurements /> */}
         </div>
         {/* Right */}
         <div className="space-y-4">
-          <SensorSummary />
+          <SensorSummary
+            selectedWellId={selectedWellId}
+            onDeselect={() => setSelectedWellId(null)}
+          />
 
           {/* Info card */}
-          <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
+          {/* <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
             <p className="text-[11px] font-semibold text-slate-700 mb-3">
               Panduan Pengukuran
             </p>
@@ -163,7 +171,7 @@ export default function SurveyorDashboard() {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

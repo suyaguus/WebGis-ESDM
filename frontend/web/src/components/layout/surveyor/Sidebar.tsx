@@ -1,38 +1,75 @@
-import React from 'react';
+import React from "react";
 import {
-  LayoutDashboard, Map, Droplets, FileText,
-  ScanLine, FileBadge, User, X, ChevronRight, Send, Radio, LogOut,
-} from 'lucide-react';
-import { cn } from '../../../lib/utils';
-import { useAppStore, useAuthStore } from '../../../store';
-import { useLogout } from '../../../hooks';
-import { SURVEYOR_PROFILE, TODAY_TASKS } from '../../../constants/surveyorData';
+  LayoutDashboard,
+  Map,
+  Droplets,
+  FileText,
+  ScanLine,
+  FileBadge,
+  User,
+  X,
+  ChevronRight,
+  Send,
+  Radio,
+  LogOut,
+} from "lucide-react";
+import { cn } from "../../../lib/utils";
+import { useAppStore, useAuthStore } from "../../../store";
+import { useLogout, useSensors, useMeasurements, useSupervisorWells } from "../../../hooks";
 
 interface NavItem {
   key: string;
   label: string;
   icon: React.ElementType;
   badge?: number;
-  badgeColor?: 'red' | 'blue';
+  badgeColor?: "red" | "blue";
   section: string;
 }
 
-const pendingCount = TODAY_TASKS.filter(t => t.status === 'belum').length;
-
 const NAV_ITEMS: NavItem[] = [
-  { key: 'sv-dashboard', label: 'Dashboard',           icon: LayoutDashboard, section: 'overview' },
-  { key: 'sv-sumur',     label: 'Sumur Ditugaskan',    icon: Droplets,        badge: 3, badgeColor: 'blue', section: 'pemetaan' },
-  { key: 'sv-input',     label: 'Input Pemetaan Sensor', icon: ScanLine,      badge: pendingCount > 0 ? pendingCount : undefined, badgeColor: 'red', section: 'pemetaan' },
-  { key: 'sv-dokumen',   label: 'Verifikasi Dokumen',  icon: FileBadge,       badge: 2, badgeColor: 'blue', section: 'pemetaan' },
-  { key: 'sv-peta',      label: 'Peta Sensor',         icon: Map,             section: 'pemetaan' },
-  { key: 'sv-laporan',   label: 'Riwayat Laporan',     icon: FileText,        section: 'laporan' },
-  { key: 'sv-kirim',     label: 'Kirim ke Super Admin', icon: Send,           section: 'laporan' },
+  {
+    key: "sv-dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    section: "overview",
+  },
+  {
+    key: "sv-sumur",
+    label: "Sumur Ditugaskan",
+    icon: Droplets,
+    section: "pemetaan",
+  },
+  // {
+  //   key: "sv-input",
+  //   label: "Input Pemetaan Sensor",
+  //   icon: ScanLine,
+  //   section: "pemetaan",
+  // },
+  // {
+  //   key: "sv-dokumen",
+  //   label: "Verifikasi Dokumen",
+  //   icon: FileBadge,
+  //   section: "pemetaan",
+  // },
+  // { key: "sv-peta", label: "Peta Sensor", icon: Map, section: "pemetaan" },
+  // {
+  //   key: "sv-laporan",
+  //   label: "Riwayat Laporan",
+  //   icon: FileText,
+  //   section: "laporan",
+  // },
+  // {
+  //   key: "sv-kirim",
+  //   label: "Kirim ke Super Admin",
+  //   icon: Send,
+  //   section: "laporan",
+  // },
 ];
 
 const SECTIONS = [
-  { key: 'overview',  label: 'Overview'  },
-  { key: 'pemetaan',  label: 'Pemetaan'  },
-  { key: 'laporan',   label: 'Laporan'   },
+  { key: "overview", label: "Overview" },
+  { key: "pemetaan", label: "Pemetaan" },
+  // { key: "laporan", label: "Laporan" },
 ];
 
 interface SidebarProps {
@@ -44,21 +81,36 @@ export default function SurveyorSidebar({ onClose }: SidebarProps) {
   const { user } = useAuthStore();
   const logout = useLogout();
 
-  const userName = user?.name ?? SURVEYOR_PROFILE.name;
-  const userInitials = userName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  const { data: sensorsPage } = useSensors(undefined, { limit: 1 }, { refetchInterval: 60_000 });
+  const companyName = sensorsPage?.data?.[0]?.companyName ?? "—";
+
+  const { data: measurements = [] } = useMeasurements(undefined, { refetchInterval: 30_000 });
+  const { data: supervisorWellsData } = useSupervisorWells(1, 100);
+  const sensors = supervisorWellsData?.data ?? [];
+  const today = new Date().toLocaleDateString("id-ID");
+  const completedToday = sensors.filter((s) =>
+    measurements.some((m) => m.sensorId === s.id && m.submittedAt === today),
+  ).length;
+  const totalToday = sensors.length;
+  const pct = totalToday > 0 ? Math.round((completedToday / totalToday) * 100) : 0;
+  const pendingCount = totalToday - completedToday;
+
+  const userName = user?.name ?? "Surveyor";
+  const userInitials = userName
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   const handleLogout = () => {
     logout.mutate(undefined, {
       onSettled: () => {
-        window.history.replaceState(null, '', '/login');
+        window.history.replaceState(null, "", "/login");
         window.location.reload();
       },
     });
   };
-
-  const completedToday = TODAY_TASKS.filter(t => t.status === 'selesai').length;
-  const totalToday     = TODAY_TASKS.length;
-  const pct            = Math.round((completedToday / totalToday) * 100);
 
   return (
     <aside className="w-56 flex-shrink-0 bg-white border-r border-slate-100 flex flex-col h-full shadow-sm overflow-hidden">
@@ -68,8 +120,12 @@ export default function SurveyorSidebar({ onClose }: SidebarProps) {
           <User size={16} className="text-white" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-semibold text-slate-800 leading-none tracking-[0.04em]">SIGAT</p>
-          <p className="text-[9px] font-mono text-blue-700/90 tracking-wide mt-0.5">Sistem Informasi Geologi dan Air Tanah</p>
+          <p className="text-[13px] font-semibold text-slate-800 leading-none tracking-[0.04em]">
+            SIGAT
+          </p>
+          <p className="text-[9px] font-mono text-blue-700/90 tracking-wide mt-0.5">
+            Sistem Informasi Geologi dan Air Tanah
+          </p>
         </div>
         {onClose && (
           <button
@@ -89,27 +145,33 @@ export default function SurveyorSidebar({ onClose }: SidebarProps) {
               {userInitials}
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold text-slate-800 truncate">{userName}</p>
-              <p className="text-[9px] font-mono text-blue-700 tracking-wider">{SURVEYOR_PROFILE.role}</p>
+              <p className="text-[11px] font-semibold text-slate-800 truncate">
+                {userName}
+              </p>
+              <p className="text-[9px] font-mono text-blue-700 tracking-wider">
+                SURVEYOR
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-100 rounded-lg px-2 py-1.5">
             <Radio size={10} className="text-blue-600 flex-shrink-0" />
-            <p className="text-[9px] font-mono text-blue-700 font-medium truncate">{SURVEYOR_PROFILE.company}</p>
+            <p className="text-[9px] font-mono text-blue-700 font-medium truncate">
+              {companyName}
+            </p>
           </div>
         </div>
       </div>
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-2 min-h-0">
-        {SECTIONS.map(section => {
-          const items = NAV_ITEMS.filter(n => n.section === section.key);
+        {SECTIONS.map((section) => {
+          const items = NAV_ITEMS.filter((n) => n.section === section.key);
           return (
             <div key={section.key} className="mb-1">
               <p className="text-[9px] font-mono text-slate-400 tracking-widest uppercase px-4 py-1.5">
                 {section.label}
               </p>
-              {items.map(item => {
+              {items.map((item) => {
                 const Icon = item.icon;
                 const isActive = activePage === item.key;
                 return (
@@ -117,21 +179,42 @@ export default function SurveyorSidebar({ onClose }: SidebarProps) {
                     key={item.key}
                     onClick={() => setActivePage(item.key)}
                     className={cn(
-                      'w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] font-medium transition-all duration-150 group',
+                      "w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] font-medium transition-all duration-150 group",
                       isActive
-                        ? 'text-blue-700 bg-blue-50 border-r-2 border-blue-500'
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50',
+                        ? "text-blue-700 bg-blue-50 border-r-2 border-blue-500"
+                        : "text-slate-500 hover:text-slate-700 hover:bg-slate-50",
                     )}
                   >
-                    <Icon size={14} className={cn('flex-shrink-0', isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-500')} />
-                    <span className="flex-1 text-left truncate">{item.label}</span>
+                    <Icon
+                      size={14}
+                      className={cn(
+                        "flex-shrink-0",
+                        isActive
+                          ? "text-blue-600"
+                          : "text-slate-400 group-hover:text-slate-500",
+                      )}
+                    />
+                    <span className="flex-1 text-left truncate">
+                      {item.label}
+                    </span>
                     {item.badge != null && (
-                      <span className={cn('text-[9px] font-mono font-medium px-1.5 py-0.5 rounded-full flex-shrink-0',
-                        item.badgeColor === 'red' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700')}>
+                      <span
+                        className={cn(
+                          "text-[9px] font-mono font-medium px-1.5 py-0.5 rounded-full flex-shrink-0",
+                          item.badgeColor === "red"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-blue-100 text-blue-700",
+                        )}
+                      >
                         {item.badge}
                       </span>
                     )}
-                    {isActive && <ChevronRight size={10} className="text-blue-400 flex-shrink-0" />}
+                    {isActive && (
+                      <ChevronRight
+                        size={10}
+                        className="text-blue-400 flex-shrink-0"
+                      />
+                    )}
                   </button>
                 );
               })}
@@ -140,6 +223,20 @@ export default function SurveyorSidebar({ onClose }: SidebarProps) {
         })}
       </nav>
 
+      {/* Task progress footer
+      {totalToday > 0 && (
+        <div className="px-4 py-3 border-t border-slate-100 bg-blue-50/40 flex-shrink-0">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[9px] font-mono text-slate-500">Tugas Hari Ini</span>
+            <span className="text-[9px] font-mono font-semibold text-blue-700">{completedToday}/{totalToday}</span>
+          </div>
+          <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden mb-1">
+            <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+          </div>
+          <p className="text-[8px] font-mono text-slate-400">{pct}% selesai · {pendingCount} belum dikerjakan</p>
+        </div>
+      )} */}
+
       {/* Logout */}
       <div className="px-3 py-2 border-t border-slate-100 flex-shrink-0">
         <button
@@ -147,21 +244,12 @@ export default function SurveyorSidebar({ onClose }: SidebarProps) {
           disabled={logout.isPending}
           className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[12px] font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all duration-150 group"
         >
-          <LogOut size={14} className="text-red-400 group-hover:text-red-500 flex-shrink-0" />
-          <span>{logout.isPending ? 'Keluar...' : 'Keluar'}</span>
+          <LogOut
+            size={14}
+            className="text-red-400 group-hover:text-red-500 flex-shrink-0"
+          />
+          <span>{logout.isPending ? "Keluar..." : "Keluar"}</span>
         </button>
-      </div>
-
-      {/* Task progress footer */}
-      <div className="px-4 py-3 border-t border-slate-100 bg-blue-50/40 flex-shrink-0">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[9px] font-mono text-slate-500">Tugas Hari Ini</span>
-          <span className="text-[9px] font-mono font-semibold text-blue-700">{completedToday}/{totalToday}</span>
-        </div>
-        <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden mb-1">
-          <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
-        </div>
-        <p className="text-[8px] font-mono text-slate-400">{pct}% selesai · {pendingCount} belum dikerjakan</p>
       </div>
     </aside>
   );

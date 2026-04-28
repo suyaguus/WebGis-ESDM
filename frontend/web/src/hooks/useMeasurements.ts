@@ -8,10 +8,14 @@ import type {
 
 const MEASUREMENTS_KEY = "measurements";
 
-export function useMeasurements(filter?: MeasurementFilter) {
+export function useMeasurements(
+  filter?: MeasurementFilter,
+  options?: { refetchInterval?: number; staleTime?: number },
+) {
   return useQuery({
     queryKey: [MEASUREMENTS_KEY, filter],
     queryFn: () => measurementService.getAll(filter),
+    ...options,
   });
 }
 

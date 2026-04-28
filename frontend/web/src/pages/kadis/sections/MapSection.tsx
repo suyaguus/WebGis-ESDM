@@ -1,25 +1,30 @@
-import { useState } from "react";
-import { Map, Layers } from "lucide-react";
+import { useMemo } from "react";
+import { Map } from "lucide-react";
 import SensorMap from "../../../components/map/SensorMap";
 import { SectionHeader } from "../../../components/ui";
-import { useSensors } from "../../../hooks";
+import { usePublicSensors } from "@/hooks/useSensors";
 import { cn } from "../../../lib/utils";
 
-const LAYER_OPTS = ["Peta Jalan", "Satelit", "Terrain"] as const;
-
 export default function KadisMapSection() {
-  const [layer, setLayer] = useState<(typeof LAYER_OPTS)[number]>("Peta Jalan");
-  const { data = {} } = useSensors();
-  const sensors = data.data ?? [];
+  const { data: allSensors = [] } = usePublicSensors();
 
-  const activeSensors = sensors.filter((s) => s.status === "online").length;
-  const inactiveSensors = sensors.filter((s) => s.status === "offline").length;
-  const pendingApprovals = sensors.filter(
-    (s) => s.wellStatus === "pending_approval",
-  ).length;
-  const rejectedSensors = sensors.filter(
-    (s) => s.wellStatus === "rejected",
-  ).length;
+  const approvedSensors = useMemo(
+    () => allSensors.filter((s) => s.wellStatus === "approved"),
+    [allSensors],
+  );
+
+  const pantauCount = useMemo(
+    () => approvedSensors.filter((s) => s.wellType === "sumur_pantau").length,
+    [approvedSensors],
+  );
+  const galiCount = useMemo(
+    () => approvedSensors.filter((s) => s.wellType === "sumur_gali").length,
+    [approvedSensors],
+  );
+  const borCount = useMemo(
+    () => approvedSensors.filter((s) => s.wellType === "sumur_bor").length,
+    [approvedSensors],
+  );
 
   return (
     <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
@@ -27,45 +32,21 @@ export default function KadisMapSection() {
         title="Peta Sebaran Sumur Provinsi"
         icon={<Map size={13} />}
         accent="#059669"
-        subtitle={`${sensors.length} SUMUR`}
-        action={
-          <div className="flex gap-1 bg-slate-100 rounded-lg p-0.5">
-            {LAYER_OPTS.map((l) => (
-              <button
-                key={l}
-                onClick={() => setLayer(l)}
-                className={cn(
-                  "text-[9px] font-mono px-2 py-0.5 rounded-md transition-all",
-                  layer === l
-                    ? "bg-white text-slate-700 shadow-sm"
-                    : "text-slate-400 hover:text-slate-600",
-                )}
-              >
-                {l}
-              </button>
-            ))}
-          </div>
-        }
+        subtitle={`${approvedSensors.length} SUMUR`}
       />
 
       <div className="px-4 py-2 border-b border-slate-100 flex items-center gap-4 bg-slate-50/40 flex-shrink-0">
         {[
-          { label: "Aktif", count: activeSensors, color: "text-emerald-600" },
-          {
-            label: "Non-aktif",
-            count: inactiveSensors,
-            color: "text-slate-400",
-          },
-          {
-            label: "Pending",
-            count: pendingApprovals,
-            color: "text-amber-600",
-          },
-          { label: "Ditolak", count: rejectedSensors, color: "text-red-600" },
+          { label: "Sumur Pantau", count: pantauCount, color: "#3B82F6" },
+          { label: "Sumur Gali",   count: galiCount,   color: "#8B5CF6" },
+          { label: "Sumur Bor",    count: borCount,    color: "#06B6D4" },
         ].map(({ label, count, color }) => (
           <div key={label} className="flex items-center gap-1.5">
-            <Layers size={10} className={color} />
-            <span className={cn("text-[10px] font-mono font-semibold", color)}>
+            <span
+              className="w-2 h-2 rounded-full flex-shrink-0"
+              style={{ background: color }}
+            />
+            <span className="text-[10px] font-mono font-semibold text-slate-700">
               {count}
             </span>
             <span className="text-[9px] font-mono text-slate-400">{label}</span>
@@ -73,11 +54,8 @@ export default function KadisMapSection() {
         ))}
       </div>
 
-      <div
-        className="flex-1 min-h-[220px]"
-        style={{ height: "clamp(220px, 58vw, 360px)" }}
-      >
-        <SensorMap sensors={sensors} height="100%" />
+      <div style={{ height: "clamp(380px, 55vw, 520px)" }}>
+        <SensorMap sensors={approvedSensors} height="100%" />
       </div>
     </div>
   );

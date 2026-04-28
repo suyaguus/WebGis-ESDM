@@ -1,33 +1,84 @@
-import React from 'react';
+import React from "react";
 import {
-  LayoutDashboard, Map, BarChart3, FileText, ChevronRight, Building2, X, CheckSquare, LogOut,
-} from 'lucide-react';
-import { cn } from '../../../lib/utils';
-import { useAppStore, useAuthStore } from '../../../store';
-import { useLogout } from '../../../hooks';
+  LayoutDashboard,
+  Map,
+  BarChart3,
+  FileText,
+  ChevronRight,
+  Building2,
+  Briefcase,
+  Droplets,
+  X,
+  CheckSquare,
+  LogOut,
+} from "lucide-react";
+import { cn } from "../../../lib/utils";
+import { useAppStore, useAuthStore } from "../../../store";
+import { useLogout } from "../../../hooks";
 
 interface NavItem {
   key: string;
   label: string;
   icon: React.ElementType;
   badge?: number;
-  badgeColor?: 'red' | 'amber';
+  badgeColor?: "red" | "amber";
   section: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: 'kadis-dashboard',  label: 'Dashboard',             icon: LayoutDashboard, section: 'overview' },
-  { key: 'kadis-peta',       label: 'Peta Wilayah',          icon: Map,             section: 'overview' },
-  { key: 'kadis-perusahaan', label: 'Data Perusahaan',       icon: Building2,       section: 'pengawasan' },
-  { key: 'kadis-analitik',   label: 'Analitik Tren',         icon: BarChart3,       section: 'pengawasan' },
-  { key: 'kadis-laporan',    label: 'Laporan Terverifikasi', icon: FileText,        badge: 3, badgeColor: 'amber', section: 'laporan' },
-  { key: 'kadis-persetujuan',label: 'Persetujuan Izin',      icon: CheckSquare,     badge: 2, badgeColor: 'red',   section: 'laporan' },
+  {
+    key: "kadis-dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    section: "overview",
+  },
+  { key: "kadis-peta", label: "Peta Wilayah", icon: Map, section: "overview" },
+  {
+    key: "kadis-perusahaan",
+    label: "Data Perusahaan",
+    icon: Building2,
+    section: "pengawasan",
+  },
+  {
+    key: "kadis-business",
+    label: "Data Business",
+    icon: Briefcase,
+    section: "pengawasan",
+  },
+  {
+    key: "kadis-sumur",
+    label: "Data Sumur",
+    icon: Droplets,
+    section: "pengawasan",
+  },
+  {
+    key: "kadis-analitik",
+    label: "Analitik Tren",
+    icon: BarChart3,
+    section: "pengawasan",
+  },
+  {
+    key: "kadis-laporan",
+    label: "Laporan Terverifikasi",
+    icon: FileText,
+    // badge: 3,
+    // badgeColor: "amber",
+    section: "laporan",
+  },
+  // {
+  //   key: "kadis-persetujuan",
+  //   label: "Persetujuan Izin",
+  //   icon: CheckSquare,
+  //   // badge: 2,
+  //   // badgeColor: "red",
+  //   section: "laporan",
+  // },
 ];
 
 const SECTIONS = [
-  { key: 'overview',     label: 'Ikhtisar'  },
-  { key: 'pengawasan',   label: 'Pengawasan' },
-  { key: 'laporan',      label: 'Laporan'   },
+  { key: "overview", label: "Ikhtisar" },
+  { key: "pengawasan", label: "Pengawasan" },
+  { key: "laporan", label: "Laporan" },
 ];
 
 interface SidebarProps {
@@ -39,13 +90,18 @@ export default function Sidebar({ onClose }: SidebarProps) {
   const { user } = useAuthStore();
   const logout = useLogout();
 
-  const userName = user?.name ?? 'Pengguna';
-  const userInitials = userName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  const userName = user?.name ?? "Pengguna";
+  const userInitials = userName
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   const handleLogout = () => {
     logout.mutate(undefined, {
       onSettled: () => {
-        window.history.replaceState(null, '', '/login');
+        window.history.replaceState(null, "", "/login");
         window.location.reload();
       },
     });
@@ -59,8 +115,12 @@ export default function Sidebar({ onClose }: SidebarProps) {
           <Map size={16} className="text-white" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-semibold text-slate-800 leading-none tracking-[0.04em]">SIGAT</p>
-          <p className="text-[9px] font-mono text-emerald-700/90 tracking-wide mt-0.5">Sistem Informasi Geologi dan Air Tanah</p>
+          <p className="text-[13px] font-semibold text-slate-800 leading-none tracking-[0.04em]">
+            SIGAT
+          </p>
+          <p className="text-[9px] font-mono text-emerald-700/90 tracking-wide mt-0.5">
+            Sistem Informasi Geologi dan Air Tanah
+          </p>
         </div>
         {/* Close button — mobile only */}
         {onClose && (
@@ -80,8 +140,12 @@ export default function Sidebar({ onClose }: SidebarProps) {
             {userInitials}
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold text-slate-800 truncate">{userName}</p>
-            <p className="text-[9px] font-mono text-emerald-700 tracking-wider">KEPALA DINAS</p>
+            <p className="text-[11px] font-semibold text-slate-800 truncate">
+              {userName}
+            </p>
+            <p className="text-[9px] font-mono text-emerald-700 tracking-wider">
+              KEPALA DINAS
+            </p>
           </div>
         </div>
       </div>
@@ -103,28 +167,42 @@ export default function Sidebar({ onClose }: SidebarProps) {
                     key={item.key}
                     onClick={() => setActivePage(item.key)}
                     className={cn(
-                      'w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] font-medium transition-all duration-150 relative group',
+                      "w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] font-medium transition-all duration-150 relative group",
                       isActive
-                        ? 'text-emerald-700 bg-emerald-50 border-r-2 border-emerald-600'
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50',
+                        ? "text-emerald-700 bg-emerald-50 border-r-2 border-emerald-600"
+                        : "text-slate-500 hover:text-slate-700 hover:bg-slate-50",
                     )}
                   >
                     <Icon
                       size={14}
-                      className={cn('flex-shrink-0', isActive ? 'text-emerald-600' : 'text-slate-400 group-hover:text-slate-500')}
+                      className={cn(
+                        "flex-shrink-0",
+                        isActive
+                          ? "text-emerald-600"
+                          : "text-slate-400 group-hover:text-slate-500",
+                      )}
                     />
-                    <span className="flex-1 text-left truncate">{item.label}</span>
+                    <span className="flex-1 text-left truncate">
+                      {item.label}
+                    </span>
                     {item.badge && (
                       <span
                         className={cn(
-                          'text-[9px] font-mono font-medium px-1.5 py-0.5 rounded-full flex-shrink-0',
-                          item.badgeColor === 'red' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700',
+                          "text-[9px] font-mono font-medium px-1.5 py-0.5 rounded-full flex-shrink-0",
+                          item.badgeColor === "red"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-amber-100 text-amber-700",
                         )}
                       >
                         {item.badge}
                       </span>
                     )}
-                    {isActive && <ChevronRight size={10} className="text-emerald-400 flex-shrink-0" />}
+                    {isActive && (
+                      <ChevronRight
+                        size={10}
+                        className="text-emerald-400 flex-shrink-0"
+                      />
+                    )}
                   </button>
                 );
               })}
@@ -140,19 +218,26 @@ export default function Sidebar({ onClose }: SidebarProps) {
           disabled={logout.isPending}
           className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[12px] font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all duration-150 group"
         >
-          <LogOut size={14} className="text-red-400 group-hover:text-red-500 flex-shrink-0" />
-          <span>{logout.isPending ? 'Keluar...' : 'Keluar'}</span>
+          <LogOut
+            size={14}
+            className="text-red-400 group-hover:text-red-500 flex-shrink-0"
+          />
+          <span>{logout.isPending ? "Keluar..." : "Keluar"}</span>
         </button>
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/60 flex-shrink-0">
+      {/* <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/60 flex-shrink-0">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 pulse-dot flex-shrink-0" />
-          <span className="text-[9px] font-mono text-slate-500">DINAS ESDM LAMPUNG</span>
+          <span className="text-[9px] font-mono text-slate-500">
+            DINAS ESDM LAMPUNG
+          </span>
         </div>
-        <p className="text-[9px] font-mono text-slate-400 mt-0.5">Pengawasan Provinsi</p>
-      </div>
+        <p className="text-[9px] font-mono text-slate-400 mt-0.5">
+          Pengawasan Provinsi
+        </p>
+      </div> */}
     </aside>
   );
 }

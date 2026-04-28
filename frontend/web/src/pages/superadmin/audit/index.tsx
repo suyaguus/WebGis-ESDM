@@ -329,20 +329,62 @@ export default function AuditPage() {
               >
                 ←
               </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className={cn(
-                    "px-2.5 py-1 text-[10px] font-mono border rounded-lg transition-colors",
-                    page === p
-                      ? "bg-slate-800 text-white border-slate-800"
-                      : "border-slate-200 hover:bg-slate-100",
-                  )}
-                >
-                  {p}
-                </button>
-              ))}
+
+              {/* Dynamic pagination buttons with range around current page */}
+              {(() => {
+                // Calculate range: always show 5 buttons centered around current page
+                const range = 5;
+                const half = Math.floor(range / 2);
+                let start = Math.max(1, page - half);
+                let end = Math.min(totalPages, start + range - 1);
+
+                // Adjust start if end is at totalPages
+                if (end === totalPages && totalPages > range) {
+                  start = Math.max(1, end - range + 1);
+                }
+
+                const pages = Array.from(
+                  { length: end - start + 1 },
+                  (_, i) => start + i,
+                );
+                const showLeftEllipsis = start > 1;
+                const showRightEllipsis = end < totalPages;
+
+                return (
+                  <>
+                    {/* Left Ellipsis */}
+                    {showLeftEllipsis && (
+                      <span className="px-2.5 py-1 text-[10px] font-mono text-slate-400">
+                        ...
+                      </span>
+                    )}
+
+                    {/* Page Buttons */}
+                    {pages.map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => setPage(p)}
+                        className={cn(
+                          "px-2.5 py-1 text-[10px] font-mono border rounded-lg transition-colors",
+                          page === p
+                            ? "bg-slate-800 text-white border-slate-800"
+                            : "border-slate-200 hover:bg-slate-100",
+                        )}
+                      >
+                        {p}
+                      </button>
+                    ))}
+
+                    {/* Right Ellipsis */}
+                    {showRightEllipsis && (
+                      <span className="px-2.5 py-1 text-[10px] font-mono text-slate-400">
+                        ...
+                      </span>
+                    )}
+                  </>
+                );
+              })()}
+
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => p + 1)}

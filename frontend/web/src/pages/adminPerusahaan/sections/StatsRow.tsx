@@ -1,8 +1,7 @@
 import { StatCard } from "../../../components/ui";
-import { useSensors } from "@/hooks/useSensors";
+import { useSensors, useBusinesses } from "@/hooks";
 import { useCompany } from "@/hooks/useCompanies";
 import { useAuthStore } from "@/store";
-import { getQuotaPercent } from "../../../lib/utils";
 
 export default function AdminStatsRow() {
   const { user } = useAuthStore();
@@ -12,53 +11,53 @@ export default function AdminStatsRow() {
       companyId: companyId || undefined,
     });
   const sensors = sensorsResponse.data ?? [];
+  const {
+    data: businessesResponse = { data: [] },
+    isLoading: loadingBusinesses,
+  } = useBusinesses();
+  const allBusinesses = businessesResponse.data ?? [];
   const { data: company, isLoading: loadingCompany } = useCompany(companyId);
+
+  // Count businesses for this company
+  const userBusinesses = allBusinesses.filter((b) => b.companyId === companyId);
+  const totalBusiness = userBusinesses.length;
+
+  // Calculate average water level from wells
+  const wellsWithLevel = sensors.filter((s) => s.staticWaterLevel !== null);
+  const avgWaterLevel =
+    wellsWithLevel.length > 0
+      ? wellsWithLevel.reduce((sum, s) => sum + (s.staticWaterLevel ?? 0), 0) /
+        wellsWithLevel.length
+      : null;
 
   const total = sensors.length;
   const online = sensors.filter((s) => s.status === "online").length;
-  const offline = sensors.filter((s) => s.status === "offline").length;
-  const pct = company ? getQuotaPercent(company.quotaUsed, company.quota) : 0;
 
-  const loading = loadingSensors || loadingCompany;
+  const loading = loadingSensors || loadingBusinesses || loadingCompany;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
       <StatCard
-        label="Total Sensor"
+        label="Total Sumur"
         value={loading ? "…" : String(total)}
         sub={`${online} online`}
         color="amber"
       />
       <StatCard
-        label="Sensor Offline"
-        value={loading ? "…" : String(offline)}
-        sub="tidak aktif"
-        color="red"
-        trendDown
+        label="Unit Usaha"
+        value={loading ? "…" : String(totalBusiness)}
+        sub="jenis usaha perusahaan"
+        color="cyan"
       />
       <StatCard
-        label="Maintenance"
-        value="—"
-        sub="Perlu kalibrasi"
-        color="purple"
-      />
-      <StatCard
-        label="Avg Subsidence"
-        value="—"
-        sub="cm/thn seluruh sumur"
-        color="blue"
-        trendDown
-      />
-      <StatCard
-        label="Kuota Terpakai"
-        value={loading ? "…" : `${pct}%`}
-        sub={
-          company
-            ? `${(company.quotaUsed / 1000).toFixed(0)}k / ${(company.quota / 1000).toFixed(0)}k m³`
-            : "—"
+        label="Rata-rata Muka Air"
+        value={
+          loading || avgWaterLevel === null
+            ? "…"
+            : `${avgWaterLevel.toFixed(2)}`
         }
-        color="amber"
-        trendDown
+        sub="meter dari permukaan"
+        color="blue"
       />
     </div>
   );

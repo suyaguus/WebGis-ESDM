@@ -46,6 +46,8 @@ import KadisPetaPage from "@/pages/kadis/peta/index";
 import KadisAnalitikPage from "@/pages/kadis/analitik/index";
 import KadisLaporanPage from "@/pages/kadis/laporan/index";
 import KadisPerusahaanPage from "@/pages/kadis/perusahaan/index";
+import KadisBusinessPage from "@/pages/kadis/business/index";
+import KadisSumurPage from "@/pages/kadis/sumur/index";
 import KadisPersetujuanPage from "@/pages/kadis/persetujuan/index";
 
 /* ── Surveyor ── */
@@ -183,12 +185,16 @@ function KadisApp() {
         return <KadisDashboard />;
       case "kadis-peta":
         return <KadisPetaPage />;
+      case "kadis-perusahaan":
+        return <KadisPerusahaanPage />;
+      case "kadis-business":
+        return <KadisBusinessPage />;
+      case "kadis-sumur":
+        return <KadisSumurPage />;
       case "kadis-analitik":
         return <KadisAnalitikPage />;
       case "kadis-laporan":
         return <KadisLaporanPage />;
-      case "kadis-perusahaan":
-        return <KadisPerusahaanPage />;
       case "kadis-persetujuan":
         return <KadisPersetujuanPage />;
       default:

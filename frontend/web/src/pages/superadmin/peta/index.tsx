@@ -16,42 +16,49 @@ import { cn } from "../../../lib/utils";
 import {
   getWaterLevelTrendLabel,
   getWaterLevelTrendColor,
+  getWellTypeLabel,
 } from "../../../lib/groundwater";
-import type { Sensor, SensorStatus, SensorType } from "../../../types";
+import type { Sensor, SensorStatus } from "../../../types";
 
 type FilterStatus = "all" | SensorStatus;
-type FilterType = "all" | SensorType;
+type FilterWellType = "all" | "sumur_pantau" | "sumur_gali" | "sumur_bor";
 
 const STATUS_OPTS: { key: FilterStatus; label: string }[] = [
   { key: "all", label: "Semua" },
   { key: "online", label: "Online" },
-  { key: "alert", label: "Alert" },
-  { key: "maintenance", label: "Maint" },
-  { key: "offline", label: "Offline" },
+  // { key: "alert", label: "Alert" },
+  // { key: "maintenance", label: "Maint" },
+  // { key: "offline", label: "Offline" },
 ];
 
-const TYPE_OPTS: { key: FilterType; label: string }[] = [
+const WELL_TYPE_OPTS: { key: FilterWellType; label: string }[] = [
   { key: "all", label: "Semua Tipe" },
-  { key: "water", label: "Air Tanah" },
-  { key: "gnss", label: "GNSS" },
+  { key: "sumur_pantau", label: "Sumur Pantau" },
+  { key: "sumur_gali", label: "Sumur Gali" },
+  { key: "sumur_bor", label: "Sumur Bor" },
 ];
 
 export default function PetaPage() {
-  const { data: sensorsResponse = { data: [] }, isLoading } = useSensors();
+  const { data: sensorsResponse = { data: [] }, isLoading } = useSensors(
+    undefined,
+    { page: 1, limit: 500 }, // Fetch max 500 wells instead of ALL
+    { refetchInterval: 15_000, refetchOnWindowFocus: true, staleTime: 0 },
+  );
   const sensors = sensorsResponse.data ?? [];
   const { data: companiesResponse = { data: [] } } = useCompanies();
   const companies = companiesResponse.data ?? [];
 
   const [search, setSearch] = useState("");
   const [statusF, setStatusF] = useState<FilterStatus>("all");
-  const [typeF, setTypeF] = useState<FilterType>("all");
+  const [wellTypeF, setWellTypeF] = useState<FilterWellType>("all");
   const [selected, setSelected] = useState<Sensor | null>(null);
   const [sidebarOpen, setSidebar] = useState(true);
 
   const filtered = useMemo(() => {
     return sensors.filter((s) => {
+      if (s.wellStatus !== "approved") return false;
       if (statusF !== "all" && s.status !== statusF) return false;
-      if (typeF !== "all" && s.type !== typeF) return false;
+      if (wellTypeF !== "all" && s.wellType !== wellTypeF) return false;
       if (
         search &&
         !s.code.toLowerCase().includes(search.toLowerCase()) &&
@@ -60,7 +67,7 @@ export default function PetaPage() {
         return false;
       return true;
     });
-  }, [sensors, search, statusF, typeF]);
+  }, [sensors, search, statusF, wellTypeF]);
 
   const company = (id: string) => companies.find((c) => c.id === id);
 
@@ -115,13 +122,13 @@ export default function PetaPage() {
               ))}
             </div>
             <div className="flex gap-1">
-              {TYPE_OPTS.map((o) => (
+              {WELL_TYPE_OPTS.map((o) => (
                 <button
                   key={o.key}
-                  onClick={() => setTypeF(o.key)}
+                  onClick={() => setWellTypeF(o.key)}
                   className={cn(
                     "text-[9px] font-mono px-2 py-0.5 rounded-full border transition-all",
-                    typeF === o.key
+                    wellTypeF === o.key
                       ? "bg-blue-50 text-blue-700 border-blue-200"
                       : "text-slate-400 border-transparent hover:bg-slate-50",
                   )}
@@ -196,8 +203,9 @@ export default function PetaPage() {
           {/* Legend */}
           <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/50 flex-shrink-0 space-y-1">
             {[
-              ["#3B82F6", "Air Tanah"],
-              ["#F59E0B", "GNSS"],
+              ["#3B82F6", "Sumur Pantau"],
+              ["#8B5CF6", "Sumur Gali"],
+              ["#06B6D4", "Sumur Bor"],
               ["#EF4444", "Alert"],
               ["#94A3B8", "Offline"],
             ].map(([c, l]) => (
@@ -231,16 +239,16 @@ export default function PetaPage() {
               count: sensors.filter((s) => s.status === "online").length,
               color: "text-emerald-600 bg-emerald-50 border-emerald-200",
             },
-            {
-              label: "Alert",
-              count: sensors.filter((s) => s.status === "alert").length,
-              color: "text-red-600 bg-red-50 border-red-200",
-            },
-            {
-              label: "Maint",
-              count: sensors.filter((s) => s.status === "maintenance").length,
-              color: "text-amber-600 bg-amber-50 border-amber-200",
-            },
+            // {
+            //   label: "Alert",
+            //   count: sensors.filter((s) => s.status === "alert").length,
+            //   color: "text-red-600 bg-red-50 border-red-200",
+            // },
+            // {
+            //   label: "Maint",
+            //   count: sensors.filter((s) => s.status === "maintenance").length,
+            //   color: "text-amber-600 bg-amber-50 border-amber-200",
+            // },
           ].map(({ label, count, color }) => (
             <div
               key={label}
@@ -274,7 +282,7 @@ export default function PetaPage() {
             <div className="grid grid-cols-2 gap-x-4 sm:gap-x-6 gap-y-1.5">
               {[
                 ["Lokasi", selected.location],
-                ["Tipe", selected.type === "water" ? "Air Tanah" : "GNSS"],
+                ["Tipe Sumur", getWellTypeLabel(selected.wellType)],
                 [
                   "Tren Muka Air",
                   getWaterLevelTrendLabel(selected.waterLevelTrend),

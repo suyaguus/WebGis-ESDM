@@ -18,7 +18,12 @@ export interface Sensor {
   lastWaterLevelMeasurement?: string | null;
   isActive: boolean;
   isVerified: boolean;
-  wellStatus: "draft" | "pending_approval" | "reviewed" | "approved" | "rejected";
+  wellStatus:
+    | "draft"
+    | "pending_approval"
+    | "reviewed"
+    | "approved"
+    | "rejected";
   supervisorNote: string | null;
   companyId: string;
   companyName: string;
@@ -43,7 +48,14 @@ export interface Company {
   email?: string;
   phone?: string;
   type?: string;
-  sensorCount: number;
+  wellCount: number; // Total wells
+  avgWaterLevel: number | null; // Average water level in meters
+  dominantWellType: "sumur_pantau" | "sumur_gali" | "sumur_bor" | null; // Most common well type
+  wellTypes: {
+    sumur_pantau: number;
+    sumur_gali: number;
+    sumur_bor: number;
+  };
   status: CompanyStatus;
   quota: number;
   quotaUsed: number;

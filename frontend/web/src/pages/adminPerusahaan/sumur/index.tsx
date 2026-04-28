@@ -307,8 +307,9 @@ function SensorEditModal({
     value: string | undefined,
   ): string | undefined => {
     if (!value) return undefined;
-    if (value.length === 16) return `${value}:00`;
-    return value;
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return undefined;
+    return d.toISOString();
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -540,7 +541,7 @@ function SensorEditModal({
           </div>
           {updateSensor.isError && (
             <p className="text-[10px] text-red-500 font-mono">
-              Gagal memperbarui sumur. Coba lagi.
+              {(updateSensor.error as any)?.response?.data?.message ?? "Gagal memperbarui sumur. Coba lagi."}
             </p>
           )}
         </form>
@@ -551,7 +552,9 @@ function SensorEditModal({
 
 export default function AdminSumurPage() {
   const [search, setSearch] = useState("");
-  const [typeF, setTypeF] = useState<"all" | "sumur_pantau" | "sumur_gali" | "sumur_bor">("all");
+  const [typeF, setTypeF] = useState<
+    "all" | "sumur_pantau" | "sumur_gali" | "sumur_bor"
+  >("all");
   const [sortKey, setSortKey] = useState<SortKey>("code");
   const [sortAsc, setSortAsc] = useState(true);
   const [detail, setDetail] = useState<Sensor | null>(null);
@@ -560,9 +563,14 @@ export default function AdminSumurPage() {
   const userCompanyId = user?.companyId ?? "";
 
   // Fetch sensors and businesses for current user's company
-  const { data: sensorsResponse = { data: [] }, isLoading } = useSensors({
-    companyId: userCompanyId || undefined,
-  });
+  const { data: sensorsResponse = { data: [] }, isLoading } = useSensors(
+    {
+      companyId: userCompanyId || undefined,
+      wellStatus: "approved", // Only fetch approved wells
+    },
+    { page: 1, limit: 500 },
+    { refetchInterval: 15_000, refetchOnWindowFocus: true, staleTime: 0 },
+  );
   const COMPANY_SENSORS = sensorsResponse.data ?? [];
 
   const { data: businessesResponse = { data: [] } } = useBusinesses();
@@ -572,7 +580,7 @@ export default function AdminSumurPage() {
   );
 
   const data = useMemo(() => {
-    let d = COMPANY_SENSORS.filter((s) => s.wellStatus === "approved");
+    let d = COMPANY_SENSORS; // Already filtered by wellStatus: "approved" on backend
     if (typeF !== "all") d = d.filter((s) => s.wellType === typeF);
     if (search)
       d = d.filter(
@@ -632,19 +640,82 @@ export default function AdminSumurPage() {
         </div>
       ) : (
         <>
-          {/* Summary cards */}
+          {/* KPI Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {(() => {
+              const activeWells = COMPANY_SENSORS.filter(
+                (s) => s.isActive,
+              ).length;
+              const wellsWithLevel = COMPANY_SENSORS.filter(
+                (s) => s.staticWaterLevel !== null,
+              );
+              const avgWaterLevel =
+                wellsWithLevel.length > 0
+                  ? wellsWithLevel.reduce(
+                      (s, w) => s + (w.staticWaterLevel ?? 0),
+                      0,
+                    ) / wellsWithLevel.length
+                  : null;
+
+              return [
+                {
+                  label: "Total Sumur",
+                  value: String(COMPANY_SENSORS.length),
+                  color: "#F59E0B",
+                },
+                {
+                  label: "Sumur Aktif",
+                  value: `${activeWells} / ${COMPANY_SENSORS.length}`,
+                  color: "#22C55E",
+                },
+                {
+                  label: "Rata-rata Muka Air",
+                  value:
+                    avgWaterLevel !== null
+                      ? `${avgWaterLevel.toFixed(2)} m`
+                      : "-",
+                  color: "#3B82F6",
+                },
+              ].map(({ label, value, color }) => (
+                <div
+                  key={label}
+                  className="bg-white rounded-xl border border-slate-100 shadow-sm px-4 py-3 relative overflow-hidden"
+                >
+                  <div
+                    className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl"
+                    style={{ background: color }}
+                  />
+                  <p className="text-[9px] font-mono text-slate-400 uppercase tracking-wider mb-1">
+                    {label}
+                  </p>
+                  <p
+                    className="text-[20px] font-bold font-mono"
+                    style={{ color }}
+                  >
+                    {value}
+                  </p>
+                </div>
+              ));
+            })()}
+          </div>
+
+          {/* Summary cards by type */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
               {
                 label: "Total Sumur",
-                value: COMPANY_SENSORS.filter((s) => s.wellStatus === "approved").length,
+                value: COMPANY_SENSORS.filter(
+                  (s) => s.wellStatus === "approved",
+                ).length,
                 color: "#F59E0B",
                 bg: "bg-amber-50  border-amber-200",
               },
               {
                 label: "Sumur Pantau",
                 value: COMPANY_SENSORS.filter(
-                  (s) => s.wellStatus === "approved" && s.wellType === "sumur_pantau",
+                  (s) =>
+                    s.wellStatus === "approved" &&
+                    s.wellType === "sumur_pantau",
                 ).length,
                 color: "#22C55E",
                 bg: "bg-emerald-50 border-emerald-200",
@@ -652,7 +723,8 @@ export default function AdminSumurPage() {
               {
                 label: "Sumur Gali",
                 value: COMPANY_SENSORS.filter(
-                  (s) => s.wellStatus === "approved" && s.wellType === "sumur_gali",
+                  (s) =>
+                    s.wellStatus === "approved" && s.wellType === "sumur_gali",
                 ).length,
                 color: "#3B82F6",
                 bg: "bg-blue-50    border-blue-200",
@@ -660,7 +732,8 @@ export default function AdminSumurPage() {
               {
                 label: "Sumur Bor",
                 value: COMPANY_SENSORS.filter(
-                  (s) => s.wellStatus === "approved" && s.wellType === "sumur_bor",
+                  (s) =>
+                    s.wellStatus === "approved" && s.wellType === "sumur_bor",
                 ).length,
                 color: "#8B5CF6",
                 bg: "bg-purple-50  border-purple-200",
@@ -699,7 +772,9 @@ export default function AdminSumurPage() {
                 />
               </div>
               <div className="flex gap-1">
-                {(["all", "sumur_pantau", "sumur_gali", "sumur_bor"] as const).map((t) => (
+                {(
+                  ["all", "sumur_pantau", "sumur_gali", "sumur_bor"] as const
+                ).map((t) => (
                   <button
                     key={t}
                     onClick={() => setTypeF(t)}
@@ -813,7 +888,6 @@ export default function AdminSumurPage() {
               businesses={userBusinesses}
             />
           )}
-
         </>
       )}
     </div>

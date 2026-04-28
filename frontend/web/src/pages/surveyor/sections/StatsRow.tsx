@@ -3,9 +3,9 @@ import { useSensors } from "../../../hooks";
 import { useMeasurements } from "../../../hooks/useMeasurements";
 
 export default function SurveyorStatsRow() {
-  const { data = {} } = useSensors();
-  const sensors = data.data ?? [];
-  const { data: measurements = [] } = useMeasurements();
+  const { data: sensorsPage } = useSensors(undefined, undefined, { refetchInterval: 30_000 });
+  const sensors = sensorsPage?.data ?? [];
+  const { data: measurements = [] } = useMeasurements(undefined, { refetchInterval: 30_000 });
 
   // Count inactive wells (status = offline means isActive = false)
   const inactiveSensors = sensors.filter((s) => !s.isActive).length;

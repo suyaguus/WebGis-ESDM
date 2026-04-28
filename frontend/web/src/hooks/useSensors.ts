@@ -12,10 +12,16 @@ const SENSORS_KEY = "sensors";
 export function useSensors(
   filter?: SensorFilter,
   pagination?: PaginationParams,
+  options?: {
+    refetchInterval?: number;
+    staleTime?: number;
+    refetchOnWindowFocus?: boolean;
+  },
 ) {
   return useQuery({
     queryKey: [SENSORS_KEY, filter, pagination],
     queryFn: () => sensorService.getAll(filter, pagination),
+    ...options,
   });
 }
 
@@ -95,6 +101,15 @@ export function useRejectWell() {
     mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
       sensorService.reject(id, reason ?? ""),
     onSuccess: () => qc.invalidateQueries({ queryKey: [SENSORS_KEY] }),
+  });
+}
+
+export function usePublicSensors() {
+  return useQuery({
+    queryKey: ["publicSensors"],
+    queryFn: () => sensorService.getPublic(),
+    staleTime: 60_000,
+    retry: false,
   });
 }
 

@@ -150,7 +150,9 @@ export interface BackendCompany {
     users: number;
   };
   wells?: {
-    subsidenceRate: number | null;
+    wellType: "sumur_pantau" | "sumur_gali" | "sumur_bor";
+    staticWaterLevel: number | null;
+    waterLevelTrend: "rising" | "falling" | "stable" | "unknown" | null;
   }[];
 }
 
