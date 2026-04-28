@@ -20,10 +20,13 @@ export const WELL_SELECT: Prisma.WellSelect = {
   waterLevelTrend: true,
   lastWaterLevelMeasurement: true,
 
+  supervisorNote: true,
   createdAt: true,
   updatedAt: true,
   isActive: true,
   isVerified: true,
+  status: true,
+  createdBy: true,
 
   company: {
     select: {

@@ -23,7 +23,7 @@ router.get("/:id", authMiddleware, wellController.findOne);
 router.patch(
   "/:id",
   authMiddleware,
-  roleMiddleware("super_admin", "admin_perusahaan"),
+  roleMiddleware("super_admin", "admin_perusahaan", "supervisor"),
   wellController.update,
 );
 
@@ -41,6 +41,62 @@ router.patch(
   authMiddleware,
   roleMiddleware("super_admin"),
   wellController.verify,
+);
+
+// GET PENDING WELLS (only super_admin)
+router.get(
+  "/pending/list",
+  authMiddleware,
+  roleMiddleware("super_admin"),
+  wellController.getPending,
+);
+
+// APPROVE PENDING WELL (only super_admin)
+router.patch(
+  "/:id/approve",
+  authMiddleware,
+  roleMiddleware("super_admin"),
+  wellController.approve,
+);
+
+// REJECT PENDING WELL (only super_admin)
+router.patch(
+  "/:id/reject",
+  authMiddleware,
+  roleMiddleware("super_admin"),
+  wellController.reject,
+);
+
+// PROCESS DRAFT WELL → pending_approval / send to supervisor (only super_admin)
+router.patch(
+  "/:id/process",
+  authMiddleware,
+  roleMiddleware("super_admin"),
+  wellController.process,
+);
+
+// GET WELLS FOR SUPERVISOR REVIEW (supervisor + super_admin)
+router.get(
+  "/supervisor/list",
+  authMiddleware,
+  roleMiddleware("super_admin", "supervisor"),
+  wellController.getSupervisorWells,
+);
+
+// SUPERVISOR MARKS WELL AS REVIEWED → sends back to super_admin
+router.patch(
+  "/:id/review",
+  authMiddleware,
+  roleMiddleware("super_admin", "supervisor"),
+  wellController.review,
+);
+
+// SUPERVISOR FLAGS A WELL WITH A NOTE (data tidak sesuai)
+router.patch(
+  "/:id/flag",
+  authMiddleware,
+  roleMiddleware("super_admin", "supervisor"),
+  wellController.flag,
 );
 
 export default router;
