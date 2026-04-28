@@ -53,30 +53,30 @@ const NAV_ITEMS: NavItem[] = [
     icon: FileBadge,
     section: "sumur",
   },
-  {
-    key: "ap-status",
-    label: "Status Pengajuan",
-    icon: ClipboardCheck,
-    section: "sumur",
-  },
-  {
-    key: "ap-laporan",
-    label: "Laporan & Ekspor",
-    icon: FileText,
-    section: "laporan",
-  },
-  {
-    key: "ap-kirim",
-    label: "Kirim ke Surveyor",
-    icon: SendHorizonal,
-    section: "laporan",
-  },
+  // {
+  //   key: "ap-status",
+  //   label: "Status Pengajuan",
+  //   icon: ClipboardCheck,
+  //   section: "sumur",
+  // },
+  // {
+  //   key: "ap-laporan",
+  //   label: "Laporan & Ekspor",
+  //   icon: FileText,
+  //   section: "laporan",
+  // },
+  // {
+  //   key: "ap-kirim",
+  //   label: "Kirim ke Surveyor",
+  //   icon: SendHorizonal,
+  //   section: "laporan",
+  // },
 ];
 
 const SECTIONS = [
   { key: "overview", label: "Overview" },
   { key: "sumur", label: "Manajemen Sumur" },
-  { key: "laporan", label: "Laporan" },
+  // { key: "laporan", label: "Laporan" },
 ];
 
 interface SidebarProps {

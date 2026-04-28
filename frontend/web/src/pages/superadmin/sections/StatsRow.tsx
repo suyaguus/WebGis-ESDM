@@ -62,7 +62,7 @@ export default function StatsRow() {
 
   return (
     <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-      {stats.map((stat) => (
+      {/* {stats.map((stat) => (
         <StatCard
           key={stat.label}
           label={stat.label}
@@ -72,7 +72,7 @@ export default function StatsRow() {
           trendUp={stat.trend === "up"}
           trendDown={stat.trend === "down"}
         />
-      ))}
+      ))} */}
     </div>
   );
 }

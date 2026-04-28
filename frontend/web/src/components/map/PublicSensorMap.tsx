@@ -3,7 +3,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
   getWaterLevelTrendLabel,
-  getWaterLevelTrendColor,
+  getWellTypeLabel,
 } from "@/lib/groundwater";
 import type { Sensor } from "@/types";
 
@@ -13,14 +13,18 @@ interface PublicSensorMapProps {
 }
 
 const MARKER_COLORS: Record<string, string> = {
-  water_online: "#3B82F6",
-  water_alert: "#EF4444",
-  water_maintenance: "#F59E0B",
-  water_offline: "#94A3B8",
-  gnss_online: "#F59E0B",
-  gnss_alert: "#EF4444",
-  gnss_maintenance: "#CBD5E1",
-  gnss_offline: "#94A3B8",
+  sumur_pantau_online: "#3B82F6",
+  sumur_pantau_alert: "#EF4444",
+  sumur_pantau_maintenance: "#F59E0B",
+  sumur_pantau_offline: "#94A3B8",
+  sumur_gali_online: "#8B5CF6",
+  sumur_gali_alert: "#EF4444",
+  sumur_gali_maintenance: "#F59E0B",
+  sumur_gali_offline: "#94A3B8",
+  sumur_bor_online: "#06B6D4",
+  sumur_bor_alert: "#EF4444",
+  sumur_bor_maintenance: "#F59E0B",
+  sumur_bor_offline: "#94A3B8",
 };
 
 const KEYFRAMES = `
@@ -83,8 +87,8 @@ function makeIcon(color: string, status: Sensor["status"]): L.DivIcon {
   });
 }
 
-function buildPopup(sensor: Sensor): string {
-  const typeLabel = sensor.type === "water" ? "Air Tanah" : "GNSS";
+function buildPopup(sensor: Sensor, color: string): string {
+  const typeLabel = getWellTypeLabel(sensor.wellType);
   const statusLabel =
     sensor.status.charAt(0).toUpperCase() + sensor.status.slice(1);
   const waterLevelCm =
@@ -104,13 +108,20 @@ function buildPopup(sensor: Sensor): string {
   return `
     <div style="font-family:'IBM Plex Mono',monospace;min-width:190px;max-width:220px;color:#0f172a;">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #e2e8f0;">
-        <strong style="font-size:13px;">${sensor.code}</strong>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;"></div>
+          <strong style="font-size:13px;">${sensor.code}</strong>
+        </div>
         <span style="font-size:10px;color:#64748b;">${typeLabel}</span>
       </div>
       <table style="width:100%;font-size:10px;border-collapse:collapse;line-height:1.55;">
         <tr>
           <td style="color:#94a3b8;padding:1px 0;">Lokasi</td>
           <td style="text-align:right;color:#475569;padding:1px 0;">${sensor.location}</td>
+        </tr>
+        <tr>
+          <td style="color:#94a3b8;padding:1px 0;">Perusahaan</td>
+          <td style="text-align:right;color:#475569;padding:1px 0;">${sensor.companyName}</td>
         </tr>
         <tr>
           <td style="color:#94a3b8;padding:1px 0;">Status</td>
@@ -123,10 +134,6 @@ function buildPopup(sensor: Sensor): string {
         <tr>
           <td style="color:#94a3b8;padding:1px 0;">Tren</td>
           <td style="text-align:right;color:${trendColor};font-weight:600;padding:1px 0;">${trendLabel}</td>
-        </tr>
-        <tr>
-          <td style="color:#94a3b8;padding:1px 0;">Update</td>
-          <td style="text-align:right;color:#475569;padding:1px 0;">${sensor.lastUpdate}</td>
         </tr>
       </table>
     </div>`;
@@ -191,18 +198,18 @@ export default function PublicSensorMap({
         s.lat != null &&
         s.lng != null &&
         !(s.lat === 0 && s.lng === 0) &&
-        s.isActive !== false && // Exclude disabled/inactive sensors
-        s.isVerified !== false, // Exclude unverified sensors
+        s.isActive !== false &&
+        s.wellStatus === "approved",
     );
 
     validSensors.forEach((sensor) => {
       const color =
-        MARKER_COLORS[`${sensor.type}_${sensor.status}`] ?? "#94A3B8";
+        MARKER_COLORS[`${sensor.wellType}_${sensor.status}`] ?? "#94A3B8";
       const markerIcon = makeIcon(color, sensor.status);
 
       const marker = L.marker([sensor.lat!, sensor.lng!], { icon: markerIcon })
         .addTo(map)
-        .bindPopup(buildPopup(sensor), {
+        .bindPopup(buildPopup(sensor, color), {
           maxWidth: 240,
           className: "leaflet-popup-light",
         });
@@ -245,19 +252,19 @@ export default function PublicSensorMap({
           background: #F8FAFC;
           color: #0F172A;
         }
-        .public-map .leaflet-popup-content-wrapper {
+        .leaflet-popup-light .leaflet-popup-content-wrapper {
           border-radius: 12px;
           border: 1px solid #E2E8F0;
           box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
           padding: 0;
         }
-        .public-map .leaflet-popup-content {
+        .leaflet-popup-light .leaflet-popup-content {
           margin: 12px 14px;
         }
-        .public-map .leaflet-popup-tip {
+        .leaflet-popup-light .leaflet-popup-tip {
           background: #FFFFFF;
         }
-        .public-map .leaflet-popup-close-button {
+        .leaflet-popup-light .leaflet-popup-close-button {
           color: #94A3B8 !important;
           font-size: 16px !important;
           top: 6px !important;

@@ -23,9 +23,14 @@ api.interceptors.response.use(
     const requestUrl = error.config?.url as string | undefined;
 
     if (error.response?.status === 401 && !isPublicAuthEndpoint(requestUrl)) {
+      const hadToken = !!localStorage.getItem("sigat_token");
       localStorage.removeItem("sigat_token");
       localStorage.removeItem("sigat_auth");
-      window.location.reload();
+      // Only reload if user was previously authenticated (session expired).
+      // If there was no token, 401 is expected (public page) — don't reload.
+      if (hadToken) {
+        window.location.reload();
+      }
     }
 
     return Promise.reject(error);

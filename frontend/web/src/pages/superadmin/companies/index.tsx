@@ -17,8 +17,8 @@ import {
   useDeleteCompany,
   useSensors,
 } from "../../../hooks";
-import { cn, getSubsidenceColor, getQuotaPercent } from "../../../lib/utils";
-import type { Company } from "../../../services/company.service";
+import { cn } from "../../../lib/utils";
+import type { Company } from "../../../types";
 import type { CreateCompanyRequest } from "../../../types/api";
 
 /* ── Helper Functions ── */
@@ -385,7 +385,7 @@ export default function CompaniesPage() {
       </div>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
           {
             label: "Total Perusahaan",
@@ -397,14 +397,14 @@ export default function CompaniesPage() {
             value: companies.filter((c) => c.status === "online").length,
             color: "#22C55E",
           },
+          // {
+          //   label: "Kuota Melebihi",
+          //   value: companies.filter((c) => c.quotaUsed > c.quota).length,
+          //   color: "#EF4444",
+          // },
           {
-            label: "Kuota Melebihi",
-            value: companies.filter((c) => c.quotaUsed > c.quota).length,
-            color: "#EF4444",
-          },
-          {
-            label: "Total Sensor",
-            value: companies.reduce((a, c) => a + c.sensorCount, 0),
+            label: "Total Sumur",
+            value: companies.reduce((a, c) => a + (c.wellCount ?? 0), 0),
             color: "#8B5CF6",
           },
         ].map(({ label, value, color }) => (
@@ -457,9 +457,6 @@ export default function CompaniesPage() {
         ) : (
           <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.map((c) => {
-              const pct = getQuotaPercent(c.quotaUsed, c.quota);
-              const pctColor =
-                pct >= 100 ? "#EF4444" : pct >= 85 ? "#F59E0B" : "#22C55E";
               const alerts = alertSensors(c.id);
               return (
                 <div
@@ -489,25 +486,21 @@ export default function CompaniesPage() {
                   <div className="grid grid-cols-3 gap-2 mb-3">
                     {[
                       {
-                        label: "Sensor",
-                        value: String(c.sensorCount),
+                        label: "Sumur",
+                        value: String(c.wellCount ?? 0),
                         valueClass: "",
                       },
                       {
-                        label: "Subsidence",
-                        value: `${c.avgSubsidence.toFixed(1)}`,
-                        unit: "cm/thn",
-                        valueClass: getSubsidenceColor(c.avgSubsidence),
+                        label: "Unit Usaha",
+                        value: String(c.businesses?.length ?? 0),
+                        unit: "jenis",
+                        valueClass: "text-slate-800",
                       },
                       {
-                        label: "Kuota",
-                        value: `${pct}%`,
-                        valueClass:
-                          pct >= 100
-                            ? "text-red-600"
-                            : pct >= 85
-                              ? "text-amber-600"
-                              : "text-emerald-600",
+                        label: "Muka Air",
+                        value: `${(c.avgWaterLevel ?? 0).toFixed(2)}`,
+                        unit: "m",
+                        valueClass: "text-cyan-600",
                       },
                     ].map(({ label, value, unit, valueClass }) => (
                       <div
@@ -530,26 +523,6 @@ export default function CompaniesPage() {
                         </p>
                       </div>
                     ))}
-                  </div>
-
-                  <div>
-                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{
-                          width: `${Math.min(pct, 100)}%`,
-                          background: pctColor,
-                        }}
-                      />
-                    </div>
-                    <div className="flex justify-between mt-1">
-                      <span className="text-[8px] font-mono text-slate-400">
-                        {(c.quotaUsed / 1000).toFixed(0)}k m³
-                      </span>
-                      <span className="text-[8px] font-mono text-slate-400">
-                        {(c.quota / 1000).toFixed(0)}k m³
-                      </span>
-                    </div>
                   </div>
 
                   <div className="mt-3 flex gap-2">
@@ -634,15 +607,21 @@ export default function CompaniesPage() {
               <StatusPill status={selected.status} />
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  ["Total Sensor", selected.sensorCount],
+                  ["Total Sumur", selected.wellCount ?? 0],
                   [
-                    "Avg Subsidence",
-                    `${selected.avgSubsidence.toFixed(2)} cm/thn`,
+                    "Rata-rata Muka Air",
+                    `${(selected.avgWaterLevel ?? 0).toFixed(2)} m`,
                   ],
-                  ["Kuota Total", `${(selected.quota / 1000).toFixed(0)}k m³`],
+                  ["Total Unit Usaha", selected.businesses?.length ?? 0],
                   [
-                    "Kuota Terpakai",
-                    `${getQuotaPercent(selected.quotaUsed, selected.quota)}%`,
+                    "Tipe Dominan",
+                    selected.dominantWellType
+                      ? selected.dominantWellType === "sumur_pantau"
+                        ? "Sumur Pantau"
+                        : selected.dominantWellType === "sumur_gali"
+                          ? "Sumur Gali"
+                          : "Sumur Bor"
+                      : "-",
                   ],
                 ].map(([k, v]) => (
                   <div key={String(k)} className="bg-slate-50 rounded-xl p-3">

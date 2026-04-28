@@ -2,14 +2,17 @@ import { useState } from "react";
 import { Building2, ArrowUpDown } from "lucide-react";
 import { SectionHeader, StatusPill } from "@/components/ui";
 import { useCompanies } from "@/hooks/useCompanies";
-import { cn, getSubsidenceColor, getQuotaPercent } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { getWellTypeLabel } from "@/lib/groundwater";
 
-type SortKey = "name" | "sensorCount" | "avgSubsidence" | "quotaUsed";
+type SortKey = "name" | "wellCount" | "avgWaterLevel" | "dominantWellType";
 
 export default function CompanyTable() {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortAsc, setSortAsc] = useState(true);
-  const { data: companiesResponse = { data: [] }, isLoading } = useCompanies();
+  const { data: companiesResponse = { data: [] }, isLoading } = useCompanies({
+    limit: 100,
+  });
   const companies = companiesResponse.data ?? [];
 
   function handleSort(key: SortKey) {
@@ -21,8 +24,23 @@ export default function CompanyTable() {
   }
 
   const sorted = [...companies].sort((a, b) => {
-    const av = a[sortKey];
-    const bv = b[sortKey];
+    let av: string | number = "";
+    let bv: string | number = "";
+
+    if (sortKey === "name") {
+      av = a.name;
+      bv = b.name;
+    } else if (sortKey === "wellCount") {
+      av = a.wellCount ?? 0;
+      bv = b.wellCount ?? 0;
+    } else if (sortKey === "avgWaterLevel") {
+      av = a.avgWaterLevel ?? 0;
+      bv = b.avgWaterLevel ?? 0;
+    } else if (sortKey === "dominantWellType") {
+      av = a.dominantWellType ?? "";
+      bv = b.dominantWellType ?? "";
+    }
+
     if (typeof av === "string")
       return sortAsc
         ? av.localeCompare(bv as string)
@@ -74,9 +92,6 @@ export default function CompanyTable() {
       {/* ── Mobile: card list (hidden on md+) ── */}
       <div className="md:hidden divide-y divide-slate-50">
         {sorted.map((company) => {
-          const pct = getQuotaPercent(company.quotaUsed, company.quota);
-          const pctColor =
-            pct >= 100 ? "#EF4444" : pct >= 85 ? "#F59E0B" : "#22C55E";
           return (
             <div
               key={company.id}
@@ -94,39 +109,44 @@ export default function CompanyTable() {
               <div className="grid grid-cols-3 gap-2 text-center mb-2">
                 <div>
                   <p className="text-[11px] font-mono font-semibold text-slate-700">
-                    {company.sensorCount}
+                    {company.wellCount}
                   </p>
-                  <p className="text-[9px] text-slate-400 font-mono">Sensor</p>
+                  <p className="text-[9px] text-slate-400 font-mono">Sumur</p>
                 </div>
                 <div>
-                  <p
-                    className={cn(
-                      "text-[11px] font-mono font-semibold",
-                      getSubsidenceColor(company.avgSubsidence),
-                    )}
-                  >
-                    {company.avgSubsidence.toFixed(2)}
+                  <p className="text-[11px] font-mono font-semibold text-blue-700">
+                    {company.avgWaterLevel !== null
+                      ? company.avgWaterLevel.toFixed(2)
+                      : "-"}
                   </p>
-                  <p className="text-[9px] text-slate-400 font-mono">cm/thn</p>
+                  <p className="text-[9px] text-slate-400 font-mono">m</p>
                 </div>
                 <div>
-                  <p
-                    className="text-[11px] font-mono font-semibold"
-                    style={{ color: pctColor }}
-                  >
-                    {pct}%
+                  <p className="text-[11px] font-mono font-semibold text-slate-700">
+                    {getWellTypeLabel(company.dominantWellType)}
                   </p>
-                  <p className="text-[9px] text-slate-400 font-mono">Kuota</p>
+                  <p className="text-[9px] text-slate-400 font-mono">Tipe</p>
                 </div>
               </div>
-              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${Math.min(pct, 100)}%`,
-                    background: pctColor,
-                  }}
-                />
+              <div className="flex gap-1">
+                {company.wellTypes.sumur_pantau > 0 && (
+                  <div className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                    <span>{company.wellTypes.sumur_pantau}</span>
+                  </div>
+                )}
+                {company.wellTypes.sumur_gali > 0 && (
+                  <div className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 bg-purple-50 text-purple-700 rounded">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                    <span>{company.wellTypes.sumur_gali}</span>
+                  </div>
+                )}
+                {company.wellTypes.sumur_bor > 0 && (
+                  <div className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 bg-cyan-50 text-cyan-700 rounded">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                    <span>{company.wellTypes.sumur_bor}</span>
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -153,9 +173,9 @@ export default function CompanyTable() {
               <th className="text-[9px] font-mono font-medium text-slate-400 uppercase tracking-wider px-3 py-2.5 text-left whitespace-nowrap">
                 Wilayah
               </th>
-              <HeadCell label="Sensor" sk="sensorCount" />
-              <HeadCell label="Subsidence" sk="avgSubsidence" />
-              <HeadCell label="Kuota" sk="quotaUsed" />
+              <HeadCell label="Sumur" sk="wellCount" />
+              <HeadCell label="Rata-rata Muka Air" sk="avgWaterLevel" />
+              <HeadCell label="Tipe Sumur" sk="dominantWellType" />
               <th className="text-[9px] font-mono font-medium text-slate-400 uppercase tracking-wider px-3 py-2.5 text-left">
                 Status
               </th>
@@ -163,9 +183,6 @@ export default function CompanyTable() {
           </thead>
           <tbody className="divide-y divide-slate-50">
             {sorted.map((company) => {
-              const pct = getQuotaPercent(company.quotaUsed, company.quota);
-              const pctColor =
-                pct >= 100 ? "#EF4444" : pct >= 85 ? "#F59E0B" : "#22C55E";
               return (
                 <tr
                   key={company.id}
@@ -183,42 +200,47 @@ export default function CompanyTable() {
                   </td>
                   <td className="px-3 py-2.5">
                     <span className="text-[11px] font-mono font-medium text-slate-700">
-                      {company.sensorCount}
+                      {company.wellCount}
                     </span>
                   </td>
                   <td className="px-3 py-2.5">
-                    <span
-                      className={cn(
-                        "text-[11px] font-mono font-semibold",
-                        getSubsidenceColor(company.avgSubsidence),
-                      )}
-                    >
-                      {company.avgSubsidence.toFixed(2)}
+                    <span className="text-[11px] font-mono font-semibold text-blue-700">
+                      {company.avgWaterLevel !== null
+                        ? company.avgWaterLevel.toFixed(2)
+                        : "-"}
                     </span>
                     <span className="text-[9px] text-slate-400 font-mono ml-0.5">
-                      cm/thn
+                      m
                     </span>
                   </td>
                   <td className="px-3 py-2.5">
-                    <div className="flex items-center gap-1.5">
-                      <div
-                        className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"
-                        style={{ minWidth: "36px" }}
-                      >
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${Math.min(pct, 100)}%`,
-                            background: pctColor,
-                          }}
-                        />
-                      </div>
-                      <span
-                        className="text-[10px] font-mono flex-shrink-0"
-                        style={{ color: pctColor }}
-                      >
-                        {pct}%
+                    <div className="flex items-center gap-1">
+                      <span className="text-[11px] font-mono font-medium text-slate-700">
+                        {getWellTypeLabel(company.dominantWellType)}
                       </span>
+                      <div className="flex gap-0.5">
+                        {company.wellTypes.sumur_pantau > 0 && (
+                          <span
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ background: "#3B82F6" }}
+                            title={`Pantau: ${company.wellTypes.sumur_pantau}`}
+                          />
+                        )}
+                        {company.wellTypes.sumur_gali > 0 && (
+                          <span
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ background: "#8B5CF6" }}
+                            title={`Gali: ${company.wellTypes.sumur_gali}`}
+                          />
+                        )}
+                        {company.wellTypes.sumur_bor > 0 && (
+                          <span
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ background: "#06B6D4" }}
+                            title={`Bor: ${company.wellTypes.sumur_bor}`}
+                          />
+                        )}
+                      </div>
                     </div>
                   </td>
                   <td className="px-3 py-2.5">

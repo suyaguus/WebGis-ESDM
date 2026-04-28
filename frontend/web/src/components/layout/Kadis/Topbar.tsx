@@ -1,25 +1,27 @@
-import { useState, useEffect } from 'react';
-import { Bell, ChevronRight, RefreshCw, Menu } from 'lucide-react';
-import { useAppStore } from '../../../store';
-import { getCurrentDate, getCurrentTime } from '../../../lib/utils';
-import { MOCK_ALERTS } from '../../../constants/mockData';
-import { cn } from '../../../lib/utils';
+import { useState, useEffect } from "react";
+import { Bell, ChevronRight, RefreshCw, Menu } from "lucide-react";
+import { useAppStore } from "../../../store";
+import { getCurrentDate, getCurrentTime } from "../../../lib/utils";
+import { MOCK_ALERTS } from "../../../constants/mockData";
+import { cn } from "../../../lib/utils";
 
 const PAGE_META: Record<string, { label: string; section: string }> = {
-  'kadis-dashboard':  { label: 'Dashboard',        section: 'Ikhtisar' },
-  'kadis-peta':       { label: 'Peta Wilayah',     section: 'Ikhtisar' },
-  'kadis-perusahaan': { label: 'Perusahaan',        section: 'Analisis' },
-  'kadis-analitik':   { label: 'Analitik Tren',    section: 'Analisis' },
-  'kadis-laporan':    { label: 'Laporan & Ekspor', section: 'Laporan'  },
+  "kadis-dashboard": { label: "Dashboard", section: "Ikhtisar" },
+  "kadis-peta": { label: "Peta Wilayah", section: "Ikhtisar" },
+  "kadis-perusahaan": { label: "Data Perusahaan", section: "Pengawasan" },
+  "kadis-business": { label: "Data Business", section: "Pengawasan" },
+  "kadis-sumur": { label: "Data Sumur", section: "Pengawasan" },
+  "kadis-analitik": { label: "Analitik Tren", section: "Pengawasan" },
+  "kadis-laporan": { label: "Laporan & Ekspor", section: "Laporan" },
 };
 
 export default function Topbar() {
   const { activePage, setMobileSidebarOpen } = useAppStore();
-  const [time, setTime]          = useState(getCurrentTime());
-  const [showAlerts, setAlerts]  = useState(false);
+  const [time, setTime] = useState(getCurrentTime());
+  const [showAlerts, setAlerts] = useState(false);
   const [refreshing, setRefresh] = useState(false);
-  const unread = MOCK_ALERTS.filter(a => !a.isRead).length;
-  const meta   = PAGE_META[activePage] ?? { label: activePage, section: 'SIGAT' };
+  const unread = MOCK_ALERTS.filter((a) => !a.isRead).length;
+  const meta = PAGE_META[activePage] ?? { label: activePage, section: "SIGAT" };
 
   useEffect(() => {
     const t = setInterval(() => setTime(getCurrentTime()), 30_000);
@@ -43,25 +45,47 @@ export default function Topbar() {
 
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-[12px] min-w-0 flex-1">
-        <span className="hidden sm:inline text-slate-400 flex-shrink-0 text-[11px]">SIGAT</span>
-        <ChevronRight size={11} className="hidden sm:inline text-slate-300 flex-shrink-0" />
-        <span className="hidden sm:inline text-slate-400 flex-shrink-0 text-[11px]">{meta.section}</span>
-        <ChevronRight size={11} className="hidden sm:inline text-slate-300 flex-shrink-0" />
-        <span className="font-semibold text-slate-700 truncate text-[12px]">{meta.label}</span>
+        <span className="hidden sm:inline text-slate-400 flex-shrink-0 text-[11px]">
+          SIGAT
+        </span>
+        <ChevronRight
+          size={11}
+          className="hidden sm:inline text-slate-300 flex-shrink-0"
+        />
+        <span className="hidden sm:inline text-slate-400 flex-shrink-0 text-[11px]">
+          {meta.section}
+        </span>
+        <ChevronRight
+          size={11}
+          className="hidden sm:inline text-slate-300 flex-shrink-0"
+        />
+        <span className="font-semibold text-slate-700 truncate text-[12px]">
+          {meta.label}
+        </span>
       </div>
 
       {/* Kepala Dinas badge — hidden on mobile */}
       <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
-        <span className="text-[9px] font-mono text-emerald-700 tracking-wider">KEPALA DINAS</span>
+        <span className="text-[9px] font-mono text-emerald-700 tracking-wider">
+          KEPALA DINAS
+        </span>
       </div>
 
       {/* Right controls */}
       <div className="flex items-center gap-2 flex-shrink-0">
         {/* Refresh */}
-        <button onClick={handleRefresh}
-          className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center hover:bg-slate-100 transition-colors">
-          <RefreshCw size={13} className={cn('text-slate-500 transition-transform', refreshing && 'animate-spin')} />
+        <button
+          onClick={handleRefresh}
+          className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center hover:bg-slate-100 transition-colors"
+        >
+          <RefreshCw
+            size={13}
+            className={cn(
+              "text-slate-500 transition-transform",
+              refreshing && "animate-spin",
+            )}
+          />
         </button>
 
         {/* Date + time — hidden on mobile */}
@@ -71,7 +95,7 @@ export default function Topbar() {
         </div>
 
         {/* Alert bell */}
-        <div className="relative">
+        {/* <div className="relative">
           <button onClick={() => setAlerts(p => !p)}
             className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center hover:bg-slate-100 transition-colors relative">
             <Bell size={14} className="text-slate-500" />
@@ -112,12 +136,12 @@ export default function Topbar() {
               </div>
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* Avatar */}
-        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] font-bold text-emerald-700 cursor-pointer hover:ring-2 hover:ring-emerald-200 transition-all flex-shrink-0 border border-emerald-200">
+        {/* <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] font-bold text-emerald-700 cursor-pointer hover:ring-2 hover:ring-emerald-200 transition-all flex-shrink-0 border border-emerald-200">
           DK
-        </div>
+        </div> */}
       </div>
     </header>
   );

@@ -17,14 +17,31 @@ const mockDelay = () => new Promise((r) => setTimeout(r, 300));
 
 function mapCompany(c: BackendCompany): Company {
   const wells = c.wells ?? [];
-  const wellsWithSubsidence = wells.filter((w) => w.subsidenceRate !== null);
-  const avgSubsidence =
+
+  // Calculate average subsidence (legacy)
+  const wellsWithSubsidence = wells.filter((w) => w.staticWaterLevel !== null);
+  const avgSubsidence = 0; // Deprecated, but kept for backward compatibility
+
+  // Calculate average water level
+  const avgWaterLevel =
     wellsWithSubsidence.length > 0
       ? wellsWithSubsidence.reduce(
-          (sum, w) => sum + (w.subsidenceRate ?? 0),
+          (sum, w) => sum + (w.staticWaterLevel ?? 0),
           0,
         ) / wellsWithSubsidence.length
-      : 0;
+      : null;
+
+  // Count well types
+  const wellTypes = {
+    sumur_pantau: wells.filter((w) => w.wellType === "sumur_pantau").length,
+    sumur_gali: wells.filter((w) => w.wellType === "sumur_gali").length,
+    sumur_bor: wells.filter((w) => w.wellType === "sumur_bor").length,
+  };
+
+  // Find dominant well type
+  const dominantWellType = (Object.entries(wellTypes).sort(
+    ([, a], [, b]) => b - a,
+  )[0] ?? [null])[0] as "sumur_pantau" | "sumur_gali" | "sumur_bor" | null;
 
   return {
     id: c.id,
@@ -33,7 +50,10 @@ function mapCompany(c: BackendCompany): Company {
     email: c.email ?? undefined,
     phone: c.phone ?? undefined,
     type: c.type ?? undefined,
-    sensorCount: c._count?.wells ?? 0,
+    wellCount: c._count?.wells ?? 0,
+    avgWaterLevel,
+    dominantWellType,
+    wellTypes,
     status: c.isActive ? "online" : "offline",
     quota: c.quota,
     quotaUsed: c.quotaUsed,

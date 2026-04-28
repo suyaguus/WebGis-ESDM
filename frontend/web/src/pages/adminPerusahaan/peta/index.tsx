@@ -18,28 +18,34 @@ import {
   getWaterLevelTrendLabel,
   getWaterLevelTrendColor,
 } from "../../../lib/groundwater";
-import type { Sensor, SensorStatus, SensorType } from "../../../types";
+import { getWellTypeLabel } from "../../../lib/groundwater";
+import type { Sensor, SensorStatus } from "../../../types";
+
+type WellTypeFilter = "sumur_pantau" | "sumur_gali" | "sumur_bor" | "all";
 
 export default function AdminPetaPage() {
   const [search, setSearch] = useState("");
   const [statusF, setStatusF] = useState<SensorStatus | "all">("all");
-  const [typeF, setTypeF] = useState<SensorType | "all">("all");
+  const [typeF, setTypeF] = useState<WellTypeFilter>("all");
   const [selected, setSelected] = useState<Sensor | null>(null);
   const [filterOpen, setFilterOpen] = useState(false); // mobile: filter panel toggle
   const [sidebar, setSidebar] = useState(true); // desktop: sidebar toggle
 
   const { user } = useAuthStore();
   const companyId = user?.companyId ?? "";
-  const { data: sensorsResponse = { data: [] }, isLoading } = useSensors({
-    companyId: companyId || undefined,
-  });
+  const { data: sensorsResponse = { data: [] }, isLoading } = useSensors(
+    { companyId: companyId || undefined },
+    { page: 1, limit: 500 }, // Fetch max 500 wells
+    { refetchInterval: 15_000, refetchOnWindowFocus: true, staleTime: 0 },
+  );
   const sensors = sensorsResponse.data ?? [];
 
   const filtered = useMemo(
     () =>
       sensors.filter((s) => {
+        if (s.wellStatus !== "approved") return false;
         if (statusF !== "all" && s.status !== statusF) return false;
-        if (typeF !== "all" && s.type !== typeF) return false;
+        if (typeF !== "all" && s.wellType !== typeF) return false;
         if (
           search &&
           !s.code.toLowerCase().includes(search.toLowerCase()) &&
@@ -68,7 +74,7 @@ export default function AdminPetaPage() {
       </div>
       {/* Status filter */}
       <div className="flex flex-wrap gap-1 mb-1.5">
-        {(["all", "online", "alert", "maintenance", "offline"] as const).map(
+        {(["all", "online"] as const).map(
           (s) => (
             <button
               key={s}
@@ -86,8 +92,8 @@ export default function AdminPetaPage() {
         )}
       </div>
       {/* Type filter */}
-      <div className="flex gap-1">
-        {(["all", "water", "gnss"] as const).map((t) => (
+      <div className="flex flex-wrap gap-1">
+        {(["all", "sumur_pantau", "sumur_gali", "sumur_bor"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTypeF(t)}
@@ -98,7 +104,7 @@ export default function AdminPetaPage() {
                 : "text-slate-400 border-transparent hover:bg-slate-50",
             )}
           >
-            {t === "all" ? "Semua Tipe" : t === "water" ? "Air Tanah" : "GNSS"}
+            {t === "all" ? "Semua Tipe" : getWellTypeLabel(t)}
           </button>
         ))}
       </div>
@@ -245,10 +251,11 @@ export default function AdminPetaPage() {
             </div>
             <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/60 flex-shrink-0 space-y-1">
               {[
-                ["#3B82F6", "Air Tanah"],
-                ["#F59E0B", "GNSS"],
+                ["#3B82F6", "Sumur Pantau"],
+                ["#8B5CF6", "Sumur Gali"],
+                ["#06B6D4", "Sumur Bor"],
                 ["#EF4444", "Alert"],
-                ["#94A3B8", "Maintenance"],
+                ["#94A3B8", "Offline"],
               ].map(([c, l]) => (
                 <div key={l} className="flex items-center gap-2">
                   <span
@@ -315,7 +322,7 @@ export default function AdminPetaPage() {
               <div className="grid grid-cols-2 gap-x-4 sm:gap-x-6 gap-y-1.5">
                 {[
                   ["Lokasi", selected.location],
-                  ["Tipe", selected.type === "water" ? "Air Tanah" : "GNSS"],
+                  ["Tipe", getWellTypeLabel(selected.wellType)],
                   [
                     "Tren Muka Air",
                     getWaterLevelTrendLabel(selected.waterLevelTrend),
@@ -371,7 +378,7 @@ export default function AdminPetaPage() {
             <div className="grid grid-cols-2 gap-x-4 gap-y-1">
               {[
                 ["Lokasi", selected.location],
-                ["Tipe", selected.type === "water" ? "Air Tanah" : "GNSS"],
+                ["Tipe", getWellTypeLabel(selected.wellType)],
                 [
                   "Tren Muka Air",
                   getWaterLevelTrendLabel(selected.waterLevelTrend),

@@ -334,9 +334,9 @@ export default function AdminTopbar() {
 
         {/* Right */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button className="hidden md:flex items-center gap-1.5 text-[10px] font-mono text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-lg hover:bg-amber-100 transition-colors">
+          {/* <button className="hidden md:flex items-center gap-1.5 text-[10px] font-mono text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-lg hover:bg-amber-100 transition-colors">
             <Download size={11} /> Ekspor Laporan
-          </button>
+          </button> */}
 
           <button
             onClick={() => {
@@ -357,7 +357,7 @@ export default function AdminTopbar() {
           </div>
 
           {/* Alert bell */}
-          <div className="relative">
+          {/* <div className="relative">
             <button
               onClick={() => setAlerts((p) => !p)}
               className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center hover:bg-slate-100 transition-colors relative"
@@ -425,7 +425,7 @@ export default function AdminTopbar() {
                 </div>
               </div>
             )}
-          </div>
+          </div> */}
 
           {/* Avatar - Click to edit profile */}
           <button

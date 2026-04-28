@@ -1,22 +1,26 @@
-import { useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
-import { Card, SectionHeader, SeverityBadge } from '../../../components/ui';
-import { MOCK_ALERTS } from '../../../constants/mockData';
-import { cn, getSeverityColor } from '../../../lib/utils';
-import type { Alert } from '../../../types';
+import { useState } from "react";
+import { AlertTriangle } from "lucide-react";
+import { Card, SectionHeader, SeverityBadge } from "../../../components/ui";
+import { MOCK_ALERTS } from "../../../constants/mockData";
+import { cn, getSeverityColor } from "../../../lib/utils";
+import type { Alert } from "../../../types";
 
 function AlertItem({ alert }: { alert: Alert }) {
   const borderColor =
-    alert.severity === 'critical' ? 'border-l-red-400'
-    : alert.severity === 'warning' ? 'border-l-amber-400'
-    : 'border-l-blue-300';
+    alert.severity === "critical"
+      ? "border-l-red-400"
+      : alert.severity === "warning"
+        ? "border-l-amber-400"
+        : "border-l-blue-300";
 
   return (
-    <div className={cn(
-      'px-3 py-2.5 border-l-[3px] hover:bg-slate-50/60 transition-colors cursor-pointer',
-      borderColor,
-      !alert.isRead && 'bg-slate-50/40',
-    )}>
+    <div
+      className={cn(
+        "px-3 py-2.5 border-l-[3px] hover:bg-slate-50/60 transition-colors cursor-pointer",
+        borderColor,
+        !alert.isRead && "bg-slate-50/40",
+      )}
+    >
       <div className="flex items-center gap-2 mb-1">
         <SeverityBadge severity={alert.severity} />
         {!alert.isRead && (
@@ -26,28 +30,31 @@ function AlertItem({ alert }: { alert: Alert }) {
       <p className="text-[11px] font-medium text-slate-700 leading-snug">
         {alert.title}
       </p>
-      <p className="text-[10px] text-slate-400 font-mono mt-0.5">{alert.timestamp}</p>
+      <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+        {alert.timestamp}
+      </p>
       {(alert.companyName || alert.sensorCode) && (
         <p className="text-[10px] text-slate-400 mt-0.5 truncate">
-          {alert.sensorCode ? `${alert.sensorCode} · ` : ''}{alert.companyName ?? ''}
+          {alert.sensorCode ? `${alert.sensorCode} · ` : ""}
+          {alert.companyName ?? ""}
         </p>
       )}
     </div>
   );
 }
 
-const FILTERS = ['Semua', 'Kritis', 'Waspada', 'Info'] as const;
+const FILTERS = ["Semua", "Kritis", "Waspada", "Info"] as const;
 type Filter = (typeof FILTERS)[number];
 
 export default function AlertPanel() {
-  const [filter, setFilter] = useState<Filter>('Semua');
+  const [filter, setFilter] = useState<Filter>("Semua");
   const unread = MOCK_ALERTS.filter((a) => !a.isRead).length;
 
   const filtered = MOCK_ALERTS.filter((a) => {
-    if (filter === 'Semua')   return true;
-    if (filter === 'Kritis')  return a.severity === 'critical';
-    if (filter === 'Waspada') return a.severity === 'warning';
-    if (filter === 'Info')    return a.severity === 'info';
+    if (filter === "Semua") return true;
+    if (filter === "Kritis") return a.severity === "critical";
+    if (filter === "Waspada") return a.severity === "warning";
+    if (filter === "Info") return a.severity === "info";
     return true;
   });
 
@@ -67,10 +74,10 @@ export default function AlertPanel() {
             key={f}
             onClick={() => setFilter(f)}
             className={cn(
-              'text-[9px] font-mono px-2 py-0.5 rounded-full transition-all',
+              "text-[9px] font-mono px-2 py-0.5 rounded-full transition-all",
               filter === f
-                ? 'bg-red-50 text-red-600 border border-red-200'
-                : 'text-slate-400 hover:text-slate-600',
+                ? "bg-red-50 text-red-600 border border-red-200"
+                : "text-slate-400 hover:text-slate-600",
             )}
           >
             {f}

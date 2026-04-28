@@ -291,4 +291,13 @@ export const sensorService = {
     }>(`/wells/${id}/flag`, { note });
     return mapWellToSensor(response.data);
   },
+
+  // Public endpoint — no auth required, for landing page map
+  getPublic: async (): Promise<Sensor[]> => {
+    const { data: response } = await api.get<{
+      success: boolean;
+      data: BackendWell[];
+    }>("/public/wells");
+    return response.data.map(mapWellToSensor);
+  },
 };

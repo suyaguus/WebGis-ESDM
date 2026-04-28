@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Building2,
   MapPin,
@@ -16,6 +16,7 @@ import {
 import { useAuthStore } from "../../../store";
 import { useCompanies, useUpdateCompany } from "../../../hooks/useCompanies";
 import { useBusinesses } from "../../../hooks/useBusinesses";
+import { useSensors } from "../../../hooks";
 import { cn } from "../../../lib/utils";
 import type { CreateCompanyRequest } from "../../../types/api";
 
@@ -202,10 +203,18 @@ export default function AdminPerusahaanCompanyPage() {
   const allCompanies = companiesResponse.data ?? [];
   const companies = allCompanies.filter((c) => c.id === userCompanyId);
 
-  const { data: businessesResponse = { data: [] }, isLoading: loadingBusiness } =
-    useBusinesses();
+  const {
+    data: businessesResponse = { data: [] },
+    isLoading: loadingBusiness,
+  } = useBusinesses();
   const allBusinesses = businessesResponse.data ?? [];
   const businesses = allBusinesses.filter((b) => b.companyId === userCompanyId);
+
+  const { data: sensorsResponse = { data: [] } } = useSensors({
+    companyId: userCompanyId || undefined,
+    wellStatus: "approved",
+  });
+  const wells = sensorsResponse.data ?? [];
 
   const updateCompany = useUpdateCompany();
 
@@ -219,6 +228,16 @@ export default function AdminPerusahaanCompanyPage() {
 
   const company = companies[0] ?? null;
   const isLoading = loadingCompany || loadingBusiness;
+
+  // Calculate average water level from wells
+  const avgWaterLevel = useMemo(() => {
+    const wellsWithLevel = wells.filter((w) => w.staticWaterLevel !== null);
+    if (wellsWithLevel.length === 0) return null;
+    return (
+      wellsWithLevel.reduce((s, w) => s + (w.staticWaterLevel ?? 0), 0) /
+      wellsWithLevel.length
+    );
+  }, [wells]);
 
   const handleUpdateCompany = (payload: Partial<CreateCompanyRequest>) => {
     if (!company) return;
@@ -284,7 +303,7 @@ export default function AdminPerusahaanCompanyPage() {
   const stats = [
     {
       label: "Total Sumur",
-      value: company.sensorCount,
+      value: company.wellCount,
       icon: Droplets,
       color: "text-cyan-700",
       bg: "bg-cyan-50",
@@ -416,6 +435,51 @@ export default function AdminPerusahaanCompanyPage() {
           </div>
         </div>
       )}
+
+      {/* Company Overview Card */}
+      <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
+        <p className="text-[12px] font-semibold text-slate-700 mb-4">
+          Ringkasan Data Perusahaan
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            {
+              label: "Sumur",
+              value: String(wells.length),
+              color: "text-cyan-700",
+              bg: "bg-cyan-50",
+              border: "border-cyan-200",
+            },
+            {
+              label: "Unit Usaha",
+              value: String(businesses.length),
+              color: "text-violet-700",
+              bg: "bg-violet-50",
+              border: "border-violet-200",
+            },
+            {
+              label: "Muka Air",
+              value:
+                avgWaterLevel !== null ? `${avgWaterLevel.toFixed(2)} m` : "-",
+              color: "text-blue-700",
+              bg: "bg-blue-50",
+              border: "border-blue-200",
+            },
+          ].map(({ label, value, color, bg, border }) => (
+            <div
+              key={label}
+              className={cn("rounded-xl border px-3 py-3", bg, border)}
+            >
+              <p className={cn("text-[13px] font-bold font-mono", color)}>
+                {value}
+              </p>
+              <p className="text-[9px] text-slate-400 font-mono mt-0.5">
+                {label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Company info card */}
       <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">

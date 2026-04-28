@@ -1,7 +1,10 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { getWaterLevelTrendLabel } from "../../lib/groundwater";
+import {
+  getWaterLevelTrendLabel,
+  getWellTypeLabel,
+} from "../../lib/groundwater";
 import type { Sensor } from "../../types";
 
 interface SensorMapProps {
@@ -12,17 +15,21 @@ interface SensorMapProps {
 }
 
 /* ─────────────────────────────────────────────
-   Color map per type + status
+   Color map per well type + status
    ──────────────────────────────────────────── */
 const MARKER_COLORS: Record<string, string> = {
-  water_online: "#3B82F6",
-  water_alert: "#EF4444",
-  water_maintenance: "#F59E0B",
-  water_offline: "#94A3B8",
-  gnss_online: "#F59E0B",
-  gnss_alert: "#EF4444",
-  gnss_maintenance: "#CBD5E1",
-  gnss_offline: "#94A3B8",
+  sumur_pantau_online: "#3B82F6",
+  sumur_pantau_alert: "#EF4444",
+  sumur_pantau_maintenance: "#F59E0B",
+  sumur_pantau_offline: "#94A3B8",
+  sumur_gali_online: "#8B5CF6",
+  sumur_gali_alert: "#EF4444",
+  sumur_gali_maintenance: "#F59E0B",
+  sumur_gali_offline: "#94A3B8",
+  sumur_bor_online: "#06B6D4",
+  sumur_bor_alert: "#EF4444",
+  sumur_bor_maintenance: "#F59E0B",
+  sumur_bor_offline: "#94A3B8",
 };
 
 const KEYFRAMES = `
@@ -104,7 +111,7 @@ function buildPopup(sensor: Sensor, color: string): string {
         : "#3B82F6";
 
   const rows: [string, string, string][] = [
-    ["Tipe", sensor.type === "water" ? "Air Tanah" : "GNSS", "#475569"],
+    ["Tipe Sumur", getWellTypeLabel(sensor.wellType), "#475569"],
     [
       "Status",
       sensor.status.charAt(0).toUpperCase() + sensor.status.slice(1),
@@ -211,13 +218,13 @@ export default function SensorMap({
         s.lat != null &&
         s.lng != null &&
         !(s.lat === 0 && s.lng === 0) &&
-        s.isActive !== false && // Exclude disabled/inactive sensors
-        s.isVerified !== false, // Exclude unverified sensors
+        s.isActive !== false && // Exclude inactive sensors
+        s.wellStatus === "approved", // Only show approved wells on map
     );
 
     validSensors.forEach((sensor) => {
       const color =
-        MARKER_COLORS[`${sensor.type}_${sensor.status}`] ?? "#94A3B8";
+        MARKER_COLORS[`${sensor.wellType}_${sensor.status}`] ?? "#94A3B8";
       const marker = L.marker([sensor.lat!, sensor.lng!] as [number, number], {
         icon: makeIcon(color, sensor.status),
       })

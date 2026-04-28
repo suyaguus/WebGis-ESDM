@@ -33,11 +33,11 @@ export default function AdminMapSection() {
             count: sensors.filter((s) => s.status === "online").length,
             color: "bg-emerald-50 text-emerald-700 border-emerald-200",
           },
-          {
-            label: "Offline",
-            count: sensors.filter((s) => s.status === "offline").length,
-            color: "bg-red-50 text-red-700 border-red-200",
-          },
+          // {
+          //   label: "Offline",
+          //   count: sensors.filter((s) => s.status === "offline").length,
+          //   color: "bg-red-50 text-red-700 border-red-200",
+          // },
         ].map(({ label, count, color }) => (
           <span
             key={label}
