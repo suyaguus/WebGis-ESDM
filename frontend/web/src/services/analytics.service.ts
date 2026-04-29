@@ -47,7 +47,6 @@ export const analyticsService = {
       return MOCK_COMPANIES.map((c) => ({
         companyId: c.id,
         companyName: c.name,
-        avgSubsidence: c.avgSubsidence,
         quotaUsed: c.quotaUsed,
         quotaTotal: c.quota,
         sensorCount: c.sensorCount,

@@ -1,4 +1,5 @@
 # Dokumen Spesifikasi Sistem
+
 # SIGAT — Sistem Informasi geologi dan Air Tanah
 
 **Versi:** 2.0 (Prototipe Frontend)
@@ -28,24 +29,24 @@
 
 ### 1.1 Deskripsi
 
-SIGAT adalah aplikasi berbasis web untuk memantau penurunan tanah (*land subsidence*) dan muka airtanah di Provinsi Lampung. Sistem ini digunakan oleh instansi ESDM (Energi dan Sumber Daya Mineral) untuk mengawasi penggunaan airtanah oleh perusahaan-perusahaan yang memiliki izin pengeboran sumur.
+SIGAT adalah aplikasi berbasis web untuk memantau muka air tanah dan ketersediaan sumber daya air di Provinsi Lampung. Sistem ini digunakan oleh instansi ESDM (Energi dan Sumber Daya Mineral) untuk mengawasi penggunaan air tanah oleh perusahaan-perusahaan yang memiliki izin pengeboran sumur.
 
 ### 1.2 Tujuan Sistem
 
-- Memantau data sensor penurunan tanah secara real-time dari berbagai titik pengamatan
-- Mengelola kuota pengambilan airtanah per perusahaan
-- Memverifikasi data pengukuran lapangan yang dikirim oleh supervisor
-- Menghasilkan laporan kepatuhan dan analitik tren subsiden
+- Memantau data sensor muka air tanah secara real-time dari berbagai titik pengamatan
+- Mengelola kuota pengambilan air tanah per perusahaan
+- Memverifikasi data pengukuran lapangan yang dikirim oleh surveyor
+- Menghasilkan laporan kepatuhan dan analitik tren muka air tanah
 - Menyediakan peta interaktif sebaran sensor di seluruh Provinsi Lampung
 
 ### 1.3 Pengguna Target
 
-| Peran | Cakupan | Keterangan |
-|-------|---------|------------|
-| Super Admin | Seluruh sistem | Tim IT / pengelola sistem |
-| Admin Perusahaan | Satu perusahaan | Penanggung jawab teknis perusahaan |
-| Kepala Dinas (Kadis) | Lintas perusahaan | Pejabat pengawas instansi (*direncanakan*) |
-| Supervisor | Lapangan | Teknisi pengukur (*tidak ditampilkan di frontend ini*) |
+| Peran                | Cakupan           | Keterangan                                             |
+| -------------------- | ----------------- | ------------------------------------------------------ |
+| Super Admin          | Seluruh sistem    | Tim IT / pengelola sistem                              |
+| Admin Perusahaan     | Satu perusahaan   | Penanggung jawab teknis perusahaan                     |
+| Kepala Dinas (Kadis) | Lintas perusahaan | Pejabat pengawas instansi (_direncanakan_)             |
+| Supervisor           | Lapangan          | Teknisi pengukur (_tidak ditampilkan di frontend ini_) |
 
 ---
 
@@ -53,32 +54,32 @@ SIGAT adalah aplikasi berbasis web untuk memantau penurunan tanah (*land subside
 
 ### 2.1 Stack Utama
 
-| Teknologi | Versi | Fungsi |
-|-----------|-------|--------|
-| React | 18.3.1 | Framework UI |
-| TypeScript | 5.2.2 | Type safety |
-| Vite | 5.3.1 | Build tool & dev server |
-| Tailwind CSS | 3.4.4 | Utility-first styling |
-| React Router DOM | 6.x | Client-side routing |
+| Teknologi        | Versi  | Fungsi                  |
+| ---------------- | ------ | ----------------------- |
+| React            | 18.3.1 | Framework UI            |
+| TypeScript       | 5.2.2  | Type safety             |
+| Vite             | 5.3.1  | Build tool & dev server |
+| Tailwind CSS     | 3.4.4  | Utility-first styling   |
+| React Router DOM | 6.x    | Client-side routing     |
 
 ### 2.2 Dependensi Fitur
 
-| Package | Versi | Fungsi |
-|---------|-------|--------|
-| Zustand | 4.5.2 | State management global |
-| Leaflet | 1.9.4 | Peta interaktif (OpenStreetMap) |
-| Chart.js | 4.4.3 | Visualisasi grafik tren |
-| Lucide React | 0.383.0 | Library ikon (40+ ikon digunakan) |
-| clsx | 2.1.1 | Komposisi class CSS |
-| tailwind-merge | 2.3.0 | Resolusi konflik Tailwind |
+| Package        | Versi   | Fungsi                            |
+| -------------- | ------- | --------------------------------- |
+| Zustand        | 4.5.2   | State management global           |
+| Leaflet        | 1.9.4   | Peta interaktif (OpenStreetMap)   |
+| Chart.js       | 4.4.3   | Visualisasi grafik tren           |
+| Lucide React   | 0.383.0 | Library ikon (40+ ikon digunakan) |
+| clsx           | 2.1.1   | Komposisi class CSS               |
+| tailwind-merge | 2.3.0   | Resolusi konflik Tailwind         |
 
 ### 2.3 Dependensi Development
 
-| Package | Fungsi |
-|---------|--------|
-| ESLint + TypeScript plugin | Linting |
-| PostCSS + Autoprefixer | Transformasi CSS |
-| @vitejs/plugin-react | HMR & JSX transform |
+| Package                    | Fungsi              |
+| -------------------------- | ------------------- |
+| ESLint + TypeScript plugin | Linting             |
+| PostCSS + Autoprefixer     | Transformasi CSS    |
+| @vitejs/plugin-react       | HMR & JSX transform |
 
 ---
 
@@ -128,28 +129,28 @@ Setiap halaman dashboard mengikuti pola komposisi yang konsisten:
 ### 4.1 Definisi Peran
 
 ```typescript
-type Role = 'superadmin' | 'admin' | 'kadis' | 'supervisor';
+type Role = "superadmin" | "admin" | "kadis" | "supervisor";
 ```
 
 ### 4.2 Matriks Hak Akses
 
-| Fitur | Super Admin | Admin Perusahaan | Kadis | Supervisor |
-|-------|:-----------:|:----------------:|:-----:|:----------:|
-| Dashboard Sistem | ✓ | — | — | — |
-| Dashboard Perusahaan | — | ✓ | — | — |
-| Peta Interaktif (semua) | ✓ | — | — | — |
-| Peta Sensor (per perusahaan) | — | ✓ | — | — |
-| Manajemen Sensor | ✓ | Baca | — | — |
-| Manajemen Pengguna | ✓ | — | — | — |
-| Manajemen Perusahaan | ✓ | — | — | — |
-| Role & Akses | ✓ | — | — | — |
-| Verifikasi Data | — | ✓ | — | — |
-| Tim Lapangan | — | ✓ | — | — |
-| Histori Pengukuran | ✓ | ✓ | — | ✓ |
-| Laporan & Ekspor | ✓ | ✓ | ✓ | — |
-| Server & API | ✓ | — | — | — |
-| Audit Log | ✓ | — | — | — |
-| Analitik Tren | ✓ | ✓ | ✓ | — |
+| Fitur                        | Super Admin | Admin Perusahaan | Kadis | Supervisor |
+| ---------------------------- | :---------: | :--------------: | :---: | :--------: |
+| Dashboard Sistem             |      ✓      |        —         |   —   |     —      |
+| Dashboard Perusahaan         |      —      |        ✓         |   —   |     —      |
+| Peta Interaktif (semua)      |      ✓      |        —         |   —   |     —      |
+| Peta Sensor (per perusahaan) |      —      |        ✓         |   —   |     —      |
+| Manajemen Sensor             |      ✓      |       Baca       |   —   |     —      |
+| Manajemen Pengguna           |      ✓      |        —         |   —   |     —      |
+| Manajemen Perusahaan         |      ✓      |        —         |   —   |     —      |
+| Role & Akses                 |      ✓      |        —         |   —   |     —      |
+| Verifikasi Data              |      —      |        ✓         |   —   |     —      |
+| Tim Lapangan                 |      —      |        ✓         |   —   |     —      |
+| Histori Pengukuran           |      ✓      |        ✓         |   —   |     ✓      |
+| Laporan & Ekspor             |      ✓      |        ✓         |   ✓   |     —      |
+| Server & API                 |      ✓      |        —         |   —   |     —      |
+| Audit Log                    |      ✓      |        —         |   —   |     —      |
+| Analitik Tren                |      ✓      |        ✓         |   ✓   |     —      |
 
 ### 4.3 RoleSwitcher (Dev-only)
 
@@ -162,6 +163,7 @@ Komponen `RoleSwitcher` di pojok kanan bawah memungkinkan pergantian peran saat 
 ### 5.1 Super Admin (11 Halaman)
 
 #### Dashboard (`/superadmin/`)
+
 - **5 kartu statistik:** Total sensor, perusahaan aktif, alert kritis, pengguna aktif, uptime
 - **Peta mini:** Sebaran sensor seluruh Lampung
 - **Panel alert:** Antrian 7 alert dengan badge severity
@@ -169,6 +171,7 @@ Komponen `RoleSwitcher` di pojok kanan bawah memungkinkan pergantian peran saat 
 - **Grafik tren:** Subsiden bulanan vs threshold
 
 #### Peta Interaktif (`/superadmin/peta`)
+
 - Peta Leaflet layar penuh
 - Panel filter sidebar (status / tipe sensor / pencarian)
 - Marker animasi: pulse (online), blink (alert), statis (offline/maintenance)
@@ -176,6 +179,7 @@ Komponen `RoleSwitcher` di pojok kanan bawah memungkinkan pergantian peran saat 
 - Filter: `Semua Status`, `Semua Tipe`
 
 #### Semua Sensor (`/superadmin/sensor`)
+
 - Tabel sensor dengan 7 kolom: ID, nama, tipe, perusahaan, status, subsiden, update terakhir
 - Sortir kolom + arah panah
 - Pencarian nama/kode
@@ -183,38 +187,46 @@ Komponen `RoleSwitcher` di pojok kanan bawah memungkinkan pergantian peran saat 
 - Badge indikator: 3 sensor merah (kritis)
 
 #### Analytics (`/superadmin/analytics`)
+
 - Grafik garis multi-series: SW (sumur/water), GNSS, Threshold
 - Filter periode bulanan/tahunan
 - Perbandingan per perusahaan
 - Tombol ekspor (placeholder)
 
 #### Pengguna (`/superadmin/users`)
+
 - Tabel 10 pengguna dengan filter peran & status
 - Kolom: nama, email, peran, perusahaan, status, login terakhir
 - Aksi: tambah pengguna, menu aksi per baris
 - Badge indikator: 12 pengguna amber (pending)
 
 #### Perusahaan (`/superadmin/companies`)
+
 - Tabel perusahaan + sortir
 - Panel detail perusahaan di samping (KPI, sensor, kuota)
 - 5 perusahaan mock: PT Maju Jaya, PT Bumi Raya, PT Tirta Mandiri, PT Sumber Air, PT Karya Makmur
 
 #### Role & Akses (`/superadmin/roles`)
+
 - Grid 4 peran × matriks izin
 - Tampilkan izin: Dashboard, Sensor, Pengguna, Laporan, Audit
 - Toggle izin (UI mock)
 
 #### Laporan (`/superadmin/reports`)
+
 - Halaman stub (placeholder)
 
 #### Konfigurasi (`/superadmin/config`)
+
 - Halaman stub (placeholder)
 
 #### Server & API (`/superadmin/server`)
+
 - 6 kartu metrik infrastruktur: CPU, Memory, Disk, Network, DB, latency
 - Indikator status: ok / warn / crit
 
 #### Audit Log (`/superadmin/audit`)
+
 - 12 entri log dengan ikon tipe aksi
 - Filter: severity, rentang tanggal, pencarian
 - Kolom: waktu, pengguna, aksi, target, IP, severity
@@ -226,6 +238,7 @@ Komponen `RoleSwitcher` di pojok kanan bawah memungkinkan pergantian peran saat 
 > Semua data dibatasi pada **PT Maju Jaya Tbk** (companyId: 'c1')
 
 #### Dashboard (`/adminPerusahaan/`)
+
 - **4 tombol aksi cepat:** Tambah Pengukuran, Laporan Harian, Verifikasi, Ekspor Data
 - **5 kartu statistik:** Total sumur, aktif, maintenance, pengukuran hari ini, kuota terpakai
 - **Bar kuota:** 87% (174k/200k m³) dengan indikator warna
@@ -236,16 +249,19 @@ Komponen `RoleSwitcher` di pojok kanan bawah memungkinkan pergantian peran saat 
 - **Log aktivitas:** 7 aktivitas terbaru
 
 #### Peta Sensor (`/adminPerusahaan/peta`)
+
 - Leaflet map dengan sensor perusahaan saja
 - Filter status & pencarian
 
 #### Daftar Sumur (`/adminPerusahaan/sumur`)
+
 - Tabel sensor dengan sortir & pencarian
 - Modal detail: koordinat, kedalaman, tipe konstruksi, kondisi fisik
 - Aksi: edit, nonaktifkan
 - Badge: 2 sensor merah (kritis)
 
 #### Tim Lapangan (`/adminPerusahaan/tim`)
+
 - 4 kartu supervisor dengan:
   - Dot status: online (hijau) / offline (abu) / measuring (biru berputar)
   - Nomor telepon
@@ -254,6 +270,7 @@ Komponen `RoleSwitcher` di pojok kanan bawah memungkinkan pergantian peran saat 
   - Waktu aktivitas terakhir
 
 #### Verifikasi Data (`/adminPerusahaan/verifikasi`)
+
 - 7 pengukuran dengan status: pending / verified / rejected / draft
 - Baris dapat dikembangkan (expandable) menampilkan:
   - Nama & foto avatar supervisor
@@ -266,11 +283,13 @@ Komponen `RoleSwitcher` di pojok kanan bawah memungkinkan pergantian peran saat 
 - Badge: 3 data amber (pending)
 
 #### Histori Pengukuran (`/adminPerusahaan/histori`)
+
 - Daftar sensor dengan mini grafik tren inline
 - Tampilkan 12 bulan data per sensor
 - Filter rentang tanggal
 
 #### Laporan & Ekspor (`/adminPerusahaan/laporan`)
+
 - 4 tipe laporan: Subsiden, Muka Air, Kuota, Kepatuhan
 - Selector periode (bulanan/tahunan) & format (PDF/XLSX/CSV)
 - Daftar laporan terbaru dengan tombol unduh
@@ -282,10 +301,10 @@ Komponen `RoleSwitcher` di pojok kanan bawah memungkinkan pergantian peran saat 
 ### 6.1 Tipe Inti
 
 ```typescript
-type Role         = 'superadmin' | 'admin' | 'kadis' | 'supervisor';
-type SensorStatus = 'online' | 'offline' | 'alert' | 'maintenance';
-type SensorType   = 'water' | 'gnss';
-type AlertSeverity = 'critical' | 'warning' | 'info';
+type Role = "superadmin" | "admin" | "kadis" | "supervisor";
+type SensorStatus = "online" | "offline" | "alert" | "maintenance";
+type SensorType = "water" | "gnss";
+type AlertSeverity = "critical" | "warning" | "info";
 ```
 
 ### 6.2 Interface Utama
@@ -300,9 +319,7 @@ interface Sensor {
   lat: number;
   lng: number;
   status: SensorStatus;
-  subsidence: number;         // cm/tahun, negatif = turun
-  waterLevel?: number;        // meter (sumur/water saja)
-  verticalValue?: number;     // mm (GNSS saja)
+  waterLevel?: number; // meter (muka air tanah)
   companyId: string;
   lastUpdate: string;
 }
@@ -314,9 +331,8 @@ interface Company {
   region: string;
   sensorCount: number;
   status: CompanyStatus;
-  quota: number;              // m³/tahun (total diizinkan)
-  quotaUsed: number;          // m³/tahun (terpakai)
-  avgSubsidence: number;      // rata-rata subsiden cm/tahun
+  quota: number; // m³/tahun (total diizinkan)
+  quotaUsed: number; // m³/tahun (terpakai)
 }
 
 // Alert & notifikasi
@@ -339,14 +355,13 @@ interface Measurement {
   supervisorName: string;
   supervisorAvatar: string;
   waterLevel: number;
-  subsidence: number;
   verticalValue: number;
-  kondisiFisik: 'baik' | 'rusak_ringan' | 'rusak_berat';
+  kondisiFisik: "baik" | "rusak_ringan" | "rusak_berat";
   catatan: string;
   fotoCount: number;
   submittedAt: string;
   verifiedAt?: string;
-  status: 'pending' | 'verified' | 'rejected' | 'draft';
+  status: "pending" | "verified" | "rejected" | "draft";
   location: string;
 }
 
@@ -357,7 +372,7 @@ interface SupervisorTask {
   supervisorName: string;
   supervisorAvatar: string;
   phone: string;
-  status: 'online' | 'offline' | 'measuring';
+  status: "online" | "offline" | "measuring";
   assignedSensors: string[];
   completedToday: number;
   totalToday: number;
@@ -370,9 +385,9 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: 'super_admin' | 'admin_perusahaan' | 'kepala_instansi' | 'supervisor';
+  role: "super_admin" | "admin_perusahaan" | "kepala_instansi" | "supervisor";
   company: string;
-  status: 'active' | 'inactive' | 'pending';
+  status: "active" | "inactive" | "pending";
   lastLogin: string;
   createdAt: string;
   avatar: string;
@@ -387,43 +402,43 @@ interface AuditLog {
   target: string;
   ip: string;
   timestamp: string;
-  severity: 'info' | 'warning' | 'critical';
+  severity: "info" | "warning" | "critical";
 }
 
 // Data tren grafik
 interface TrendDataPoint {
   label: string;
-  subsidence: number;
-  threshold: number;
+  waterLevel: number; // meter, kedalaman muka air tanah
+  waterLevelTrend?: string; // rising | falling | stable
 }
 ```
 
 ### 6.3 Dataset Mock
 
-| Ekspor | Jumlah | Scope |
-|--------|--------|-------|
-| `MOCK_SENSORS` | 10 | Semua perusahaan |
-| `MOCK_COMPANIES` | 5 | Semua perusahaan |
-| `MOCK_ALERTS` | 7 | Sistem global |
-| `TREND_DATA` | 12 bulan | Tren global |
-| `SUPERADMIN_STATS` | 5 kartu | Dashboard super admin |
-| `MOCK_USERS` | 10 | Semua pengguna |
-| `MOCK_AUDIT_LOGS` | 12 | Audit trail |
-| `SERVER_METRICS` | 6 | Infrastruktur |
-| `ANALYTICS_MONTHLY` | 12 bulan | Per tipe sensor |
-| `COMPANY_SENSORS` | 10 | PT Maju Jaya (c1) |
-| `COMPANY_MEASUREMENTS` | 7 | PT Maju Jaya (c1) |
-| `SUPERVISOR_TASKS` | 4 | PT Maju Jaya (c1) |
-| `COMPANY_ACTIVITY` | 7 | PT Maju Jaya (c1) |
-| `COMPANY_TREND_DATA` | 12 bulan | PT Maju Jaya (c1) |
+| Ekspor                 | Jumlah   | Scope                 |
+| ---------------------- | -------- | --------------------- |
+| `MOCK_SENSORS`         | 10       | Semua perusahaan      |
+| `MOCK_COMPANIES`       | 5        | Semua perusahaan      |
+| `MOCK_ALERTS`          | 7        | Sistem global         |
+| `TREND_DATA`           | 12 bulan | Tren global           |
+| `SUPERADMIN_STATS`     | 5 kartu  | Dashboard super admin |
+| `MOCK_USERS`           | 10       | Semua pengguna        |
+| `MOCK_AUDIT_LOGS`      | 12       | Audit trail           |
+| `SERVER_METRICS`       | 6        | Infrastruktur         |
+| `ANALYTICS_MONTHLY`    | 12 bulan | Per tipe sensor       |
+| `COMPANY_SENSORS`      | 10       | PT Maju Jaya (c1)     |
+| `COMPANY_MEASUREMENTS` | 7        | PT Maju Jaya (c1)     |
+| `SUPERVISOR_TASKS`     | 4        | PT Maju Jaya (c1)     |
+| `COMPANY_ACTIVITY`     | 7        | PT Maju Jaya (c1)     |
+| `COMPANY_TREND_DATA`   | 12 bulan | PT Maju Jaya (c1)     |
 
 ### 6.4 Ambang Batas Subsiden
 
-| Level | Nilai (cm/tahun) | Warna | Status |
-|-------|:----------------:|-------|--------|
-| Kritis | ≤ −4.0 | Merah | Alert |
-| Waspada | −2.5 s/d −4.0 | Amber | Elevated |
-| Normal | > −2.5 | Hijau | Aman |
+| Level   | Nilai (cm/tahun) | Warna | Status   |
+| ------- | :--------------: | ----- | -------- |
+| Kritis  |      ≤ −4.0      | Merah | Alert    |
+| Waspada |  −2.5 s/d −4.0   | Amber | Elevated |
+| Normal  |      > −2.5      | Hijau | Aman     |
 
 ---
 
@@ -433,9 +448,9 @@ interface TrendDataPoint {
 
 ```typescript
 interface AppState {
-  role: Role;                        // Peran aktif pengguna
-  activePage: string;                // Key halaman aktif
-  sidebarCollapsed: boolean;         // Status sidebar
+  role: Role; // Peran aktif pengguna
+  activePage: string; // Key halaman aktif
+  sidebarCollapsed: boolean; // Status sidebar
 
   setRole: (role: Role) => void;
   setActivePage: (page: string) => void;
@@ -459,31 +474,32 @@ Setiap halaman mengelola state-nya sendiri menggunakan React hooks:
 
 ### 8.1 Komponen Primitif (`src/components/ui/index.tsx`)
 
-| Komponen | Props Utama | Keterangan |
-|----------|-------------|------------|
-| `Badge` | `variant: critical\|warning\|info\|success` | Label status berwarna |
-| `SeverityBadge` | `severity: AlertSeverity` | Badge khusus severity alert |
-| `StatusPill` | `status: SensorStatus` | Pill status sensor (online/offline/dll) |
-| `StatCard` | `label, value, sub, color, trend` | Kartu metrik dengan aksen warna |
-| `Panel` | `title, icon, children` | Container dengan header |
-| `SectionHeader` | `title, subtitle, icon` | Judul seksi halaman |
-| `QuotaBar` | `used, total, label` | Bar progress kuota |
-| `Divider` | — | Garis pemisah horizontal |
-| `NavBadge` | `count, color` | Badge hitungan di sidebar |
-| `LiveDot` | — | Dot hijau berdenyut (indikator live) |
+| Komponen        | Props Utama                                 | Keterangan                              |
+| --------------- | ------------------------------------------- | --------------------------------------- |
+| `Badge`         | `variant: critical\|warning\|info\|success` | Label status berwarna                   |
+| `SeverityBadge` | `severity: AlertSeverity`                   | Badge khusus severity alert             |
+| `StatusPill`    | `status: SensorStatus`                      | Pill status sensor (online/offline/dll) |
+| `StatCard`      | `label, value, sub, color, trend`           | Kartu metrik dengan aksen warna         |
+| `Panel`         | `title, icon, children`                     | Container dengan header                 |
+| `SectionHeader` | `title, subtitle, icon`                     | Judul seksi halaman                     |
+| `QuotaBar`      | `used, total, label`                        | Bar progress kuota                      |
+| `Divider`       | —                                           | Garis pemisah horizontal                |
+| `NavBadge`      | `count, color`                              | Badge hitungan di sidebar               |
+| `LiveDot`       | —                                           | Dot hijau berdenyut (indikator live)    |
 
 ### 8.2 Komponen Domain
 
-| Komponen | Path | Keterangan |
-|----------|------|------------|
-| `SensorMap` | `components/map/SensorMap.tsx` | Leaflet map dengan marker animasi, popup HTML, auto-fit bounds |
-| `TrendChart` | `components/charts/TrendChart.tsx` | Chart.js line chart multi-series dengan threshold |
+| Komponen     | Path                               | Keterangan                                                     |
+| ------------ | ---------------------------------- | -------------------------------------------------------------- |
+| `SensorMap`  | `components/map/SensorMap.tsx`     | Leaflet map dengan marker animasi, popup HTML, auto-fit bounds |
+| `TrendChart` | `components/charts/TrendChart.tsx` | Chart.js line chart multi-series dengan threshold              |
 
 ### 8.3 Komponen Section
 
 Setiap dashboard memiliki folder `sections/` berisi komponen komposisi:
 
 **Super Admin sections:**
+
 - `StatsRow` — Baris 5 kartu statistik
 - `MapSection` — Container peta + toggle layer
 - `AlertPanel` — Panel antrian alert
@@ -491,6 +507,7 @@ Setiap dashboard memiliki folder `sections/` berisi komponen komposisi:
 - `TrendSection` — Container grafik tren
 
 **Admin Perusahaan sections:**
+
 - `StatsRow` — Baris 5 kartu statistik (scoped company)
 - `MapSection` — Peta sensor perusahaan
 - `AlertPanel` — Alert perusahaan
@@ -500,20 +517,22 @@ Setiap dashboard memiliki folder `sections/` berisi komponen komposisi:
 
 ### 8.4 Layout Shells
 
-| Shell | Path | Komponen |
-|-------|------|----------|
-| Super Admin | `layout/superAdmin/AppShell.tsx` | `Sidebar` (cyan) + `Topbar` + `<Outlet>` |
+| Shell            | Path                                  | Komponen                                  |
+| ---------------- | ------------------------------------- | ----------------------------------------- |
+| Super Admin      | `layout/superAdmin/AppShell.tsx`      | `Sidebar` (cyan) + `Topbar` + `<Outlet>`  |
 | Admin Perusahaan | `layout/adminPerusahaan/AppShell.tsx` | `Sidebar` (amber) + `Topbar` + `<Outlet>` |
 
 **Navigasi Super Admin Sidebar:**
-- Seksi *Ikhtisar:* Dashboard, Peta Interaktif, Semua Sensor
-- Seksi *Manajemen:* Analitik, Pengguna, Perusahaan, Role & Akses
-- Seksi *Sistem:* Laporan, Konfigurasi, Server & API, Audit Log
+
+- Seksi _Ikhtisar:_ Dashboard, Peta Interaktif, Semua Sensor
+- Seksi _Manajemen:_ Analitik, Pengguna, Perusahaan, Role & Akses
+- Seksi _Sistem:_ Laporan, Konfigurasi, Server & API, Audit Log
 
 **Navigasi Admin Perusahaan Sidebar:**
-- Seksi *Ikhtisar:* Dashboard, Peta Sensor
-- Seksi *Operasional:* Daftar Sumur, Tim Lapangan, Verifikasi Data, Histori
-- Seksi *Laporan:* Laporan & Ekspor
+
+- Seksi _Ikhtisar:_ Dashboard, Peta Sensor
+- Seksi _Operasional:_ Daftar Sumur, Tim Lapangan, Verifikasi Data, Histori
+- Seksi _Laporan:_ Laporan & Ekspor
 - Footer: Bar kuota + RoleSwitcher
 
 ---
@@ -573,12 +592,12 @@ rounded-full: 9999px — pill & badge
 
 ### 9.4 Animasi
 
-| Nama | Deskripsi | Durasi |
-|------|-----------|--------|
-| `pulse-dot` | Opacity pulse untuk indikator live | 2s infinite |
+| Nama          | Deskripsi                                    | Durasi        |
+| ------------- | -------------------------------------------- | ------------- |
+| `pulse-dot`   | Opacity pulse untuk indikator live           | 2s infinite   |
 | `blink-alert` | Blink dengan ring shadow untuk sensor kritis | 1.5s infinite |
-| `fade-in` | Opacity dari 0 ke 1 (masuk konten) | 0.2s |
-| `slide-up` | Translate Y + fade (masuk modal) | 0.2s |
+| `fade-in`     | Opacity dari 0 ke 1 (masuk konten)           | 0.2s          |
+| `slide-up`    | Translate Y + fade (masuk modal)             | 0.2s          |
 
 ### 9.5 Class CSS Custom (`@layer components`)
 
@@ -593,6 +612,7 @@ Defined di `src/index.css`:
 ### 9.6 Desain Token Tailwind
 
 Dikonfigurasi di `tailwind.config.js` — extends theme dengan:
+
 - `colors.brand.*` — cyan primary palette
 - `colors.surface.*` — background surfaces
 - `colors.status.*` — semantic status colors
@@ -722,23 +742,23 @@ Gunakan `@/` untuk semua import internal (contoh: `import { Badge } from '@/comp
 
 ### 12.1 Prioritas Tinggi
 
-| Item | Deskripsi |
-|------|-----------|
-| Autentikasi | Tambah login flow; ganti hardcoded role dengan JWT |
-| API Integration | Ganti semua `MOCK_*` dengan panggilan REST API / WebSocket |
-| Real-time Update | WebSocket atau polling untuk data sensor live |
+| Item             | Deskripsi                                                  |
+| ---------------- | ---------------------------------------------------------- |
+| Autentikasi      | Tambah login flow; ganti hardcoded role dengan JWT         |
+| API Integration  | Ganti semua `MOCK_*` dengan panggilan REST API / WebSocket |
+| Real-time Update | WebSocket atau polling untuk data sensor live              |
 
 ### 12.2 Fitur Belum Diimplementasi
 
-| Item | Status | Catatan |
-|------|--------|---------|
-| Peran Kadis | Direncanakan | Route & halaman belum dibuat |
-| Ekspor Laporan | Placeholder | Perlu integrasi library PDF/XLSX |
-| Upload Foto | Placeholder | Perlu file upload di verifikasi data |
-| Notifikasi Email | Belum ada | Diperlukan untuk alert kritis |
-| Dark Mode | Siap | Tailwind config sudah mendukung |
-| Halaman Laporan (Super Admin) | Stub | Perlu diimplementasi |
-| Halaman Konfigurasi (Super Admin) | Stub | Perlu diimplementasi |
+| Item                              | Status       | Catatan                              |
+| --------------------------------- | ------------ | ------------------------------------ |
+| Peran Kadis                       | Direncanakan | Route & halaman belum dibuat         |
+| Ekspor Laporan                    | Placeholder  | Perlu integrasi library PDF/XLSX     |
+| Upload Foto                       | Placeholder  | Perlu file upload di verifikasi data |
+| Notifikasi Email                  | Belum ada    | Diperlukan untuk alert kritis        |
+| Dark Mode                         | Siap         | Tailwind config sudah mendukung      |
+| Halaman Laporan (Super Admin)     | Stub         | Perlu diimplementasi                 |
+| Halaman Konfigurasi (Super Admin) | Stub         | Perlu diimplementasi                 |
 
 ### 12.3 Catatan Production
 
@@ -752,5 +772,5 @@ Sebelum deploy ke production, lakukan:
 
 ---
 
-*Dokumen ini dihasilkan dari eksplorasi kodebase pada 17 April 2026.*
-*Untuk pertanyaan teknis, hubungi: yudhahero02@gmail.com*
+_Dokumen ini dihasilkan dari eksplorasi kodebase pada 17 April 2026._
+_Untuk pertanyaan teknis, hubungi: yudhahero02@gmail.com_

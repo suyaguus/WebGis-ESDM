@@ -113,7 +113,9 @@ function MonthlyTrendChart({
           avg,
           count: cWells.length,
           color,
-          data: months.map(({ key }) => (key === currentMonthKey ? avg : null)),
+          data: months.map(({ key }) =>
+            key === currentMonthKey && avg !== null ? avg * 100 : null,
+          ),
         };
       })
       .filter((d) => d.avg !== null);
@@ -170,7 +172,7 @@ function MonthlyTrendChart({
               label: (ctx) => {
                 const d = companyDatasets[ctx.datasetIndex];
                 if (ctx.parsed.y === null || !d) return " Tidak ada data";
-                return ` ${d.company.name}: ${Number(ctx.parsed.y).toFixed(2)} m (${d.count} sumur)`;
+                return ` ${d.company.name}: ${Number(ctx.parsed.y).toFixed(0)} cm (${d.count} sumur)`;
               },
             },
           },
@@ -186,12 +188,12 @@ function MonthlyTrendChart({
           },
           y: {
             min: 0,
-            max: 10,
+            max: 100,
             ticks: {
               color: "#94A3B8",
               font: { size: 9, family: "'IBM Plex Mono'" },
-              callback: (v) => `${Number(v).toFixed(1)} m`,
-              stepSize: 1,
+              callback: (v) => `${Number(v).toFixed(0)} cm`,
+              stepSize: 10,
             },
             grid: { color: "#F1F5F9" },
             border: { display: false },

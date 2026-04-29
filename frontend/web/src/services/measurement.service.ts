@@ -32,7 +32,6 @@ function mapReportToMeasurement(r: BackendReport): Measurement {
     surveyorName: r.user.name,
     surveyorAvatar: r.user.name.slice(0, 2).toUpperCase(),
     waterLevel: r.waterDepth,
-    subsidence: 0,
     verticalValue: 0,
     kondisiFisik: "baik",
     catatan: r.description ?? "",

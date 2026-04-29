@@ -59,7 +59,6 @@ export interface Company {
   status: CompanyStatus;
   quota: number;
   quotaUsed: number;
-  avgSubsidence: number;
   businesses?: { id: string; name: string; address: string | null }[];
 }
 
@@ -85,7 +84,9 @@ export interface StatCard {
 
 export interface TrendDataPoint {
   label: string;
-  subsidence: number;
+  waterLevel: number;
+  waterLevelTrend?: "rising" | "falling" | "stable" | "unknown";
+}
   threshold: number;
 }
 
