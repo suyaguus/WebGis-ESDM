@@ -50,14 +50,6 @@ export default function StatsRow() {
       trendValue: "",
       color: "green",
     },
-    {
-      label: "Rata-rata Subsidence",
-      value: "—",
-      sub: "cm/tahun avg regional",
-      trend: "down",
-      trendValue: "",
-      color: "purple",
-    },
   ] as const;
 
   return (

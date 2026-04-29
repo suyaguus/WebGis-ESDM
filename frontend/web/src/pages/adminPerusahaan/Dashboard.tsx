@@ -103,14 +103,17 @@ export default function AdminDashboard() {
       {/* ── Stats row ── */}
       <AdminStatsRow />
 
-      {/* ── Map full-width ── */}
-      <div className="grid grid-cols-1 gap-4">
+      {/* ── Map + Alert panel ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
         <AdminMapSection />
+        {/* <AdminAlertPanel /> */}
       </div>
 
-      {/* ── Trend Chart full-width ── */}
-      <div className="grid grid-cols-1 gap-4">
+      {/* ── Sensor list + Trend + Activity ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1fr_1fr_280px] gap-4">
+        {/* <AdminSensorList /> */}
         <AdminTrendSection />
+        {/* <AdminActivityLog /> */}
       </div>
 
       {/* ── Quota bar full-width ── */}

@@ -147,7 +147,6 @@ export const MOCK_COMPANIES: Company[] = [
     status: "online",
     quota: 200000,
     quotaUsed: 174000,
-    avgSubsidence: -2.71,
   },
   {
     id: "c2",
@@ -157,7 +156,6 @@ export const MOCK_COMPANIES: Company[] = [
     status: "offline",
     quota: 150000,
     quotaUsed: 154500,
-    avgSubsidence: -3.2,
   },
   {
     id: "c3",
@@ -167,7 +165,6 @@ export const MOCK_COMPANIES: Company[] = [
     status: "online",
     quota: 180000,
     quotaUsed: 109800,
-    avgSubsidence: -1.85,
   },
   {
     id: "c4",
@@ -177,7 +174,6 @@ export const MOCK_COMPANIES: Company[] = [
     status: "maintenance",
     quota: 120000,
     quotaUsed: 114000,
-    avgSubsidence: -2.15,
   },
   {
     id: "c5",
@@ -187,7 +183,6 @@ export const MOCK_COMPANIES: Company[] = [
     status: "online",
     quota: 100000,
     quotaUsed: 48000,
-    avgSubsidence: -1.42,
   },
 ];
 
@@ -195,9 +190,10 @@ export const MOCK_ALERTS: Alert[] = [
   {
     id: "a1",
     severity: "critical",
-    title: "Subsidence melebihi threshold",
-    description: "Sensor GN-042 mencatat -4.82 cm/thn · PT Maju Jaya",
-    sensorCode: "GN-042",
+    title: "Muka air tanah menurun signifikan",
+    description:
+      "Sensor AT-042 mencatat -38.2m dengan tren menurun · PT Maju Jaya",
+    sensorCode: "AT-042",
     companyName: "PT Maju Jaya",
     timestamp: "08:14 WIB",
     isRead: false,
@@ -260,18 +256,18 @@ export const MOCK_ALERTS: Alert[] = [
 ];
 
 export const TREND_DATA: TrendDataPoint[] = [
-  { label: "Apr", subsidence: -1.82, threshold: -4.0 },
-  { label: "Mei", subsidence: -1.95, threshold: -4.0 },
-  { label: "Jun", subsidence: -2.1, threshold: -4.0 },
-  { label: "Jul", subsidence: -2.18, threshold: -4.0 },
-  { label: "Agu", subsidence: -2.25, threshold: -4.0 },
-  { label: "Sep", subsidence: -2.31, threshold: -4.0 },
-  { label: "Okt", subsidence: -2.28, threshold: -4.0 },
-  { label: "Nov", subsidence: -2.4, threshold: -4.0 },
-  { label: "Des", subsidence: -2.35, threshold: -4.0 },
-  { label: "Jan", subsidence: -2.5, threshold: -4.0 },
-  { label: "Feb", subsidence: -2.44, threshold: -4.0 },
-  { label: "Mar", subsidence: -2.55, threshold: -4.0 },
+  { label: "Apr", waterLevel: -32.1, waterLevelTrend: "falling" },
+  { label: "Mei", waterLevel: -33.4, waterLevelTrend: "falling" },
+  { label: "Jun", waterLevel: -34.0, waterLevelTrend: "falling" },
+  { label: "Jul", waterLevel: -34.8, waterLevelTrend: "falling" },
+  { label: "Agu", waterLevel: -34.2, waterLevelTrend: "stable" },
+  { label: "Sep", waterLevel: -35.0, waterLevelTrend: "falling" },
+  { label: "Okt", waterLevel: -35.5, waterLevelTrend: "falling" },
+  { label: "Nov", waterLevel: -36.4, waterLevelTrend: "falling" },
+  { label: "Des", waterLevel: -36.0, waterLevelTrend: "falling" },
+  { label: "Jan", waterLevel: -37.0, waterLevelTrend: "falling" },
+  { label: "Feb", waterLevel: -36.8, waterLevelTrend: "stable" },
+  { label: "Mar", waterLevel: -38.2, waterLevelTrend: "falling" },
 ];
 
 export const SUPERADMIN_STATS = [
@@ -305,13 +301,6 @@ export const SUPERADMIN_STATS = [
     sub: "4 role aktif",
     trend: "neutral",
     color: "green",
-  },
-  {
-    label: "Rata-rata Subsidence",
-    value: "-2.34",
-    sub: "cm/tahun avg regional",
-    trend: "down",
-    color: "purple",
   },
 ] as const;
 
@@ -576,7 +565,7 @@ export const MOCK_AUDIT_LOGS: AuditLog[] = [
     userId: "u1",
     userName: "Ahmad Fauzi",
     action: "CONFIG_CHANGE",
-    target: "Threshold Subsidence",
+    target: "Threshold Muka Air Tanah",
     ip: "103.44.12.5",
     timestamp: "05:50:00 WIB",
     severity: "critical",
@@ -593,18 +582,18 @@ export const SERVER_METRICS: ServerMetric[] = [
 ];
 
 export const ANALYTICS_MONTHLY = [
-  { month: "Apr", sw: -1.9, gnss: -2.1, threshold: -4.0 },
-  { month: "Mei", sw: -2.0, gnss: -2.2, threshold: -4.0 },
-  { month: "Jun", sw: -2.1, gnss: -2.3, threshold: -4.0 },
-  { month: "Jul", sw: -2.2, gnss: -2.4, threshold: -4.0 },
-  { month: "Agu", sw: -2.3, gnss: -2.5, threshold: -4.0 },
-  { month: "Sep", sw: -2.2, gnss: -2.4, threshold: -4.0 },
-  { month: "Okt", sw: -2.3, gnss: -2.5, threshold: -4.0 },
-  { month: "Nov", sw: -2.4, gnss: -2.6, threshold: -4.0 },
-  { month: "Des", sw: -2.3, gnss: -2.5, threshold: -4.0 },
-  { month: "Jan", sw: -2.5, gnss: -2.7, threshold: -4.0 },
-  { month: "Feb", sw: -2.4, gnss: -2.6, threshold: -4.0 },
-  { month: "Mar", sw: -2.6, gnss: -2.8, threshold: -4.0 },
+  { month: "Apr", waterLevel: -32.1, waterLevelTrend: "falling" },
+  { month: "Mei", waterLevel: -33.4, waterLevelTrend: "falling" },
+  { month: "Jun", waterLevel: -34.0, waterLevelTrend: "falling" },
+  { month: "Jul", waterLevel: -34.8, waterLevelTrend: "falling" },
+  { month: "Agu", waterLevel: -34.2, waterLevelTrend: "stable" },
+  { month: "Sep", waterLevel: -35.0, waterLevelTrend: "falling" },
+  { month: "Okt", waterLevel: -35.5, waterLevelTrend: "falling" },
+  { month: "Nov", waterLevel: -36.4, waterLevelTrend: "falling" },
+  { month: "Des", waterLevel: -36.0, waterLevelTrend: "falling" },
+  { month: "Jan", waterLevel: -37.0, waterLevelTrend: "falling" },
+  { month: "Feb", waterLevel: -36.8, waterLevelTrend: "stable" },
+  { month: "Mar", waterLevel: -38.2, waterLevelTrend: "falling" },
 ];
 
 /* ══════════════════════════════════════════════════════════
@@ -618,8 +607,6 @@ export interface Measurement {
   surveyorName: string;
   surveyorAvatar: string;
   waterLevel: number;
-  subsidence: number;
-  verticalValue: number;
   kondisiFisik: "baik" | "rusak_ringan" | "rusak_berat";
   catatan: string;
   fotoCount: number;
@@ -794,11 +781,8 @@ export const COMPANY_MEASUREMENTS: Measurement[] = [
     surveyorName: "Eka Prasetya",
     surveyorAvatar: "EP",
     waterLevel: -38.2,
-    subsidence: -4.82,
-    verticalValue: 18.431,
     kondisiFisik: "baik",
-    catatan:
-      "Sensor berfungsi normal, nilai subsidence tinggi perlu monitoring ketat",
+    catatan: "Sensor berfungsi normal, muka air tanah dalam kondisi normal",
     fotoCount: 4,
     submittedAt: "08:14 WIB",
     status: "pending",
@@ -811,10 +795,8 @@ export const COMPANY_MEASUREMENTS: Measurement[] = [
     surveyorName: "Rudi Hermawan",
     surveyorAvatar: "RH",
     waterLevel: 0,
-    subsidence: -4.1,
-    verticalValue: 22.14,
     kondisiFisik: "baik",
-    catatan: "GNSS signal stabil, data konsisten",
+    catatan: "GNSS signal stabil, data koordinat konsisten",
     fotoCount: 3,
     submittedAt: "08:20 WIB",
     status: "verified",
@@ -828,8 +810,6 @@ export const COMPANY_MEASUREMENTS: Measurement[] = [
     surveyorName: "Sinta Wulandari",
     surveyorAvatar: "SW",
     waterLevel: -28.4,
-    subsidence: -2.18,
-    verticalValue: 14.8,
     kondisiFisik: "baik",
     catatan: "Normal, tidak ada anomali",
     fotoCount: 4,
@@ -845,8 +825,6 @@ export const COMPANY_MEASUREMENTS: Measurement[] = [
     surveyorName: "Eka Prasetya",
     surveyorAvatar: "EP",
     waterLevel: -25.0,
-    subsidence: -1.94,
-    verticalValue: 12.1,
     kondisiFisik: "rusak_ringan",
     catatan:
       "Ada sedikit karat pada casing, perlu pengecekan lanjut bulan depan",
@@ -862,8 +840,6 @@ export const COMPANY_MEASUREMENTS: Measurement[] = [
     surveyorName: "Rudi Hermawan",
     surveyorAvatar: "RH",
     waterLevel: -31.6,
-    subsidence: -2.55,
-    verticalValue: 16.22,
     kondisiFisik: "baik",
     catatan: "OK",
     fotoCount: 4,
@@ -879,8 +855,6 @@ export const COMPANY_MEASUREMENTS: Measurement[] = [
     surveyorName: "Sinta Wulandari",
     surveyorAvatar: "SW",
     waterLevel: -22.8,
-    subsidence: -1.25,
-    verticalValue: 10.34,
     kondisiFisik: "baik",
     catatan: "Hasil pengukuran normal",
     fotoCount: 4,
@@ -895,8 +869,6 @@ export const COMPANY_MEASUREMENTS: Measurement[] = [
     surveyorName: "Eka Prasetya",
     surveyorAvatar: "EP",
     waterLevel: 0,
-    subsidence: -2.01,
-    verticalValue: 13.56,
     kondisiFisik: "baik",
     catatan: "GNSS stabil",
     fotoCount: 3,
@@ -966,7 +938,7 @@ export const COMPANY_ACTIVITY: ActivityItem[] = [
     id: "ac1",
     type: "alert",
     title: "Alert kritis terdeteksi",
-    desc: "SW-007 subsidence -4.82 cm/thn melebihi threshold",
+    desc: "SW-007 muka air tanah menurun signifikan melebihi threshold",
     time: "08:14 WIB",
     actor: "Sistem",
   },
@@ -1006,7 +978,7 @@ export const COMPANY_ACTIVITY: ActivityItem[] = [
     id: "ac6",
     type: "report",
     title: "Laporan Q1 digenerate",
-    desc: "Laporan subsidence Q1 2026 tersedia untuk diunduh",
+    desc: "Laporan muka air tanah Q1 2026 tersedia untuk diunduh",
     time: "07:00 WIB",
     actor: "Budi Santoso",
   },
@@ -1021,18 +993,18 @@ export const COMPANY_ACTIVITY: ActivityItem[] = [
 ];
 
 export const COMPANY_TREND_DATA = [
-  { label: "Apr", subsidence: -2.41, waterLevel: -32.1, threshold: -4.0 },
-  { label: "Mei", subsidence: -2.52, waterLevel: -33.4, threshold: -4.0 },
-  { label: "Jun", subsidence: -2.55, waterLevel: -34.0, threshold: -4.0 },
-  { label: "Jul", subsidence: -2.6, waterLevel: -34.8, threshold: -4.0 },
-  { label: "Agu", subsidence: -2.58, waterLevel: -34.2, threshold: -4.0 },
-  { label: "Sep", subsidence: -2.63, waterLevel: -35.0, threshold: -4.0 },
-  { label: "Okt", subsidence: -2.65, waterLevel: -35.5, threshold: -4.0 },
-  { label: "Nov", subsidence: -2.71, waterLevel: -36.4, threshold: -4.0 },
-  { label: "Des", subsidence: -2.68, waterLevel: -36.0, threshold: -4.0 },
-  { label: "Jan", subsidence: -2.75, waterLevel: -37.0, threshold: -4.0 },
-  { label: "Feb", subsidence: -2.72, waterLevel: -36.8, threshold: -4.0 },
-  { label: "Mar", subsidence: -2.71, waterLevel: -38.2, threshold: -4.0 },
+  { label: "Apr", waterLevel: -32.1 },
+  { label: "Mei", waterLevel: -33.4 },
+  { label: "Jun", waterLevel: -34.0 },
+  { label: "Jul", waterLevel: -34.8 },
+  { label: "Agu", waterLevel: -34.2 },
+  { label: "Sep", waterLevel: -35.0 },
+  { label: "Okt", waterLevel: -35.5 },
+  { label: "Nov", waterLevel: -36.4 },
+  { label: "Des", waterLevel: -36.0 },
+  { label: "Jan", waterLevel: -37.0 },
+  { label: "Feb", waterLevel: -36.8 },
+  { label: "Mar", waterLevel: -38.2 },
 ];
 
 export const ADMIN_COMPANY = MOCK_COMPANIES[0]; // PT Maju Jaya Tbk
@@ -1066,12 +1038,6 @@ export const KADIS_STATS = [
     sub: "PT Bumi Raya 103%",
     color: "amber",
   },
-  {
-    label: "Subsidence Regional",
-    value: "-2.27",
-    sub: "cm/tahun rata-rata",
-    color: "purple",
-  },
 ] as const;
 
 export const KADIS_RECENT_REPORTS = [
@@ -1095,8 +1061,8 @@ export const KADIS_RECENT_REPORTS = [
   },
   {
     id: "kr3",
-    name: "Laporan Subsidence Regional Q4 2025",
-    type: "Subsidence",
+    name: "Laporan Muka Air Tanah Regional Q4 2025",
+    type: "Muka Air",
     date: "20 Jan 2026",
     size: "4.2 MB",
     format: "PDF",

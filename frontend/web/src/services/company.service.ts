@@ -18,17 +18,14 @@ const mockDelay = () => new Promise((r) => setTimeout(r, 300));
 function mapCompany(c: BackendCompany): Company {
   const wells = c.wells ?? [];
 
-  // Calculate average subsidence (legacy)
-  const wellsWithSubsidence = wells.filter((w) => w.staticWaterLevel !== null);
-  const avgSubsidence = 0; // Deprecated, but kept for backward compatibility
-
   // Calculate average water level
+  const wellsWithWaterLevel = wells.filter((w) => w.staticWaterLevel !== null);
   const avgWaterLevel =
-    wellsWithSubsidence.length > 0
-      ? wellsWithSubsidence.reduce(
+    wellsWithWaterLevel.length > 0
+      ? wellsWithWaterLevel.reduce(
           (sum, w) => sum + (w.staticWaterLevel ?? 0),
           0,
-        ) / wellsWithSubsidence.length
+        ) / wellsWithWaterLevel.length
       : null;
 
   // Count well types
@@ -57,7 +54,6 @@ function mapCompany(c: BackendCompany): Company {
     status: c.isActive ? "online" : "offline",
     quota: c.quota,
     quotaUsed: c.quotaUsed,
-    avgSubsidence,
     businesses: (c.businesses ?? []).map((b) => ({
       id: b.id,
       name: b.name,

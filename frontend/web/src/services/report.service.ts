@@ -13,8 +13,8 @@ import { KADIS_RECENT_REPORTS } from "@/constants/mockData";
 const ADMIN_RECENT_REPORTS = [
   {
     id: "r1",
-    name: "Laporan Subsidence Q1 2026",
-    type: "Subsidence",
+    name: "Laporan Muka Air Tanah Q1 2026",
+    type: "Water Level",
     date: "15 Apr 2026",
     size: "2.4 MB",
     format: "PDF",

@@ -377,7 +377,7 @@ export default function AdminPerusahaanCompanyPage() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {stats.map((s) => {
           const Icon = s.icon;
           return (
@@ -397,7 +397,7 @@ export default function AdminPerusahaanCompanyPage() {
             </div>
           );
         })}
-      </div>
+      </div> */}
 
       {/* Quota bar */}
       {company.quota > 0 && (

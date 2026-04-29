@@ -1,7 +1,7 @@
 import { Building2, ChevronRight } from "lucide-react";
 import { SectionHeader } from "../../../components/ui";
 import { useCompanies } from "../../../hooks";
-import { cn, getQuotaPercent, getSubsidenceColor } from "../../../lib/utils";
+import { cn, getQuotaPercent } from "../../../lib/utils";
 import { useAppStore } from "../../../store";
 
 export default function KadisComplianceTable() {
@@ -35,21 +35,16 @@ export default function KadisComplianceTable() {
           <table className="w-full" style={{ minWidth: 480 }}>
             <thead className="bg-slate-50/60 border-b border-slate-100">
               <tr>
-                {[
-                  "Perusahaan",
-                  "Wilayah",
-                  "Subsidence",
-                  "Kuota",
-                  "Sensor",
-                  "Status",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    className="text-[9px] font-mono text-slate-400 uppercase tracking-wider px-4 py-2.5 text-left whitespace-nowrap"
-                  >
-                    {h}
-                  </th>
-                ))}
+                {["Perusahaan", "Wilayah", "Kuota", "Sensor", "Status"].map(
+                  (h) => (
+                    <th
+                      key={h}
+                      className="text-[9px] font-mono text-slate-400 uppercase tracking-wider px-4 py-2.5 text-left whitespace-nowrap"
+                    >
+                      {h}
+                    </th>
+                  ),
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -78,19 +73,6 @@ export default function KadisComplianceTable() {
                     </td>
                     <td className="px-4 py-2.5 text-[11px] text-slate-500 font-mono">
                       {c.region}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <span
-                        className={cn(
-                          "text-[11px] font-semibold font-mono",
-                          getSubsidenceColor(c.avgSubsidence),
-                        )}
-                      >
-                        {c.avgSubsidence.toFixed(2)}
-                      </span>
-                      <span className="text-[9px] text-slate-400 font-mono ml-1">
-                        cm/thn
-                      </span>
                     </td>
                     <td className="px-4 py-2.5">
                       <div className="flex items-center gap-2 min-w-[80px]">

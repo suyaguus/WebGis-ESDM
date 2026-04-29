@@ -4,7 +4,7 @@ import { SectionHeader, StatusPill } from "../../../components/ui";
 import SensorMap from "../../../components/map/SensorMap";
 import { useSensors } from "@/hooks/useSensors";
 import { useAuthStore } from "@/store";
-import { cn, getSubsidenceColor } from "../../../lib/utils";
+import { cn } from "../../../lib/utils";
 import type { Sensor } from "../../../types";
 
 export default function AdminMapSection() {
