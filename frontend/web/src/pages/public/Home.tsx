@@ -19,21 +19,11 @@ export default function HomePage({
               onClick={() => onNavigate("landing")}
               className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-50 ring-1 ring-cyan-200/80">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="h-5 w-5 text-cyan-700"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                >
-                  <path
-                    d="M9 20l-5.45-2.72A1 1 0 013 16.38V5.62a1 1 0 011.45-.9L9 7m0 13l6-3m-6 3V7m6 10l4.55 2.28A1 1 0 0021 18.38V7.62a1 1 0 00-.55-.9L15 4m0 13V4m0 0L9 7"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
+              <img
+                src="/logo-sigat-2.jpeg"
+                alt="SIGAT ESDM"
+                className="h-10 w-10 rounded-xl object-cover flex-shrink-0"
+              />
               <p className="font-semibold text-slate-800">SIGAT ESDM</p>
             </button>
 
