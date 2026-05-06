@@ -1,10 +1,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import {
-  getWaterLevelTrendLabel,
-  getWellTypeLabel,
-} from "@/lib/groundwater";
+import { getWellTypeLabel } from "@/lib/groundwater";
 import type { Sensor } from "@/types";
 
 interface PublicSensorMapProps {
@@ -12,20 +9,7 @@ interface PublicSensorMapProps {
   className?: string;
 }
 
-const MARKER_COLORS: Record<string, string> = {
-  sumur_pantau_online: "#3B82F6",
-  sumur_pantau_alert: "#EF4444",
-  sumur_pantau_maintenance: "#F59E0B",
-  sumur_pantau_offline: "#94A3B8",
-  sumur_gali_online: "#8B5CF6",
-  sumur_gali_alert: "#EF4444",
-  sumur_gali_maintenance: "#F59E0B",
-  sumur_gali_offline: "#94A3B8",
-  sumur_bor_online: "#06B6D4",
-  sumur_bor_alert: "#EF4444",
-  sumur_bor_maintenance: "#F59E0B",
-  sumur_bor_offline: "#94A3B8",
-};
+const PUBLIC_MARKER_COLOR = "#38BDF8";
 
 const KEYFRAMES = `
   @keyframes sa-pulse {
@@ -89,21 +73,10 @@ function makeIcon(color: string, status: Sensor["status"]): L.DivIcon {
 
 function buildPopup(sensor: Sensor, color: string): string {
   const typeLabel = getWellTypeLabel(sensor.wellType);
-  const statusLabel =
-    sensor.status.charAt(0).toUpperCase() + sensor.status.slice(1);
   const waterLevelCm =
     sensor.staticWaterLevel !== null && sensor.staticWaterLevel !== undefined
       ? (sensor.staticWaterLevel * 100).toFixed(2)
       : "-";
-  const trendLabel = sensor.waterLevelTrend
-    ? getWaterLevelTrendLabel(sensor.waterLevelTrend)
-    : "Tidak Diketahui";
-  const trendColor =
-    sensor.waterLevelTrend === "rising"
-      ? "#22C55E"
-      : sensor.waterLevelTrend === "falling"
-        ? "#F59E0B"
-        : "#3B82F6";
 
   return `
     <div style="font-family:'IBM Plex Mono',monospace;min-width:190px;max-width:220px;color:#0f172a;">
@@ -120,20 +93,8 @@ function buildPopup(sensor: Sensor, color: string): string {
           <td style="text-align:right;color:#475569;padding:1px 0;">${sensor.location}</td>
         </tr>
         <tr>
-          <td style="color:#94a3b8;padding:1px 0;">Perusahaan</td>
-          <td style="text-align:right;color:#475569;padding:1px 0;">${sensor.companyName}</td>
-        </tr>
-        <tr>
-          <td style="color:#94a3b8;padding:1px 0;">Status</td>
-          <td style="text-align:right;color:#475569;padding:1px 0;">${statusLabel}</td>
-        </tr>
-        <tr>
           <td style="color:#94a3b8;padding:1px 0;">Muka Air</td>
           <td style="text-align:right;color:#475569;padding:1px 0;">${waterLevelCm} cm</td>
-        </tr>
-        <tr>
-          <td style="color:#94a3b8;padding:1px 0;">Tren</td>
-          <td style="text-align:right;color:${trendColor};font-weight:600;padding:1px 0;">${trendLabel}</td>
         </tr>
       </table>
     </div>`;
@@ -203,8 +164,7 @@ export default function PublicSensorMap({
     );
 
     validSensors.forEach((sensor) => {
-      const color =
-        MARKER_COLORS[`${sensor.wellType}_${sensor.status}`] ?? "#94A3B8";
+      const color = PUBLIC_MARKER_COLOR;
       const markerIcon = makeIcon(color, sensor.status);
 
       const marker = L.marker([sensor.lat!, sensor.lng!], { icon: markerIcon })

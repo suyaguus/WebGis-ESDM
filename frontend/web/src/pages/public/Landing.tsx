@@ -8,12 +8,6 @@ interface LandingPageProps {
   onRegister: () => void;
 }
 
-const LEGEND_ITEMS = [
-  { color: "#3B82F6", label: "Sumur Pantau" },
-  { color: "#8B5CF6", label: "Sumur Gali" },
-  { color: "#06B6D4", label: "Sumur Bor" },
-  { color: "#94A3B8", label: "Offline" },
-];
 
 export default function LandingPage({
   onNavigate,
@@ -28,19 +22,6 @@ export default function LandingPage({
   const approvedSensors = useMemo(
     () => allSensors.filter((s) => s.wellStatus === "approved"),
     [allSensors],
-  );
-
-  const pantauCount = useMemo(
-    () => approvedSensors.filter((s) => s.wellType === "sumur_pantau").length,
-    [approvedSensors],
-  );
-  const galiCount = useMemo(
-    () => approvedSensors.filter((s) => s.wellType === "sumur_gali").length,
-    [approvedSensors],
-  );
-  const borCount = useMemo(
-    () => approvedSensors.filter((s) => s.wellType === "sumur_bor").length,
-    [approvedSensors],
   );
 
   useEffect(() => {
@@ -58,21 +39,11 @@ export default function LandingPage({
       <header className="absolute inset-x-0 top-0 z-[1100] px-4 pt-4 md:px-8 md:pt-6">
         <div className="pointer-events-auto mx-auto flex w-full max-w-7xl items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3 text-slate-800 backdrop-blur-md shadow-[0_14px_34px_rgba(15,23,42,0.14)] md:px-6 md:py-4">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-50 ring-1 ring-cyan-200/80">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="h-5 w-5 text-cyan-700"
-                stroke="currentColor"
-                strokeWidth="1.7"
-              >
-                <path
-                  d="M9 20l-5.45-2.72A1 1 0 013 16.38V5.62a1 1 0 011.45-.9L9 7m0 13l6-3m-6 3V7m6 10l4.55 2.28A1 1 0 0021 18.38V7.62a1 1 0 00-.55-.9L15 4m0 13V4m0 0L9 7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
+            <img
+              src="/logo-sigat-2.jpeg"
+              alt="SIGAT ESDM"
+              className="h-10 w-10 rounded-xl object-cover flex-shrink-0"
+            />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold tracking-[0.16em] md:text-base">
                 SIGAT ESDM
@@ -143,48 +114,6 @@ export default function LandingPage({
             </p>
           </div>
 
-          {/* Legend box */}
-          <div className="rounded-lg sm:rounded-xl border border-slate-200/80 bg-white/82 p-3 sm:p-4 text-slate-800 backdrop-blur-md shadow-[0_14px_30px_rgba(15,23,42,0.14)] w-full sm:w-auto sm:max-w-xs">
-            <p className="text-[9px] sm:text-[10px] font-mono tracking-widest text-slate-500 font-semibold mb-2">
-              LEGENDA
-            </p>
-            <div className="space-y-1.5 mb-2">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-[10px] sm:text-xs text-slate-500">
-                  Total Sumur
-                </span>
-                <span className="text-sm sm:text-base font-bold text-slate-800">
-                  {approvedSensors.length}
-                </span>
-              </div>
-            </div>
-            <div className="space-y-1">
-              {[
-                { color: "#3B82F6", label: "Sumur Pantau", count: pantauCount },
-                { color: "#8B5CF6", label: "Sumur Gali", count: galiCount },
-                { color: "#06B6D4", label: "Sumur Bor", count: borCount },
-              ].map(({ color, label, count }) => (
-                <div key={label} className="flex items-center gap-2">
-                  <div
-                    className="w-2 h-2 rounded-full flex-shrink-0"
-                    style={{ background: color }}
-                  />
-                  <span className="text-[10px] sm:text-xs text-slate-600 flex-1">
-                    {label}
-                  </span>
-                  <span className="text-[10px] sm:text-xs font-bold text-slate-800">
-                    {count}
-                  </span>
-                </div>
-              ))}
-              <div className="flex items-center gap-2 pt-0.5 border-t border-slate-100 mt-1">
-                <div className="w-2 h-2 rounded-full flex-shrink-0 bg-slate-400" />
-                <span className="text-[10px] sm:text-xs text-slate-400 flex-1">
-                  Offline
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
     </div>
