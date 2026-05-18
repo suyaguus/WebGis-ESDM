@@ -52,11 +52,11 @@ function LeftPanel() {
       </div>
       <div>
         <h1 className="text-white font-bold text-3xl leading-snug">
-          Sistem Pemantauan
+          Sistem Informasi
+          <br />
+          Geologi &
           <br />
           Air Tanah
-          <br />
-          Terpadu Industri
         </h1>
         <p className="text-cyan-100 text-sm mt-4 leading-relaxed">
           Platform pemantauan real-time sensor air tanah
